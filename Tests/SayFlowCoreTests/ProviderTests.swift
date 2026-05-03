@@ -12,6 +12,7 @@ enum ProviderTests {
             .miniMax,
             .doubao,
             .nvidia,
+            .zAiCN,
             .custom
         ])
         try expectEqual(providers.first(where: { $0.kind == .openAI })?.defaultModel, "gpt-4o-mini")
@@ -19,20 +20,30 @@ enum ProviderTests {
         try expectEqual(providers.first(where: { $0.kind == .mimo })?.defaultModel, "mimo-v2.5")
         try expectEqual(providers.first(where: { $0.kind == .mimo })?.defaultBaseURL, "https://api.mimo-v2.com/v1")
         try expectEqual(providers.first(where: { $0.kind == .kimi })?.defaultModel, "kimi-latest")
-        try expectEqual(providers.first(where: { $0.kind == .miniMax })?.defaultModel, "abab6.5s-chat")
+        try expectEqual(providers.first(where: { $0.kind == .miniMax })?.defaultModel, "MiniMax-M2.7-highspeed")
+        try expectEqual(providers.first(where: { $0.kind == .miniMax })?.defaultBaseURL, "https://api.minimaxi.com/v1")
         try expectEqual(providers.first(where: { $0.kind == .doubao })?.defaultModel, "doubao-1-5-pro")
         try expectEqual(providers.first(where: { $0.kind == .nvidia })?.displayName, "NVIDIA")
         try expectEqual(providers.first(where: { $0.kind == .nvidia })?.defaultBaseURL, "https://integrate.api.nvidia.com/v1")
         try expectEqual(providers.first(where: { $0.kind == .nvidia })?.defaultModel, "deepseek-ai/deepseek-v4-flash")
+        try expectEqual(providers.first(where: { $0.kind == .zAiCN })?.displayName, "Z.ai(CN)")
+        try expectEqual(providers.first(where: { $0.kind == .zAiCN })?.defaultBaseURL, "https://open.bigmodel.cn/api/paas/v4")
+        try expectEqual(providers.first(where: { $0.kind == .zAiCN })?.defaultModel, "GLM-5.1")
+        try expectEqual(ProviderConfiguration.defaults().first(where: { $0.kind == .zAiCN })?.temperature, 0.9)
         try expectEqual(providers.first(where: { $0.kind == .custom })?.protocolName, "OpenAI Compatible")
     }
 
-    static func nvidiaProviderExposesRecommendedModelOptions() throws {
+    static func providerExposesRecommendedModelOptions() throws {
         try expectEqual(ProviderModelOptions.recommendedModels(for: .nvidia), [
             "deepseek-ai/deepseek-v4-pro",
             "moonshotai/kimi-k2.6",
             "z-ai/glm-5.1",
             "deepseek-ai/deepseek-v4-flash"
+        ])
+        try expectEqual(ProviderModelOptions.recommendedModels(for: .zAiCN), [
+            "GLM-5.1",
+            "GLM-5-Turbo",
+            "GLM-4.7-FlashX"
         ])
         try expectEqual(ProviderModelOptions.recommendedModels(for: .custom), [])
     }
@@ -51,6 +62,10 @@ enum ProviderTests {
         try expectEqual(
             providers.first(where: { $0.kind == .nvidia })?.apiKeyReference,
             "env://SAYFLOW_NVIDIA_API_KEY"
+        )
+        try expectEqual(
+            providers.first(where: { $0.kind == .zAiCN })?.apiKeyReference,
+            "env://SAYFLOW_Z_AI_CN_API_KEY"
         )
     }
 
@@ -84,6 +99,10 @@ enum ProviderTests {
         try expectEqual(
             ProviderSecretReference.normalized("keychain://provider/nvidia", kind: .nvidia),
             "env://SAYFLOW_NVIDIA_API_KEY"
+        )
+        try expectEqual(
+            ProviderSecretReference.normalized("keychain://provider/zAiCN", kind: .zAiCN),
+            "env://SAYFLOW_Z_AI_CN_API_KEY"
         )
     }
 
@@ -245,6 +264,39 @@ enum ProviderTests {
         try expectEqual(request.value(forHTTPHeaderField: "api-key"), "mimo-key")
     }
 
+    static func miniMaxRequestUsesCurrentChatCompletionsShape() throws {
+        let config = ProviderConfiguration(
+            id: "miniMax",
+            kind: .miniMax,
+            displayName: "MiniMax",
+            apiKeyReference: "env://SAYFLOW_MINIMAX_API_KEY",
+            apiKeyPlaintextForTesting: "minimax-redacted-key",
+            baseURL: "https://api.minimaxi.com/v1",
+            model: "MiniMax-M2.7-highspeed",
+            temperature: 0.2,
+            isActive: true
+        )
+
+        let request = try OpenAIRequestFactory.makeRequest(
+            configuration: config,
+            prompt: PromptTemplate(system: "Return JSON for {{text}}", user: "{{text}}"),
+            selectedText: "你好"
+        )
+
+        try expectEqual(request.url, URL(string: "https://api.minimaxi.com/v1/chat/completions"))
+        try expectEqual(request.value(forHTTPHeaderField: "Authorization"), "Bearer minimax-redacted-key")
+        try expectEqual(request.value(forHTTPHeaderField: "Content-Type"), "application/json")
+        let body = try unwrap(request.httpBody)
+        let json = try unwrap(JSONSerialization.jsonObject(with: body) as? [String: Any])
+        try expectEqual(json["model"] as? String, "MiniMax-M2.7-highspeed")
+        try expectNil(json["stream"])
+        try expectNil(json["temperature"])
+        try expectNil(json["response_format"])
+        let messages = try unwrap(json["messages"] as? [[String: String]])
+        try expectEqual(messages[0], ["role": "system", "content": "Return JSON for 你好", "name": "MiniMax AI"])
+        try expectEqual(messages[1], ["role": "user", "content": "你好", "name": "用户"])
+    }
+
     static func nvidiaRequestUsesOpenAICompatibleChatCompletions() throws {
         let config = ProviderConfiguration(
             id: "nvidia",
@@ -271,6 +323,40 @@ enum ProviderTests {
         let json = try unwrap(JSONSerialization.jsonObject(with: body) as? [String: Any])
         try expectEqual(json["model"] as? String, "deepseek-ai/deepseek-v4-flash")
         try expectEqual(json["temperature"] as? Double, 0.6)
+    }
+
+    static func zAiCNRequestUsesBigModelChatCompletionsShape() throws {
+        let config = ProviderConfiguration(
+            id: "zAiCN",
+            kind: .zAiCN,
+            displayName: "Z.ai(CN)",
+            apiKeyReference: "env://SAYFLOW_Z_AI_CN_API_KEY",
+            apiKeyPlaintextForTesting: "z-ai-cn-redacted-key",
+            baseURL: "https://open.bigmodel.cn/api/paas/v4",
+            model: "GLM-5.1",
+            temperature: 0.9,
+            isActive: true
+        )
+
+        let request = try OpenAIRequestFactory.makeRequest(
+            configuration: config,
+            prompt: PromptTemplate(system: "你是一个聪明且富有创造力的小说作家", user: "{{text}}"),
+            selectedText: "请你作为童话故事大王，写一篇短篇童话故事"
+        )
+
+        try expectEqual(request.url, URL(string: "https://open.bigmodel.cn/api/paas/v4/chat/completions"))
+        try expectEqual(request.value(forHTTPHeaderField: "Authorization"), "Bearer z-ai-cn-redacted-key")
+        try expectEqual(request.value(forHTTPHeaderField: "Content-Type"), "application/json")
+        let body = try unwrap(request.httpBody)
+        let json = try unwrap(JSONSerialization.jsonObject(with: body) as? [String: Any])
+        try expectEqual(json["model"] as? String, "GLM-5.1")
+        try expectEqual(json["temperature"] as? Double, 0.9)
+        try expectEqual(json["top_p"] as? Double, 0.7)
+        try expectNil(json["stream"])
+        try expectNil(json["response_format"])
+        let messages = try unwrap(json["messages"] as? [[String: String]])
+        try expectEqual(messages[0], ["role": "system", "content": "你是一个聪明且富有创造力的小说作家"])
+        try expectEqual(messages[1], ["role": "user", "content": "请你作为童话故事大王，写一篇短篇童话故事"])
     }
 
     static func providerSettingsValidationRequiresHTTPSBaseURLAndModel() throws {

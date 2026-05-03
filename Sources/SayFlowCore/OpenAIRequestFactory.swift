@@ -44,16 +44,11 @@ public enum OpenAIRequestFactory {
         let body: [String: Any]
         switch endpoint.kind {
         case .chatCompletions:
-            body = [
-                "model": configuration.model,
-                "temperature": configuration.temperature,
-                "stream": true,
-                "response_format": ["type": "json_object"],
-                "messages": [
-                    ["role": "system", "content": prompt.renderSystem(text: selectedText)],
-                    ["role": "user", "content": prompt.renderUser(text: selectedText)]
-                ]
-            ]
+            body = chatCompletionsBody(
+                configuration: configuration,
+                prompt: prompt,
+                selectedText: selectedText
+            )
         case .responses:
             body = [
                 "model": configuration.model,
@@ -68,6 +63,57 @@ public enum OpenAIRequestFactory {
         }
         request.httpBody = try JSONSerialization.data(withJSONObject: body, options: [.sortedKeys])
         return request
+    }
+
+    private static func chatCompletionsBody(
+        configuration: ProviderConfiguration,
+        prompt: PromptTemplate,
+        selectedText: String
+    ) -> [String: Any] {
+        if configuration.kind == .zAiCN {
+            return [
+                "model": configuration.model,
+                "messages": [
+                    [
+                        "role": "system",
+                        "content": prompt.renderSystem(text: selectedText)
+                    ],
+                    [
+                        "role": "user",
+                        "content": prompt.renderUser(text: selectedText)
+                    ]
+                ],
+                "top_p": 0.7,
+                "temperature": configuration.temperature
+            ]
+        }
+        if configuration.kind == .miniMax {
+            return [
+                "model": configuration.model,
+                "messages": [
+                    [
+                        "role": "system",
+                        "content": prompt.renderSystem(text: selectedText),
+                        "name": "MiniMax AI"
+                    ],
+                    [
+                        "role": "user",
+                        "content": prompt.renderUser(text: selectedText),
+                        "name": "用户"
+                    ]
+                ]
+            ]
+        }
+        return [
+            "model": configuration.model,
+            "temperature": configuration.temperature,
+            "stream": true,
+            "response_format": ["type": "json_object"],
+            "messages": [
+                ["role": "system", "content": prompt.renderSystem(text: selectedText)],
+                ["role": "user", "content": prompt.renderUser(text: selectedText)]
+            ]
+        ]
     }
 }
 

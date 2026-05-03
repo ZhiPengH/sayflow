@@ -203,7 +203,11 @@ public struct AppSettings: Codable, Equatable {
                 existingBaseURL: existing.baseURL,
                 currentDefaultBaseURL: defaultProvider.baseURL
             )
-            merged.model = existing.model
+            merged.model = ProviderLegacyDefaultMigrator.migratedModel(
+                kind: existing.kind,
+                existingModel: existing.model,
+                currentDefaultModel: defaultProvider.model
+            )
             merged.temperature = existing.temperature
             merged.isActive = existing.isActive
             return merged
@@ -227,7 +231,19 @@ public enum ProviderLegacyDefaultMigrator {
            existingBaseURL.trimmingCharacters(in: .whitespacesAndNewlines) == "https://api.mimo.mi.com/v1" {
             return currentDefaultBaseURL
         }
+        if kind == .miniMax,
+           existingBaseURL.trimmingCharacters(in: .whitespacesAndNewlines) == "https://api.minimax.chat/v1" {
+            return currentDefaultBaseURL
+        }
         return existingBaseURL
+    }
+
+    public static func migratedModel(kind: ProviderKind, existingModel: String, currentDefaultModel: String) -> String {
+        if kind == .miniMax,
+           existingModel.trimmingCharacters(in: .whitespacesAndNewlines) == "abab6.5s-chat" {
+            return currentDefaultModel
+        }
+        return existingModel
     }
 }
 

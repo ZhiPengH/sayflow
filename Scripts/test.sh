@@ -22,10 +22,10 @@ grep -q 'fail "SayFlow app is not running' Scripts/manual_acceptance_probe.sh
 ! grep -q 'https://api.mimo.mi.com/v1' Scripts/configure_debug_provider.sh
 grep -q 'APP_NAME="${APP_NAME:-SayFlow}"' Scripts/build_app.sh
 grep -q 'DIST="${DIST:-$ROOT/dist}"' Scripts/build_app.sh
-grep -q 'VERSION="${VERSION:-1.2.0}"' Scripts/build_app.sh
-grep -q 'VERSION="${VERSION:-1.2.0}"' Scripts/package_dmg.sh
-grep -q 'VERSION="${VERSION:-1.2.0}"' Scripts/verify_package.sh
-grep -q 'Version 1.2.0' Sources/SayFlowCore/Localization.swift
+grep -q 'VERSION="${VERSION:-1.2.1}"' Scripts/build_app.sh
+grep -q 'VERSION="${VERSION:-1.2.1}"' Scripts/package_dmg.sh
+grep -q 'VERSION="${VERSION:-1.2.1}"' Scripts/verify_package.sh
+grep -q 'Version 1.2.1' Sources/SayFlowCore/Localization.swift
 test -f assets/AppIcon.iconset/icon_512x512@2x.png
 test -f assets/SayFlow.icns
 test -f assets/MenuBarIcon.pdf
@@ -75,6 +75,9 @@ grep -q 'ProviderModelOptions.recommendedModels' Sources/SayFlow/SettingsWindow.
 grep -q 'SAYFLOW_NVIDIA_API_KEY' Sources/SayFlowCore/Provider.swift
 grep -q 'https://integrate.api.nvidia.com/v1' Sources/SayFlowCore/Provider.swift
 grep -q 'deepseek-ai/deepseek-v4-flash' Sources/SayFlowCore/Provider.swift
+grep -q 'SAYFLOW_Z_AI_CN_API_KEY' Sources/SayFlowCore/Provider.swift
+grep -q 'https://open.bigmodel.cn/api/paas/v4' Sources/SayFlowCore/Provider.swift
+grep -q 'GLM-4.7-FlashX' Sources/SayFlowCore/Provider.swift
 ! rg -q 'nvapi-[A-Za-z0-9]' .
 ! grep -q 'KeychainStore' Sources/SayFlow/AppServices.swift Sources/SayFlow/SettingsWindow.swift Sources/SayFlow/SayFlowAppDelegate.swift
 ! grep -q 'import Security' Sources/SayFlow/AppServices.swift

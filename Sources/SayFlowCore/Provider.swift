@@ -8,6 +8,7 @@ public enum ProviderKind: String, Codable, CaseIterable, Equatable {
     case miniMax
     case doubao
     case nvidia
+    case zAiCN
     case custom
 }
 
@@ -32,19 +33,22 @@ public struct ProviderDefinition: Codable, Equatable {
     public var defaultModel: String
     public var defaultBaseURL: String
     public var protocolName: String
+    public var defaultTemperature: Double
 
     public init(
         kind: ProviderKind,
         displayName: String,
         defaultModel: String,
         defaultBaseURL: String,
-        protocolName: String = "OpenAI Compatible"
+        protocolName: String = "OpenAI Compatible",
+        defaultTemperature: Double = 0.2
     ) {
         self.kind = kind
         self.displayName = displayName
         self.defaultModel = defaultModel
         self.defaultBaseURL = defaultBaseURL
         self.protocolName = protocolName
+        self.defaultTemperature = defaultTemperature
     }
 }
 
@@ -78,8 +82,8 @@ public enum ProviderCatalog {
         ProviderDefinition(
             kind: .miniMax,
             displayName: "MiniMax",
-            defaultModel: "abab6.5s-chat",
-            defaultBaseURL: "https://api.minimax.chat/v1"
+            defaultModel: "MiniMax-M2.7-highspeed",
+            defaultBaseURL: "https://api.minimaxi.com/v1"
         ),
         ProviderDefinition(
             kind: .doubao,
@@ -92,6 +96,13 @@ public enum ProviderCatalog {
             displayName: "NVIDIA",
             defaultModel: "deepseek-ai/deepseek-v4-flash",
             defaultBaseURL: "https://integrate.api.nvidia.com/v1"
+        ),
+        ProviderDefinition(
+            kind: .zAiCN,
+            displayName: "Z.ai(CN)",
+            defaultModel: "GLM-5.1",
+            defaultBaseURL: "https://open.bigmodel.cn/api/paas/v4",
+            defaultTemperature: 0.9
         ),
         ProviderDefinition(
             kind: .custom,
@@ -112,6 +123,12 @@ public enum ProviderModelOptions {
                 "moonshotai/kimi-k2.6",
                 "z-ai/glm-5.1",
                 "deepseek-ai/deepseek-v4-flash"
+            ]
+        case .zAiCN:
+            return [
+                "GLM-5.1",
+                "GLM-5-Turbo",
+                "GLM-4.7-FlashX"
             ]
         default:
             return []
@@ -136,6 +153,8 @@ public enum ProviderSecretReference {
             return "SAYFLOW_DOUBAO_API_KEY"
         case .nvidia:
             return "SAYFLOW_NVIDIA_API_KEY"
+        case .zAiCN:
+            return "SAYFLOW_Z_AI_CN_API_KEY"
         case .custom:
             return "SAYFLOW_CUSTOM_API_KEY"
         }
@@ -279,7 +298,7 @@ public struct ProviderConfiguration: Codable, Equatable, Identifiable {
                 apiKeyReference: ProviderSecretReference.reference(for: definition.kind),
                 baseURL: definition.defaultBaseURL,
                 model: definition.defaultModel,
-                temperature: 0.2,
+                temperature: definition.defaultTemperature,
                 isActive: index == 0
             )
         }

@@ -5,7 +5,7 @@ struct SayFlowCoreTestRunner {
     static func main() {
         let tests: [TestCase] = [
             TestCase(name: "Provider defaults", run: ProviderTests.defaultCatalogContainsRequiredProvidersWithExpectedDefaults),
-            TestCase(name: "NVIDIA model options", run: ProviderTests.nvidiaProviderExposesRecommendedModelOptions),
+            TestCase(name: "Provider model options", run: ProviderTests.providerExposesRecommendedModelOptions),
             TestCase(name: "Provider secret references", run: ProviderTests.providerDefaultsUseLocalEnvironmentSecretReferences),
             TestCase(name: "Local env secret file updates", run: ProviderTests.localEnvironmentFileUpdatesSecretsWithoutDuplicatingKeys),
             TestCase(name: "Legacy secret references migrate", run: ProviderTests.localEnvironmentSecretReferencesMigrateLegacyKeychainReferences),
@@ -16,7 +16,9 @@ struct SayFlowCoreTestRunner {
             TestCase(name: "Responses API request body", run: ProviderTests.requestFactoryBuildsResponsesAPIStreamingJSONRequest),
             TestCase(name: "Configurable request timeout", run: ProviderTests.requestFactoryUsesConfigurableTimeout),
             TestCase(name: "MiMo API key header", run: ProviderTests.mimoRequestAlsoSendsAPIKeyHeader),
+            TestCase(name: "MiniMax request body", run: ProviderTests.miniMaxRequestUsesCurrentChatCompletionsShape),
             TestCase(name: "NVIDIA request body", run: ProviderTests.nvidiaRequestUsesOpenAICompatibleChatCompletions),
+            TestCase(name: "Z.ai(CN) request body", run: ProviderTests.zAiCNRequestUsesBigModelChatCompletionsShape),
             TestCase(name: "Provider settings validation", run: ProviderTests.providerSettingsValidationRequiresHTTPSBaseURLAndModel),
             TestCase(name: "Provider connection probe request", run: ProviderConnectionTestRequestFactoryTests.buildsProbeRequestFromCurrentProviderFields),
             TestCase(name: "Default prompt template", run: PromptTemplateTests.defaultTemplateMatchesGrammarCorrectionContract),
@@ -78,6 +80,7 @@ struct SayFlowCoreTestRunner {
             TestCase(name: "Settings restore missing default providers", run: AppSettingsTests.settingsStoreRestoresMissingDefaultProvidersOnLoad),
             TestCase(name: "Settings migrate provider secret refs", run: AppSettingsTests.settingsStoreMigratesProviderSecretReferencesToLocalEnvironment),
             TestCase(name: "Settings migrate legacy MiMo default URL", run: AppSettingsTests.settingsStoreMigratesLegacyMimoDefaultBaseURLWithoutOverwritingCustomURL),
+            TestCase(name: "Settings migrate legacy MiniMax defaults", run: AppSettingsTests.settingsStoreMigratesLegacyMiniMaxDefaultsWithoutOverwritingCustomValues),
             TestCase(name: "General settings clamp external network timeout", run: AppSettingsTests.generalSettingsClampExternallyEditedNetworkTimeout),
             TestCase(name: "General settings default missing accessibility onboarding flag for existing settings", run: AppSettingsTests.generalSettingsDefaultMissingAccessibilityOnboardingFlagToTrueForExistingSettings),
             TestCase(name: "General settings preserve accessibility onboarding flag", run: AppSettingsTests.generalSettingsPreserveAccessibilityOnboardingFlag),

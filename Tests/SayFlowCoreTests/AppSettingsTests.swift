@@ -227,6 +227,41 @@ enum AppSettingsTests {
         )
     }
 
+    static func settingsStoreMigratesLegacyMiniMaxDefaultsWithoutOverwritingCustomValues() throws {
+        let directory = try TemporaryDirectory()
+        let store = AppSettingsStore(applicationSupportDirectory: directory.url)
+        var settings = AppSettings.defaults()
+        let miniMaxIndex = try unwrap(settings.providers.firstIndex(where: { $0.kind == .miniMax }))
+        settings.providers[miniMaxIndex].baseURL = "https://api.minimax.chat/v1"
+        settings.providers[miniMaxIndex].model = "abab6.5s-chat"
+
+        try store.save(settings)
+        let migrated = try store.load()
+
+        try expectEqual(
+            migrated.providers.first(where: { $0.kind == .miniMax })?.baseURL,
+            "https://api.minimaxi.com/v1"
+        )
+        try expectEqual(
+            migrated.providers.first(where: { $0.kind == .miniMax })?.model,
+            "MiniMax-M2.7-highspeed"
+        )
+
+        settings.providers[miniMaxIndex].baseURL = "https://custom-minimax.example.com/v1"
+        settings.providers[miniMaxIndex].model = "custom-minimax-model"
+        try store.save(settings)
+        let custom = try store.load()
+
+        try expectEqual(
+            custom.providers.first(where: { $0.kind == .miniMax })?.baseURL,
+            "https://custom-minimax.example.com/v1"
+        )
+        try expectEqual(
+            custom.providers.first(where: { $0.kind == .miniMax })?.model,
+            "custom-minimax-model"
+        )
+    }
+
     static func generalSettingsClampExternallyEditedNetworkTimeout() throws {
         let low = try decodeGeneralSettings(networkTimeoutSeconds: 0)
         let high = try decodeGeneralSettings(networkTimeoutSeconds: 999)
