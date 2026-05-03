@@ -20,4 +20,10 @@ enum PopupPanelSizerTests {
 
         try expectEqual(size, CGSize(width: 540, height: 220))
     }
+
+    static func goodToKnowTextWrapsInsideFixedLoadingPanelWidth() throws {
+        try expectEqual(ResultPanelLayoutMetrics.panelWidth, 540)
+        try expectEqual(ResultPanelLayoutMetrics.contentTextWidth, 504)
+        try expectEqual(ResultPanelLayoutMetrics.goodToKnowTextWidth, 480)
+    }
 }

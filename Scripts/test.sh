@@ -12,6 +12,7 @@ for script in Scripts/*.sh; do
 done
 test -x Scripts/verify_package.sh
 test -x Scripts/ax_selected_text_probe.sh
+test -x Scripts/run_manual_test_app.sh
 grep -q 'mktemp -d /private/tmp/graker-dmg.XXXXXX' Scripts/verify_package.sh
 grep -q 'graker_accessibility_permission_alert_visible' Scripts/manual_acceptance_probe.sh
 grep -q '需要辅助功能权限' Scripts/manual_acceptance_probe.sh
@@ -20,12 +21,15 @@ grep -q 'https://api.mimo-v2.com/v1' Scripts/configure_debug_provider.sh
 ! grep -q 'https://api.mimo.mi.com/v1' Scripts/configure_debug_provider.sh
 grep -q 'APP_NAME="${APP_NAME:-Graker}"' Scripts/build_app.sh
 grep -q 'DIST="${DIST:-$ROOT/dist}"' Scripts/build_app.sh
-grep -q 'VERSION="${VERSION:-1.0.1}"' Scripts/build_app.sh
-grep -q 'VERSION="${VERSION:-1.0.1}"' Scripts/package_dmg.sh
-grep -q 'VERSION="${VERSION:-1.0.1}"' Scripts/verify_package.sh
-grep -q 'Version 1.0.1' Sources/GrakerCore/Localization.swift
+grep -q 'VERSION="${VERSION:-1.0.2}"' Scripts/build_app.sh
+grep -q 'VERSION="${VERSION:-1.0.2}"' Scripts/package_dmg.sh
+grep -q 'VERSION="${VERSION:-1.0.2}"' Scripts/verify_package.sh
+grep -q 'Version 1.0.2' Sources/GrakerCore/Localization.swift
+grep -q 'ResultPanelLayoutMetrics.panelWidth' Sources/Graker/ResultPanel.swift
+grep -q 'applyWrappingConstraints()' Sources/Graker/ResultPanel.swift
 grep -q 'CODESIGN_IDENTITY="${CODESIGN_IDENTITY:-Graker Local Development}"' Scripts/build_app.sh
 grep -q 'ensure_codesign_identity.sh' Scripts/package_dmg.sh
+grep -q 'dist/Graker.app' Scripts/run_manual_test_app.sh
 grep -q 'Signature=adhoc' Scripts/verify_package.sh
 CODESIGN_IDENTITY=- APP_NAME=TestApp IDENTIFIER=com.hzp.testapp DIST="$ROOT/build" UNIVERSAL=0 Scripts/build_app.sh >/tmp/graker-test-app-build.log
 test -d build/TestApp.app

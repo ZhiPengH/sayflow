@@ -159,9 +159,11 @@ final class ResultPanelView: NSView, NSTextViewDelegate {
     }
 
     func fittingPanelSize(screenFrame: CGRect) -> CGSize {
+        frame.size.width = ResultPanelLayoutMetrics.panelWidth
+        applyWrappingConstraints()
         layoutSubtreeIfNeeded()
         return PopupPanelSizer.size(
-            width: 540,
+            width: ResultPanelLayoutMetrics.panelWidth,
             contentHeight: root.fittingSize.height + 28,
             screenHeight: screenFrame.height
         )
@@ -319,6 +321,9 @@ final class ResultPanelView: NSView, NSTextViewDelegate {
         correctedView.drawsBackground = false
         correctedView.delegate = self
         correctedView.font = .systemFont(ofSize: 18)
+        correctedView.isHorizontallyResizable = false
+        correctedView.textContainer?.widthTracksTextView = true
+        correctedView.textContainer?.lineFragmentPadding = 0
         correctedView.textContainerInset = NSSize(width: 0, height: 0)
         correctedView.linkTextAttributes = [
             .foregroundColor: NSColor.labelColor,
@@ -330,6 +335,7 @@ final class ResultPanelView: NSView, NSTextViewDelegate {
         glossLabel.font = .systemFont(ofSize: 13)
         glossLabel.textColor = .secondaryLabelColor
         glossLabel.maximumNumberOfLines = 0
+        glossLabel.lineBreakMode = .byWordWrapping
         root.addArrangedSubview(glossLabel)
 
         goodCard.boxType = .custom
@@ -339,6 +345,7 @@ final class ResultPanelView: NSView, NSTextViewDelegate {
         goodLabel.font = .systemFont(ofSize: 13)
         goodLabel.textColor = NSColor.brown
         goodLabel.maximumNumberOfLines = 0
+        goodLabel.lineBreakMode = .byWordWrapping
         goodLabel.translatesAutoresizingMaskIntoConstraints = false
         goodCard.contentView?.addSubview(goodLabel)
         if let contentView = goodCard.contentView {
@@ -362,6 +369,14 @@ final class ResultPanelView: NSView, NSTextViewDelegate {
         rawResponseButton.isHidden = true
         root.addArrangedSubview(rawResponseButton)
         root.addArrangedSubview(rawResponseView)
+    }
+
+    private func applyWrappingConstraints() {
+        let contentTextWidth = ResultPanelLayoutMetrics.contentTextWidth
+        let goodToKnowTextWidth = ResultPanelLayoutMetrics.goodToKnowTextWidth
+        correctedView.textContainer?.containerSize = NSSize(width: contentTextWidth, height: CGFloat.greatestFiniteMagnitude)
+        glossLabel.preferredMaxLayoutWidth = contentTextWidth
+        goodLabel.preferredMaxLayoutWidth = goodToKnowTextWidth
     }
 
     private func updateRawResponse(_ raw: String?) {

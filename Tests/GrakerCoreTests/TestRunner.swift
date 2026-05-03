@@ -41,6 +41,7 @@ struct GrakerCoreTestRunner {
             TestCase(name: "Popup oversized panel fits screen", run: PopupPositionerTests.oversizedPanelIsReducedToFitWithinScreenInsets),
             TestCase(name: "Popup panel height limit", run: PopupPanelSizerTests.clampsPanelHeightToSixtyPercentOfActiveScreen),
             TestCase(name: "Popup panel minimum height", run: PopupPanelSizerTests.keepsMinimumHeightForShortContent),
+            TestCase(name: "Good to know wraps inside fixed panel width", run: PopupPanelSizerTests.goodToKnowTextWrapsInsideFixedLoadingPanelWidth),
             TestCase(name: "SSE content parsing", run: SSEParserTests.parsesOpenAICompatibleStreamingContentChunks),
             TestCase(name: "Responses stream parsing", run: SSEParserTests.parsesResponsesAPIStreamingContentChunks),
             TestCase(name: "Responses completed full output parsing", run: SSEParserTests.parsesResponsesCompletedEventWithFullOutputWhenNoDeltasArrived),
