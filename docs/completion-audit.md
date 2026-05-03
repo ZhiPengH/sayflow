@@ -1,6 +1,6 @@
-# Graker PRD Completion Audit
+# SayFlow PRD Completion Audit
 
-Objective: implement `graker-clone-prd.md` as a macOS menu-bar grammar correction app for macOS 13.0+.
+Objective: implement `sayflow-prd.md` as a macOS menu-bar grammar correction app for macOS 13.0+.
 
 This audit separates implementation evidence from manual gates. A green script is not treated as final completion unless it covers the PRD requirement directly.
 
@@ -8,9 +8,9 @@ This audit separates implementation evidence from manual gates. A green script i
 
 Last verified commands:
 
-- `Scripts/test.sh`: passes 82 GrakerCore tests, validates packaging/probe script invariants, validates the debug-provider bootstrap uses the current MiMo default endpoint, and runs `swift build`.
-- `Scripts/verify_package.sh`: verifies app bundle, signing, `x86_64 arm64`, `LSUIElement=true`, `LSMinimumSystemVersion=13.0`, DMG SHA-256, DMG size below 30 MB, and DMG contents. Latest verified DMG SHA-256: `cb2fbcbc7a93d77f0cc5fb879a2d41dd0b22b57b66ad9b3becf2a6853dfbd329`.
-- `Scripts/manual_acceptance_probe.sh`: verifies bundle, expected running app path, signing, provider settings, Keychain reference, package presence, and whether the running Graker app is still showing Accessibility onboarding/runtime permission alerts. Latest run fails because `dist/Graker.app` is still showing an Accessibility permission alert.
+- `Scripts/test.sh`: passes 92 SayFlowCore tests, validates packaging/probe script invariants, validates the debug-provider bootstrap uses the current MiMo default endpoint, and runs `swift build`.
+- `Scripts/verify_package.sh`: verifies app bundle, signing, `x86_64 arm64`, `LSUIElement=true`, `LSMinimumSystemVersion=13.0`, DMG SHA-256, DMG size below 30 MB, and DMG contents. Latest ad-hoc v1.1.0 DMG SHA-256: `54f77df1cbac1479f73f0c4bf87c51fecf058b9c3ddaa742638321f72eb34355`; release verification still requires a stable code-signing identity.
+- `Scripts/manual_acceptance_probe.sh`: verifies bundle, expected running app path, signing, provider settings, Keychain reference, package presence, and whether the running SayFlow app is still showing Accessibility onboarding/runtime permission alerts. Latest run fails because `dist/SayFlow.app` is still showing an Accessibility permission alert.
 - `Scripts/ax_selected_text_probe.sh`: verifies selected-text capture in target apps through Accessibility, including Safari/WebKit text-marker fallback.
 
 ## Requirement Matrix
@@ -21,12 +21,12 @@ Last verified commands:
 | macOS 13.0+ | `Scripts/verify_package.sh` checks `LSMinimumSystemVersion=13.0` | Automated verified |
 | Universal Apple Silicon + Intel binary | `Scripts/package_dmg.sh`, `Scripts/verify_package.sh` checks `x86_64 arm64` | Automated verified |
 | DMG package with SHA-256 | `Scripts/package_dmg.sh`, `Scripts/verify_package.sh` | Automated verified |
-| Accessibility onboarding explains read/replace purpose | `Sources/Graker/GrakerAppDelegate.swift`, `Sources/GrakerCore/Localization.swift`; observed in app UI | Implemented, manually observed |
+| Accessibility onboarding explains read/replace purpose | `Sources/SayFlow/SayFlowAppDelegate.swift`, `Sources/SayFlowCore/Localization.swift`; observed in app UI | Implemented, manually observed |
 | Accessibility selected-text capture | `AccessibilityTextService`, `TextCaptureResolverTests`, `Scripts/ax_selected_text_probe.sh` | Capture-only verified; full trigger still manual |
-| Selection hot zone / selection-trigger wording | `SelectionHotZonePolicy`, `SelectionHotZonePolicyTests`, `SelectionHotZoneController`, `GrakerAppDelegate.startSelectionHotZoneMonitor()` | Implemented; UI behavior still manual |
+| Selection hot zone / selection-trigger wording | `SelectionHotZonePolicy`, `SelectionHotZonePolicyTests`, `SelectionHotZoneController`, `SayFlowAppDelegate.startSelectionHotZoneMonitor()` | Implemented; UI behavior still manual |
 | Safari/WebKit selected-text fallback | `AccessibilityTextService.selectedTextFromTextMarkerRange`, `Scripts/ax_selected_text_probe.sh` | Capture-only verified |
 | Clipboard fallback after Accessibility miss | `TextCaptureResolver`, `TextCaptureResolverTests` | Automated verified |
-| Default global shortcut `Option+G`, editable in General | `HotKeyConfiguration.defaultOptionG`, `HotKeyParserTests`, settings UI | Registration logic verified; physical hotkey delivery still manual |
+| Default global shortcut `Control+Command+S`, editable in General | `HotKeyConfiguration.defaultControlCommandS`, `HotKeyParserTests`, settings UI | Registration logic verified; physical hotkey delivery still manual |
 | Single grammar-correction mode only; no translation/explanation/OCR/history feature surface | `PromptTemplate`, `SettingsWindow` tab layout, `ResultPanel`; repository search shows no alternate mode UI | Implemented; manual UI pass still pending |
 | Provider catalog: OpenAI, DeepSeek, MiMo, Kimi, MiniMax, Doubao, Custom | `ProviderCatalog`, `ProviderTests`; MiMo default endpoint follows current MiMo OpenAI-compatible API docs | Automated verified |
 | Base URL and full `/chat/completions` endpoint normalization | `EndpointNormalizer`, `ProviderTests` | Automated verified |
@@ -59,7 +59,7 @@ Last verified commands:
 | API errors include HTTP status and provider/raw message | `OpenAIHTTPErrorMessage`, `OpenAIHTTPErrorMessageTests`, `OpenAIStreamingClient`; raw body still available in Raw response | Automated verified; live failure scenario not yet verified |
 | Chinese + English localization | `LocalizationTests` | Automated verified |
 | Package size below 30 MB | `Scripts/verify_package.sh` reports latest DMG size 840 KB | Automated verified |
-| Performance budgets: panel shown before LLM response, streaming fields rendered incrementally | `GrakerAppDelegate.checkGrammar()` calls `showLoading` before request construction; `StreamingCorrectionAccumulatorTests` verifies incremental field publication | Partially verified; real `<200ms`, token interval, first-token, and full-response timings require live manual measurement |
+| Performance budgets: panel shown before LLM response, streaming fields rendered incrementally | `SayFlowAppDelegate.checkGrammar()` calls `showLoading` before request construction; `StreamingCorrectionAccumulatorTests` verifies incremental field publication | Partially verified; real `<200ms`, token interval, first-token, and full-response timings require live manual measurement |
 | Optional update check toggle | `SettingsWindow`, `UpdateCheckerTests` | Automated verified |
 | Launch at login toggle | `SettingsWindow.applyLaunchAtLogin`, `LaunchAtLoginTogglePolicy` tests | Logic verified; installed-in-Applications manual gate pending |
 
@@ -67,11 +67,11 @@ Last verified commands:
 
 These remain open because they require real macOS user interaction or target-app behavior that cannot be safely or reliably synthesized:
 
-- Enable Accessibility for the exact running `dist/Graker.app`. Current System Settings shows `Graker` as off.
-- Relaunch Graker and confirm `Scripts/manual_acceptance_probe.sh` no longer sees onboarding or runtime permission alerts.
-- Press physical `Option+G` in TextEdit and verify the result panel appears.
+- Enable Accessibility for the exact running `dist/SayFlow.app`. Current System Settings shows `SayFlow` as off.
+- Relaunch SayFlow and confirm `Scripts/manual_acceptance_probe.sh` no longer sees onboarding or runtime permission alerts.
+- Press physical `Control+Command+S` in TextEdit and verify the result panel appears.
 - Verify the selection hot-zone button appears after selecting text and triggers the same correction flow when clicked.
-- Verify physical `Option+G` capture, panel location, focus retention, and close behavior in Safari, Chrome, Preview PDF, Microsoft Word, and Notes.
+- Verify physical `Control+Command+S` capture, panel location, focus retention, and close behavior in Safari, Chrome, Preview PDF, Microsoft Word, and Notes.
 - Click a diff pill and confirm the popover displays `Replaced [old] with [new]` plus Chinese explanation.
 - Click Accept in a native editable app and confirm the selected text becomes `The market is unpredictable in the short term.`
 - Verify an Obsidian no-permission path shows the friendly write failure message in the result panel.
@@ -80,4 +80,4 @@ These remain open because they require real macOS user interaction or target-app
 
 ## Current Completion Decision
 
-Not complete. The implementation and automated evidence cover most PRD requirements, but the PRD acceptance criteria explicitly include real Accessibility, global hotkey, target-app capture, and native Accept replacement behavior. Those gates remain unverified until the user enables Graker in System Settings and performs the physical hotkey/click steps.
+Not complete. The implementation and automated evidence cover most PRD requirements, but the PRD acceptance criteria explicitly include real Accessibility, global hotkey, target-app capture, and native Accept replacement behavior. Those gates remain unverified until the user enables SayFlow in System Settings and performs the physical hotkey/click steps.

@@ -1,6 +1,6 @@
-# Graker v1.0 Acceptance Checklist
+# SayFlow v1.0 Acceptance Checklist
 
-Use this checklist after building `dist/Graker.app` or installing `dist/Graker-1.0.3.dmg`.
+Use this checklist after building `dist/SayFlow.app` or installing `dist/SayFlow-1.1.0.dmg`.
 Some items require macOS Accessibility permission and must be verified by a logged-in user.
 
 ## Automated Gates
@@ -16,26 +16,26 @@ Scripts/manual_acceptance_probe.sh
 
 Expected evidence:
 
-- `Scripts/test.sh` reports all GrakerCore tests passed and `swift build` completes.
-- `Scripts/package_dmg.sh` creates `dist/Graker.app`, `dist/Graker-1.0.3.dmg`, and `dist/Graker-1.0.3.dmg.sha256`.
+- `Scripts/test.sh` reports all SayFlowCore tests passed and `swift build` completes.
+- `Scripts/package_dmg.sh` creates `dist/SayFlow.app`, `dist/SayFlow-1.1.0.dmg`, and `dist/SayFlow-1.1.0.dmg.sha256`.
 - `Scripts/verify_package.sh` checks codesign, `x86_64` + `arm64`,
   `LSUIElement=true`, `LSMinimumSystemVersion=13.0`, SHA-256, DMG size below
   30 MB, and the mounted DMG contents using a fixed temporary mount point.
 - `Scripts/manual_acceptance_probe.sh` reports bundle, signing, provider, Keychain,
-  package, and Accessibility status without printing API keys. When Graker is
+  package, and Accessibility status without printing API keys. When SayFlow is
   running, it also checks that the app itself is not still showing first-launch
   onboarding or runtime Accessibility permission alerts. It exits non-zero until
-  Graker is running from the expected app bundle and the permission gate is
+  SayFlow is running from the expected app bundle and the permission gate is
   actually clear for the app.
 - `Scripts/ax_selected_text_probe.sh <app> "<expected text>"` can be used while
   a target app has selected text. It checks the same AX selected-text path used
-  by Graker, including WebKit text-marker fallback for Safari.
+  by SayFlow, including WebKit text-marker fallback for Safari.
 
 ## Provider Smoke Test
 
 Configure Settings -> Providers -> Custom with an OpenAI-compatible provider.
 
-For a Responses API endpoint, use the full `/v1/responses` endpoint. Graker should send:
+For a Responses API endpoint, use the full `/v1/responses` endpoint. SayFlow should send:
 
 - `stream: true`
 - `text.format.type: json_object`
@@ -50,20 +50,20 @@ Acceptance:
 
 ## Accessibility Permission
 
-1. Launch `dist/Graker.app`.
+1. Launch `dist/SayFlow.app`.
 2. Confirm the first-run dialog explains that Accessibility is used to read selected text and replace text only when Accept is clicked.
-3. Click Open System Settings and grant Accessibility permission to Graker.
-4. Quit and relaunch Graker.
-5. Revoke Accessibility permission and trigger Graker again.
+3. Click Open System Settings and grant Accessibility permission to SayFlow.
+4. Quit and relaunch SayFlow.
+5. Revoke Accessibility permission and trigger SayFlow again.
 
 Acceptance:
 
 - With permission granted, selected-text capture works in the target apps below.
-- With permission revoked, Graker shows a permission explanation and does not crash.
+- With permission revoked, SayFlow shows a permission explanation and does not crash.
 
 ## Target App Selected-Text Capture
 
-For each app, select the sentence `The market are unpredictable in short-term.` and trigger Graker with `Option+G`.
+For each app, select the sentence `The market are unpredictable in short-term.` and trigger SayFlow with `Control+Command+S`.
 
 - Safari
 - Google Chrome
@@ -73,7 +73,7 @@ For each app, select the sentence `The market are unpredictable in short-term.` 
 
 Acceptance for each app:
 
-- Graker captures the selected sentence, not stale clipboard text.
+- SayFlow captures the selected sentence, not stale clipboard text.
 - The floating panel appears near the mouse by default.
 - The panel keeps the original app focused.
 - The panel closes on outside click or Escape.
@@ -97,7 +97,7 @@ Scripts/ax_selected_text_probe.sh Preview "The market are unpredictable in short
 Scripts/ax_selected_text_probe.sh "Microsoft Word" "The market are unpredictable in short-term."
 ```
 
-This verifies selected-text capture only. It does not replace the full `Option+G`
+This verifies selected-text capture only. It does not replace the full `Control+Command+S`
 manual pass because the full pass must also verify hotkey delivery, panel
 position, focus retention, close behavior, and Accept replacement.
 
@@ -122,26 +122,26 @@ Acceptance:
 In a native editable app such as Notes or TextEdit:
 
 1. Select `The market are unpredictable in short-term.`
-2. Trigger Graker.
+2. Trigger SayFlow.
 3. Wait for the corrected sentence.
 4. Click Accept.
 
 Acceptance:
 
 - The selected text in the original app is replaced with `The market is unpredictable in the short term.`
-- Graker does not steal permanent focus from the original app.
-- If the target app refuses Accessibility replacement, Graker copies the corrected text to the clipboard and shows a clear warning.
+- SayFlow does not steal permanent focus from the original app.
+- If the target app refuses Accessibility replacement, SayFlow copies the corrected text to the clipboard and shows a clear warning.
 
 ## Obsidian Append
 
 1. In Settings -> Obsidian, choose a new Markdown file path.
-2. Trigger Graker and click the write icon.
+2. Trigger SayFlow and click the write icon.
 3. Open the target file.
 
 Acceptance:
 
 - Missing parent directories and the Markdown file are created.
-- The file starts with `# Graker Inbox` when newly created.
+- The file starts with `# SayFlow Inbox` when newly created.
 - The new entry is appended rather than overwriting existing content.
 - The entry includes corrected text, changes with explanations, Chinese translation, and Good to know.
 - The original incorrect sentence is not saved.
@@ -166,7 +166,7 @@ Acceptance:
 
 Acceptance:
 
-- Default shortcut is `Option+G`.
+- Default shortcut is `Control+Command+S` (`⌃⌘S`).
 - Changing the shortcut in General re-registers the global hotkey.
 - Launch at login can be toggled when the app is installed in Applications.
 - Automatic update checking can be toggled and only runs when enabled.

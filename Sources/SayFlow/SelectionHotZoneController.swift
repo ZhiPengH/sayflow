@@ -1,9 +1,9 @@
 import AppKit
-import GrakerCore
+import SayFlowCore
 
 final class SelectionHotZoneController: NSObject {
     private let panel: NSPanel
-    private let button = NSButton(title: "G", target: nil, action: nil)
+    private let button = NSButton(title: SelectionHotZonePresentation.triggerButtonTitle, target: nil, action: nil)
 
     var onTrigger: (() -> Void)?
 

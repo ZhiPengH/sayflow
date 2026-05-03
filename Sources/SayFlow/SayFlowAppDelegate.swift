@@ -1,11 +1,12 @@
 import AppKit
 import Foundation
-import GrakerCore
+import SayFlowCore
 
-final class GrakerAppDelegate: NSObject, NSApplicationDelegate {
+final class SayFlowAppDelegate: NSObject, NSApplicationDelegate {
     private let settingsStore = AppSettingsStore(applicationSupportDirectory: ApplicationPaths.supportDirectory)
     private let promptStore = PromptStore(applicationSupportDirectory: ApplicationPaths.supportDirectory)
     private let keychain = KeychainStore()
+    private let legacyKeychain = KeychainStore(service: LegacyProductIdentity.keychainService)
     private let accessibility = AccessibilityTextService()
     private let clipboard = ClipboardService()
     private let networkMonitor = NetworkStatusMonitor()
@@ -23,8 +24,10 @@ final class GrakerAppDelegate: NSObject, NSApplicationDelegate {
     private var selectionMouseUpMonitor: Any?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        migrateLegacyAppSupportIfNeeded()
         do {
             settings = try settingsStore.load()
+            try? settingsStore.save(settings)
         } catch {
             settings = .defaults()
         }
@@ -34,6 +37,7 @@ final class GrakerAppDelegate: NSObject, NSApplicationDelegate {
             _ = try? promptStore.resetToDefault()
             settings.prompts = .defaultGrammarCorrection
         }
+        migrateLegacyProviderKeysIfNeeded()
         configureStatusItem()
         configureActions()
         startNetworkMonitor()
@@ -41,6 +45,37 @@ final class GrakerAppDelegate: NSObject, NSApplicationDelegate {
         registerHotKey()
         showAccessibilityOnboardingIfNeeded()
         checkForUpdatesIfEnabled()
+    }
+
+    private func migrateLegacyAppSupportIfNeeded() {
+        try? LegacyAppSupportMigration.copyMissingFiles(
+            from: ApplicationPaths.legacySupportDirectory,
+            to: ApplicationPaths.supportDirectory
+        )
+    }
+
+    private func migrateLegacyProviderKeysIfNeeded() {
+        let references = LegacyKeychainMigrationPolicy.referencesToMigrate(
+            providers: settings.providers,
+            newSecretExists: { [keychain] reference in
+                guard let secret = keychain.read(reference: reference) else {
+                    return false
+                }
+                return !secret.isEmpty
+            },
+            legacySecretExists: { [legacyKeychain] reference in
+                guard let secret = legacyKeychain.read(reference: reference) else {
+                    return false
+                }
+                return !secret.isEmpty
+            }
+        )
+        for reference in references {
+            guard let secret = legacyKeychain.read(reference: reference), !secret.isEmpty else {
+                continue
+            }
+            try? keychain.save(secret, reference: reference)
+        }
     }
 
     private func configureStatusItem() {
@@ -123,7 +158,7 @@ final class GrakerAppDelegate: NSObject, NSApplicationDelegate {
                 return
             }
             guard let path = self.settings.obsidian.targetMarkdownPath, !path.isEmpty else {
-                throw NSError(domain: "Graker", code: 1, userInfo: [NSLocalizedDescriptionKey: L10n.tr(.chooseObsidianFirst)])
+                throw NSError(domain: "SayFlow", code: 1, userInfo: [NSLocalizedDescriptionKey: L10n.tr(.chooseObsidianFirst)])
             }
             let writer = ObsidianWriter(fileURL: URL(fileURLWithPath: path))
             try writer.append(
@@ -286,7 +321,7 @@ final class GrakerAppDelegate: NSObject, NSApplicationDelegate {
     private func updateSelectionHotZone(near mouse: CGPoint) {
         let trusted = accessibility.isTrusted(prompt: false)
         let selectedText = trusted ? accessibility.selectedText() : nil
-        let ownBundleIdentifier = Bundle.main.bundleIdentifier ?? "com.zhixing.graker"
+        let ownBundleIdentifier = Bundle.main.bundleIdentifier ?? "com.zhixing.sayflow"
         let decision = SelectionHotZonePolicy.decision(
             accessibilityTrusted: trusted,
             selectedText: selectedText,

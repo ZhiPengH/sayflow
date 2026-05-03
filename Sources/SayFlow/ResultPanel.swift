@@ -1,6 +1,6 @@
 import AppKit
 import Foundation
-import GrakerCore
+import SayFlowCore
 
 final class ResultPanelController: NSObject {
     private let panel: NSPanel
@@ -129,7 +129,7 @@ final class ResultPanelController: NSObject {
 
 final class ResultPanelView: NSView, NSTextViewDelegate {
     private let root = NSStackView()
-    private let headerLabel = NSTextField(labelWithString: "📌 Graker")
+    private let headerLabel = NSTextField(labelWithString: "📌 \(L10n.tr(.appName))")
     private let closeButton = NSButton(title: "×", target: nil, action: nil)
     private let errorRow = NSStackView()
     private let errorLabel = NSTextField(labelWithString: "")
@@ -192,7 +192,7 @@ final class ResultPanelView: NSView, NSTextViewDelegate {
 
     func showLoading(originalText: String) {
         self.originalText = originalText
-        headerLabel.stringValue = "📌 Graker     \(Self.preview(originalText))"
+        headerLabel.stringValue = "📌 \(L10n.tr(.appName))     \(Self.preview(originalText))"
         errorRow.isHidden = true
         updateRawResponse(nil)
         glossLabel.stringValue = ""
@@ -203,7 +203,7 @@ final class ResultPanelView: NSView, NSTextViewDelegate {
 
     func render(snapshot: CorrectionSnapshot, originalText: String) {
         self.originalText = originalText
-        headerLabel.stringValue = "📌 Graker     \(Self.preview(originalText))"
+        headerLabel.stringValue = "📌 \(L10n.tr(.appName))     \(Self.preview(originalText))"
         errorRow.isHidden = snapshot.parseError == nil
         if let parseError = snapshot.parseError {
             errorLabel.stringValue = parseError
@@ -389,7 +389,7 @@ final class ResultPanelView: NSView, NSTextViewDelegate {
         for range in DiffPillLocator.ranges(in: corrected, changes: changes) {
             attributed.addAttributes([
                 .backgroundColor: NSColor.systemGreen.withAlphaComponent(0.25),
-                .link: URL(string: "graker-change://\(range.changeIndex)") as Any
+                .link: URL(string: "sayflow-change://\(range.changeIndex)") as Any
             ], range: range.nsRange)
         }
         correctedView.textStorage?.setAttributedString(attributed)

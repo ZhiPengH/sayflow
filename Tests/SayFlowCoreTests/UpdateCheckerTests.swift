@@ -5,7 +5,7 @@ enum UpdateCheckerTests {
         let json = """
         {
           "tag_name": "v1.0.1",
-          "html_url": "https://github.com/ZhiPengH/graker-release/releases/tag/v1.0.1",
+          "html_url": "https://github.com/ZhiPengH/sayflow-release/releases/tag/v1.0.1",
           "draft": false,
           "prerelease": false
         }
@@ -17,7 +17,7 @@ enum UpdateCheckerTests {
             availability,
             .available(
                 version: "1.0.1",
-                url: URL(string: "https://github.com/ZhiPengH/graker-release/releases/tag/v1.0.1")
+                url: URL(string: "https://github.com/ZhiPengH/sayflow-release/releases/tag/v1.0.1")
             )
         )
     }

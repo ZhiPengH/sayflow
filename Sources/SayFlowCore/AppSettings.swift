@@ -11,11 +11,21 @@ public struct HotKeyConfiguration: Codable, Equatable {
         self.modifierFlags = modifierFlags
     }
 
-    public static let defaultOptionG = HotKeyConfiguration(
+    static let legacyDefaultOptionG = HotKeyConfiguration(
         displayText: "⌥G",
         keyCode: 5,
         modifierFlags: 1 << 11
     )
+
+    public static let defaultControlCommandS = HotKeyConfiguration(
+        displayText: "⌃⌘S",
+        keyCode: 1,
+        modifierFlags: (1 << 12) | (1 << 8)
+    )
+
+    static func migratedDefault(_ configuration: HotKeyConfiguration) -> HotKeyConfiguration {
+        configuration == legacyDefaultOptionG ? .defaultControlCommandS : configuration
+    }
 }
 
 public struct GeneralSettings: Codable, Equatable {
@@ -46,7 +56,7 @@ public struct GeneralSettings: Codable, Equatable {
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         launchAtLogin = try container.decode(Bool.self, forKey: .launchAtLogin)
-        hotKey = try container.decode(HotKeyConfiguration.self, forKey: .hotKey)
+        hotKey = HotKeyConfiguration.migratedDefault(try container.decode(HotKeyConfiguration.self, forKey: .hotKey))
         automaticallyChecksForUpdates = try container.decodeIfPresent(Bool.self, forKey: .automaticallyChecksForUpdates) ?? false
         let decodedTimeout = try container.decodeIfPresent(Int.self, forKey: .networkTimeoutSeconds) ?? 30
         networkTimeoutSeconds = min(max(decodedTimeout, 5), 120)
@@ -126,7 +136,7 @@ public struct AppSettings: Codable, Equatable {
         AppSettings(
             general: GeneralSettings(
                 launchAtLogin: false,
-                hotKey: .defaultOptionG,
+                hotKey: .defaultControlCommandS,
                 automaticallyChecksForUpdates: false,
                 networkTimeoutSeconds: 30
             ),

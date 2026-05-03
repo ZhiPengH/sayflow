@@ -118,7 +118,7 @@ public final class ObsidianWriter {
         let parent = fileURL.deletingLastPathComponent()
         try FileManager.default.createDirectory(at: parent, withIntermediateDirectories: true)
         if !FileManager.default.fileExists(atPath: fileURL.path) {
-            try "# Graker Inbox\n".write(to: fileURL, atomically: true, encoding: .utf8)
+            try "# SayFlow Inbox\n".write(to: fileURL, atomically: true, encoding: .utf8)
         }
 
         guard let data = rendered.data(using: .utf8) else {

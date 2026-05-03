@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-: "${GRAKER_DEBUG_ENDPOINT:?Set GRAKER_DEBUG_ENDPOINT to a /v1/responses or /chat/completions endpoint}"
-: "${GRAKER_DEBUG_MODEL:?Set GRAKER_DEBUG_MODEL to the model name}"
-: "${GRAKER_DEBUG_API_KEY:?Set GRAKER_DEBUG_API_KEY to the provider API key}"
+: "${SAYFLOW_DEBUG_ENDPOINT:?Set SAYFLOW_DEBUG_ENDPOINT to a /v1/responses or /chat/completions endpoint}"
+: "${SAYFLOW_DEBUG_MODEL:?Set SAYFLOW_DEBUG_MODEL to the model name}"
+: "${SAYFLOW_DEBUG_API_KEY:?Set SAYFLOW_DEBUG_API_KEY to the provider API key}"
 
-SUPPORT_DIR="${HOME}/Library/Application Support/Graker"
+SUPPORT_DIR="${HOME}/Library/Application Support/SayFlow"
 SETTINGS_FILE="${SUPPORT_DIR}/settings.json"
 PROMPTS_FILE="${SUPPORT_DIR}/prompts.json"
 KEYCHAIN_REF="keychain://provider/custom"
@@ -14,21 +14,21 @@ mkdir -p "$SUPPORT_DIR"
 
 security add-generic-password \
   -U \
-  -s "Graker" \
+  -s "SayFlow" \
   -a "$KEYCHAIN_REF" \
-  -w "$GRAKER_DEBUG_API_KEY" >/dev/null
+  -w "$SAYFLOW_DEBUG_API_KEY" >/dev/null
 
 SETTINGS_FILE="$SETTINGS_FILE" \
 PROMPTS_FILE="$PROMPTS_FILE" \
-GRAKER_DEBUG_ENDPOINT="$GRAKER_DEBUG_ENDPOINT" \
-GRAKER_DEBUG_MODEL="$GRAKER_DEBUG_MODEL" \
+SAYFLOW_DEBUG_ENDPOINT="$SAYFLOW_DEBUG_ENDPOINT" \
+SAYFLOW_DEBUG_MODEL="$SAYFLOW_DEBUG_MODEL" \
 node <<'NODE'
 const fs = require('fs');
 
 const settingsFile = process.env.SETTINGS_FILE;
 const promptsFile = process.env.PROMPTS_FILE;
-const endpoint = process.env.GRAKER_DEBUG_ENDPOINT;
-const model = process.env.GRAKER_DEBUG_MODEL;
+const endpoint = process.env.SAYFLOW_DEBUG_ENDPOINT;
+const model = process.env.SAYFLOW_DEBUG_MODEL;
 
 const defaultPrompt = {
   system: `你是一名面向中国英语学习者的语法批改老师。给定一段英文，你需要：
@@ -73,7 +73,7 @@ if (fs.existsSync(settingsFile)) {
   settings = {
     general: {
       launchAtLogin: false,
-      hotKey: { displayText: '⌥G', keyCode: 5, modifierFlags: 2048 },
+      hotKey: { displayText: '⌃⌘S', keyCode: 1, modifierFlags: 4352 },
       automaticallyChecksForUpdates: false,
       networkTimeoutSeconds: 30,
     },
@@ -105,7 +105,7 @@ settings.providers = providers.map((provider) => {
 
 settings.general = {
   launchAtLogin: false,
-  hotKey: { displayText: '⌥G', keyCode: 5, modifierFlags: 2048 },
+  hotKey: { displayText: '⌃⌘S', keyCode: 1, modifierFlags: 4352 },
   automaticallyChecksForUpdates: false,
   networkTimeoutSeconds: 30,
   ...(settings.general || {}),
@@ -125,4 +125,4 @@ if (!fs.existsSync(promptsFile)) {
 fs.writeFileSync(settingsFile, JSON.stringify(settings, null, 2) + '\n');
 NODE
 
-echo "Configured Graker Custom provider at ${SETTINGS_FILE}"
+echo "Configured SayFlow Custom provider at ${SETTINGS_FILE}"

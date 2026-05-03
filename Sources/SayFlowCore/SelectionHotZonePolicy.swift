@@ -1,5 +1,9 @@
 import Foundation
 
+public enum SelectionHotZonePresentation {
+    public static let triggerButtonTitle = "S"
+}
+
 public enum SelectionHotZoneDecision: Equatable {
     case show(String)
     case hide

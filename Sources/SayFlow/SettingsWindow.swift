@@ -1,6 +1,6 @@
 import AppKit
 import Foundation
-import GrakerCore
+import SayFlowCore
 #if canImport(ServiceManagement)
 import ServiceManagement
 #endif
@@ -90,7 +90,7 @@ final class SettingsWindowController: NSWindowController, NSTextViewDelegate {
         let stack = formStack()
         launchAtLoginButton.target = self
         launchAtLoginButton.action = #selector(toggleLaunchAtLogin(_:))
-        hotKeyField.placeholderString = "⌥G"
+        hotKeyField.placeholderString = "⌃⌘S"
         let saveHotKey = NSButton(title: L10n.tr(.saveHotkey), target: self, action: #selector(saveHotKey))
         timeoutField.placeholderString = "30"
         let saveTimeout = NSButton(title: L10n.tr(.saveTimeout), target: self, action: #selector(saveTimeout))
@@ -422,7 +422,7 @@ final class SettingsWindowController: NSWindowController, NSTextViewDelegate {
     @objc private func chooseObsidianFile() {
         let panel = NSSavePanel()
         panel.allowedFileTypes = ["md"]
-        panel.nameFieldStringValue = "Graker-Inbox.md"
+        panel.nameFieldStringValue = "SayFlow-Inbox.md"
         if panel.runModal() == .OK, let url = panel.url {
             obsidianPathField.stringValue = url.path
             saveObsidian()

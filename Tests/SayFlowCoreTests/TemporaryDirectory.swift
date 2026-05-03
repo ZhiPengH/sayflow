@@ -5,7 +5,7 @@ struct TemporaryDirectory {
 
     init() throws {
         url = FileManager.default.temporaryDirectory
-            .appendingPathComponent("graker-tests")
+            .appendingPathComponent("sayflow-tests")
             .appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
     }

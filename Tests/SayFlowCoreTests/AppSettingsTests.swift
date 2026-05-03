@@ -5,7 +5,7 @@ enum AppSettingsTests {
         let settings = AppSettings.defaults()
 
         try expectEqual(settings.general.launchAtLogin, false)
-        try expectEqual(settings.general.hotKey, HotKeyConfiguration.defaultOptionG)
+        try expectEqual(settings.general.hotKey, HotKeyConfiguration.defaultControlCommandS)
         try expectEqual(settings.general.networkTimeoutSeconds, 30)
         try expectEqual(settings.display.positionStrategy, .followMouse)
         try expectEqual(settings.display.theme, .light)
@@ -27,7 +27,7 @@ enum AppSettingsTests {
 
         var changed = loaded
         changed.display.positionStrategy = .bottomLeft
-        changed.obsidian.targetMarkdownPath = "/tmp/Graker-Inbox.md"
+        changed.obsidian.targetMarkdownPath = "/tmp/SayFlow-Inbox.md"
         try store.save(changed)
 
         try expectEqual(try store.load(), changed)
@@ -71,7 +71,7 @@ enum AppSettingsTests {
 
         let loaded = try store.load()
 
-        try expectEqual(loaded.general.hotKey, .defaultOptionG)
+        try expectEqual(loaded.general.hotKey, .defaultControlCommandS)
         try expectEqual(loaded.prompts, .defaultGrammarCorrection)
     }
 
@@ -97,6 +97,18 @@ enum AppSettingsTests {
         let loaded = try store.load()
 
         try expectEqual(loaded.display.theme, .light)
+    }
+
+    static func settingsStoreMigratesOldDefaultHotkeyToControlCommandS() throws {
+        let legacy = try decodeGeneralSettings(displayText: "⌥G", keyCode: 5, modifierFlags: 2048)
+
+        try expectEqual(legacy.hotKey, .defaultControlCommandS)
+    }
+
+    static func settingsStorePreservesCustomLegacyHotkey() throws {
+        let custom = try decodeGeneralSettings(displayText: "⌥H", keyCode: 4, modifierFlags: 2048)
+
+        try expectEqual(custom.hotKey, HotKeyConfiguration(displayText: "⌥H", keyCode: 4, modifierFlags: 2048))
     }
 
     static func settingsStoreNormalizesMultipleActiveProvidersOnLoad() throws {
@@ -195,10 +207,19 @@ enum AppSettingsTests {
     }
 
     private static func decodeGeneralSettings(networkTimeoutSeconds: Int) throws -> GeneralSettings {
+        try decodeGeneralSettings(displayText: "⌥G", keyCode: 5, modifierFlags: 2048, networkTimeoutSeconds: networkTimeoutSeconds)
+    }
+
+    private static func decodeGeneralSettings(
+        displayText: String,
+        keyCode: UInt32,
+        modifierFlags: UInt32,
+        networkTimeoutSeconds: Int = 30
+    ) throws -> GeneralSettings {
         let json = """
         {
           "launchAtLogin": false,
-          "hotKey": {"displayText": "⌥G", "keyCode": 5, "modifierFlags": 2048},
+          "hotKey": {"displayText": "\(displayText)", "keyCode": \(keyCode), "modifierFlags": \(modifierFlags)},
           "automaticallyChecksForUpdates": false,
           "networkTimeoutSeconds": \(networkTimeoutSeconds)
         }

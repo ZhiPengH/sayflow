@@ -1,7 +1,7 @@
 import Foundation
 
 @main
-struct GrakerCoreTestRunner {
+struct SayFlowCoreTestRunner {
     static func main() {
         let tests: [TestCase] = [
             TestCase(name: "Provider defaults", run: ProviderTests.defaultCatalogContainsRequiredProvidersWithExpectedDefaults),
@@ -64,6 +64,8 @@ struct GrakerCoreTestRunner {
             TestCase(name: "No prompt templates in settings", run: AppSettingsTests.settingsStoreDoesNotSerializePromptTemplates),
             TestCase(name: "Legacy settings with prompts load", run: AppSettingsTests.settingsStoreCanReadLegacySettingsThatContainPrompts),
             TestCase(name: "Legacy display themes migrate to light", run: AppSettingsTests.settingsStoreMigratesLegacyDisplayThemesToLight),
+            TestCase(name: "Legacy default hotkey migrates", run: AppSettingsTests.settingsStoreMigratesOldDefaultHotkeyToControlCommandS),
+            TestCase(name: "Custom legacy hotkey preserved", run: AppSettingsTests.settingsStorePreservesCustomLegacyHotkey),
             TestCase(name: "Settings normalize multiple active providers", run: AppSettingsTests.settingsStoreNormalizesMultipleActiveProvidersOnLoad),
             TestCase(name: "Settings activate first provider when none active", run: AppSettingsTests.settingsStoreActivatesFirstProviderWhenNoneAreActive),
             TestCase(name: "Settings restore missing default providers", run: AppSettingsTests.settingsStoreRestoresMissingDefaultProvidersOnLoad),
@@ -71,8 +73,11 @@ struct GrakerCoreTestRunner {
             TestCase(name: "General settings clamp external network timeout", run: AppSettingsTests.generalSettingsClampExternallyEditedNetworkTimeout),
             TestCase(name: "Launch at login setting rollback", run: AppSettingsTests.launchAtLoginToggleKeepsPreviousSettingWhenSystemChangeFails),
             TestCase(name: "Hotkey registration policy", run: HotKeyRegistrationPolicyTests.succeedsOnlyWhenHandlerAndShortcutRegister),
-            TestCase(name: "Hotkey parser option shortcuts", run: HotKeyParserTests.parsesSymbolAndWordBasedOptionShortcuts),
+            TestCase(name: "Hotkey parser control command shortcuts", run: HotKeyParserTests.parsesSymbolAndWordBasedControlCommandShortcuts),
+            TestCase(name: "Hotkey parser keeps custom option shortcuts", run: HotKeyParserTests.stillParsesCustomOptionShortcutsForExistingUsers),
             TestCase(name: "Hotkey parser rejects unsupported forms", run: HotKeyParserTests.rejectsUnsupportedShortcutForms),
+            TestCase(name: "Legacy app support migration", run: LegacyAppMigrationTests.copiesMissingLegacySettingsAndPromptsWithoutOverwritingNewFiles),
+            TestCase(name: "Legacy keychain migration policy", run: LegacyAppMigrationTests.migratesOnlyMissingProviderSecretsThatExistInLegacyKeychain),
             TestCase(name: "Prompt test run bypasses accessibility preflight", run: GrammarTriggerPreflightTests.promptTestRunDoesNotRequireAccessibilityPermission),
             TestCase(name: "Runtime capture requires accessibility preflight", run: GrammarTriggerPreflightTests.runtimeCaptureRequiresAccessibilityPermission),
             TestCase(name: "Grammar trigger uses silent accessibility check", run: AccessibilityPermissionPromptPolicyTests.grammarTriggerUsesSilentPermissionCheck),
@@ -86,6 +91,7 @@ struct GrakerCoreTestRunner {
             TestCase(name: "Text capture rejects stale clipboard", run: TextCaptureResolverTests.firstAccessibilityMissPromptsInsteadOfUsingStaleClipboard),
             TestCase(name: "Text capture clipboard fallback requires change", run: TextCaptureResolverTests.clipboardFallbackRequiresClipboardChangeAfterPrompt),
             TestCase(name: "Text capture sample bypass", run: TextCaptureResolverTests.sampleTextBypassesRuntimeCapture),
+            TestCase(name: "Selection hot zone button title", run: SelectionHotZonePolicyTests.triggerButtonUsesSayFlowInitial),
             TestCase(name: "Selection hot zone policy", run: SelectionHotZonePolicyTests.showsOnlyForTrustedNonEmptyExternalSelections),
             TestCase(name: "Accessibility element validator", run: AccessibilityElementValidatorTests.acceptsAXUIElementValuesAndRejectsOtherCFTypes),
             TestCase(name: "Accept replacement success action", run: AcceptReplacementFallbackTests.successfulReplacementNeedsNoClipboardFallback),
@@ -103,7 +109,7 @@ struct GrakerCoreTestRunner {
         }
 
         if failures.isEmpty {
-            print("All \(tests.count) GrakerCore tests passed.")
+            print("All \(tests.count) SayFlowCore tests passed.")
         } else {
             failures.forEach { print($0) }
             exit(1)

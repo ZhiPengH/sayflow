@@ -2,12 +2,12 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-APP_NAME="${APP_NAME:-Graker}"
-PRODUCT_NAME="${PRODUCT_NAME:-Graker}"
-VERSION="${VERSION:-1.0.3}"
-IDENTIFIER="${IDENTIFIER:-com.zhixing.graker}"
+APP_NAME="${APP_NAME:-SayFlow}"
+PRODUCT_NAME="${PRODUCT_NAME:-SayFlow}"
+VERSION="${VERSION:-1.1.0}"
+IDENTIFIER="${IDENTIFIER:-com.zhixing.sayflow}"
 DIST="${DIST:-$ROOT/dist}"
-CODESIGN_IDENTITY="${CODESIGN_IDENTITY:-Graker Local Development}"
+CODESIGN_IDENTITY="${CODESIGN_IDENTITY:-SayFlow Local Development}"
 APP="$DIST/$APP_NAME.app"
 MACOS="$APP/Contents/MacOS"
 RESOURCES="$APP/Contents/Resources"

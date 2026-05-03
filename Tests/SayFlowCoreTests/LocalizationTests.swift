@@ -8,8 +8,8 @@ enum LocalizationTests {
     }
 
     static func keyUiStringsHaveChineseAndEnglishTranslations() throws {
-        try expectEqual(L10n.tr(.settingsTitle, language: .english), "Graker Settings")
-        try expectEqual(L10n.tr(.settingsTitle, language: .chinese), "Graker 设置")
+        try expectEqual(L10n.tr(.settingsTitle, language: .english), "SayFlow Settings")
+        try expectEqual(L10n.tr(.settingsTitle, language: .chinese), "言顺 设置")
         try expectEqual(L10n.tr(.copyTooltip, language: .english), "Copy")
         try expectEqual(L10n.tr(.copyTooltip, language: .chinese), "复制")
     }

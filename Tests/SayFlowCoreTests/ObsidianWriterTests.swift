@@ -6,7 +6,7 @@ enum ObsidianWriterTests {
         let target = directory.url
             .appendingPathComponent("Vault")
             .appendingPathComponent("Inbox")
-            .appendingPathComponent("Graker-Inbox.md")
+            .appendingPathComponent("SayFlow-Inbox.md")
         let writer = ObsidianWriter(fileURL: target)
         let correction = GrammarCorrection(
             corrected: "The market is unpredictable in the short term.",
@@ -26,7 +26,7 @@ enum ObsidianWriterTests {
         )
 
         let contents = try String(contentsOf: target, encoding: .utf8)
-        try expect(contents.hasPrefix("# Graker Inbox\n"))
+        try expect(contents.hasPrefix("# SayFlow Inbox\n"))
         try expect(contents.contains("The market is unpredictable in the short term."))
         try expect(contents.contains("- `market are` → `market is` （主语 the market 是单数）"))
         try expect(contents.contains("> 市场在短期内是不可预测的。"))
@@ -36,7 +36,7 @@ enum ObsidianWriterTests {
 
     static func appendModeDoesNotOverwriteExistingContent() throws {
         let directory = try TemporaryDirectory()
-        let target = directory.url.appendingPathComponent("Graker-Inbox.md")
+        let target = directory.url.appendingPathComponent("SayFlow-Inbox.md")
         try "Existing note\n".write(to: target, atomically: true, encoding: .utf8)
 
         let writer = ObsidianWriter(fileURL: target)
@@ -55,15 +55,15 @@ enum ObsidianWriterTests {
 
     static func targetPathValidationRequiresAbsoluteMarkdownPath() throws {
         try expectEqual(
-            ObsidianTargetPathValidator.validate("/Users/zhipeng/Notes/Graker-Inbox.md"),
-            .valid(URL(fileURLWithPath: "/Users/zhipeng/Notes/Graker-Inbox.md"))
+            ObsidianTargetPathValidator.validate("/Users/zhipeng/Notes/SayFlow-Inbox.md"),
+            .valid(URL(fileURLWithPath: "/Users/zhipeng/Notes/SayFlow-Inbox.md"))
         )
         try expectEqual(
-            ObsidianTargetPathValidator.validate("Notes/Graker-Inbox.md"),
+            ObsidianTargetPathValidator.validate("Notes/SayFlow-Inbox.md"),
             .invalid(.relativePath)
         )
         try expectEqual(
-            ObsidianTargetPathValidator.validate("/Users/zhipeng/Notes/Graker-Inbox.txt"),
+            ObsidianTargetPathValidator.validate("/Users/zhipeng/Notes/SayFlow-Inbox.txt"),
             .invalid(.notMarkdown)
         )
         try expectEqual(
@@ -79,7 +79,7 @@ enum ObsidianWriterTests {
         )
         try expectEqual(
             ObsidianWriteErrorMessage.message(for: POSIXError(.ENOSPC), language: .english),
-            "Disk is full; Graker could not write to the target Markdown file."
+            "Disk is full; SayFlow could not write to the target Markdown file."
         )
         try expectEqual(
             ObsidianWriteErrorMessage.message(for: CocoaError(.fileNoSuchFile), language: .english),

@@ -2,26 +2,38 @@ import AppKit
 import ApplicationServices
 import Carbon
 import Foundation
-import GrakerCore
+import SayFlowCore
 import Network
 import Security
 
 enum ApplicationPaths {
+    private static let currentSupportDirectoryName = "SayFlow"
+
     static var supportDirectory: URL {
         FileManager.default
             .urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-            .appendingPathComponent("Graker", isDirectory: true)
+            .appendingPathComponent(currentSupportDirectoryName, isDirectory: true)
+    }
+
+    static var legacySupportDirectory: URL {
+        FileManager.default
+            .urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+            .appendingPathComponent(LegacyProductIdentity.applicationSupportDirectoryName, isDirectory: true)
     }
 }
 
 enum CurrentApp {
     static var version: String {
-        Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0.3"
+        Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.1.0"
     }
 }
 
 final class KeychainStore {
-    private let service = "Graker"
+    private let service: String
+
+    init(service: String = "SayFlow") {
+        self.service = service
+    }
 
     func read(reference: String) -> String? {
         let query: [String: Any] = [
@@ -145,7 +157,7 @@ final class ClipboardService {
 }
 
 final class NetworkStatusMonitor {
-    private let queue = DispatchQueue(label: "Graker.NetworkStatusMonitor")
+    private let queue = DispatchQueue(label: "SayFlow.NetworkStatusMonitor")
     private var monitor: Any?
     private(set) var isOnline = true
     var onStatusChange: ((Bool) -> Void)?
@@ -177,13 +189,13 @@ final class NetworkStatusMonitor {
 }
 
 final class UpdateCheckService {
-    private let latestReleaseURL = URL(string: "https://api.github.com/repos/ZhiPengH/graker-release/releases/latest")!
+    private let latestReleaseURL = URL(string: "https://api.github.com/repos/ZhiPengH/sayflow-release/releases/latest")!
 
     func checkLatestRelease(currentVersion: String, completion: @escaping (UpdateAvailability) -> Void) {
         var request = URLRequest(url: latestReleaseURL)
         request.timeoutInterval = 10
         request.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
-        request.setValue("Graker/\(currentVersion)", forHTTPHeaderField: "User-Agent")
+        request.setValue("SayFlow/\(currentVersion)", forHTTPHeaderField: "User-Agent")
 
         URLSession.shared.dataTask(with: request) { data, _, _ in
             let availability: UpdateAvailability
@@ -268,7 +280,7 @@ final class HotKeyManager {
             return HotKeyRegistrationPolicy.evaluate(handlerStatus: Int32(handlerStatus), shortcutStatus: 0)
         }
 
-        let identifier = EventHotKeyID(signature: OSType(0x47524B52), id: 1)
+        let identifier = EventHotKeyID(signature: OSType(0x53464C57), id: 1)
         let shortcutStatus = RegisterEventHotKey(
             configuration.keyCode,
             configuration.modifierFlags,
