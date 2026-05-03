@@ -159,6 +159,49 @@ enum AppSettingsTests {
         try expectEqual(loaded.providers.filter(\.isActive).count, 1)
     }
 
+    static func settingsStoreMigratesProviderSecretReferencesToLocalEnvironment() throws {
+        let directory = try TemporaryDirectory()
+        let store = AppSettingsStore(applicationSupportDirectory: directory.url)
+        let legacy = """
+        {
+          "general": {
+            "launchAtLogin": false,
+            "hotKey": {"displayText": "⌃⌘S", "keyCode": 1, "modifierFlags": 4352},
+            "automaticallyChecksForUpdates": false,
+            "networkTimeoutSeconds": 30,
+            "hasShownAccessibilityOnboarding": false
+          },
+          "providers": [
+            {
+              "id": "openAI",
+              "kind": "openAI",
+              "displayName": "OpenAI",
+              "apiKeyReference": "keychain://provider/openAI",
+              "baseURL": "https://api.openai.com/v1",
+              "model": "gpt-4o-mini",
+              "temperature": 0.2,
+              "isActive": true
+            }
+          ],
+          "display": {"positionStrategy": "followMouse", "theme": "light"},
+          "obsidian": {"writeTemplate": {"markdown": "unused"}}
+        }
+        """
+        try FileManager.default.createDirectory(at: directory.url, withIntermediateDirectories: true)
+        try legacy.data(using: .utf8)?.write(to: store.fileURL)
+
+        let loaded = try store.load()
+
+        try expectEqual(
+            loaded.providers.first(where: { $0.kind == .openAI })?.apiKeyReference,
+            "env://SAYFLOW_OPENAI_API_KEY"
+        )
+        try expectEqual(
+            loaded.providers.first(where: { $0.kind == .custom })?.apiKeyReference,
+            "env://SAYFLOW_CUSTOM_API_KEY"
+        )
+    }
+
     static func settingsStoreMigratesLegacyMimoDefaultBaseURLWithoutOverwritingCustomURL() throws {
         let directory = try TemporaryDirectory()
         let store = AppSettingsStore(applicationSupportDirectory: directory.url)

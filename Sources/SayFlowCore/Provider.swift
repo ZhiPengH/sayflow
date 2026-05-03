@@ -96,6 +96,122 @@ public enum ProviderCatalog {
     ]
 }
 
+public enum ProviderSecretReference {
+    public static func environmentVariableName(for kind: ProviderKind) -> String {
+        switch kind {
+        case .openAI:
+            return "SAYFLOW_OPENAI_API_KEY"
+        case .deepSeek:
+            return "SAYFLOW_DEEPSEEK_API_KEY"
+        case .mimo:
+            return "SAYFLOW_MIMO_API_KEY"
+        case .kimi:
+            return "SAYFLOW_KIMI_API_KEY"
+        case .miniMax:
+            return "SAYFLOW_MINIMAX_API_KEY"
+        case .doubao:
+            return "SAYFLOW_DOUBAO_API_KEY"
+        case .custom:
+            return "SAYFLOW_CUSTOM_API_KEY"
+        }
+    }
+
+    public static func reference(for kind: ProviderKind) -> String {
+        "env://\(environmentVariableName(for: kind))"
+    }
+
+    public static func normalized(_ reference: String, kind: ProviderKind) -> String {
+        guard reference.hasPrefix("env://"),
+              environmentVariableName(from: reference) != nil else {
+            return self.reference(for: kind)
+        }
+        return reference
+    }
+
+    public static func environmentVariableName(from reference: String) -> String? {
+        guard reference.hasPrefix("env://") else {
+            return nil
+        }
+        let value = String(reference.dropFirst("env://".count))
+        guard !value.isEmpty,
+              value.unicodeScalars.allSatisfy({ scalar in
+                  scalar == "_" || CharacterSet.uppercaseLetters.contains(scalar) || CharacterSet.decimalDigits.contains(scalar)
+              }) else {
+            return nil
+        }
+        return value
+    }
+}
+
+public enum LocalEnvironmentFile {
+    public static func parse(_ raw: String) -> [String: String] {
+        var values: [String: String] = [:]
+        for line in raw.components(separatedBy: .newlines) {
+            var trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !trimmed.isEmpty, !trimmed.hasPrefix("#") else {
+                continue
+            }
+            if trimmed.hasPrefix("export ") {
+                trimmed = String(trimmed.dropFirst("export ".count))
+            }
+            guard let separator = trimmed.firstIndex(of: "=") else {
+                continue
+            }
+            let key = String(trimmed[..<separator]).trimmingCharacters(in: .whitespaces)
+            var value = String(trimmed[trimmed.index(after: separator)...]).trimmingCharacters(in: .whitespaces)
+            if value.count >= 2,
+               let first = value.first,
+               let last = value.last,
+               (first == "\"" && last == "\"") || (first == "'" && last == "'") {
+                value = String(value.dropFirst().dropLast())
+            }
+            if !key.isEmpty {
+                values[key] = value
+            }
+        }
+        return values
+    }
+
+    public static func render(updating raw: String, variableName: String, value: String?) -> String {
+        let trimmedValue = value?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        var didUpdate = false
+        var lines: [String] = []
+        for line in raw.components(separatedBy: .newlines) {
+            let key = keyName(in: line)
+            if key == variableName {
+                didUpdate = true
+                if !trimmedValue.isEmpty {
+                    lines.append("\(variableName)=\(escaped(trimmedValue))")
+                }
+            } else if !line.isEmpty {
+                lines.append(line)
+            }
+        }
+        if !didUpdate, !trimmedValue.isEmpty {
+            lines.append("\(variableName)=\(escaped(trimmedValue))")
+        }
+        return lines.joined(separator: "\n") + (lines.isEmpty ? "" : "\n")
+    }
+
+    private static func keyName(in line: String) -> String? {
+        var trimmed = line.trimmingCharacters(in: .whitespaces)
+        if trimmed.hasPrefix("export ") {
+            trimmed = String(trimmed.dropFirst("export ".count))
+        }
+        guard let separator = trimmed.firstIndex(of: "=") else {
+            return nil
+        }
+        return String(trimmed[..<separator]).trimmingCharacters(in: .whitespaces)
+    }
+
+    private static func escaped(_ value: String) -> String {
+        if value.rangeOfCharacter(from: CharacterSet.whitespacesAndNewlines.union(CharacterSet(charactersIn: "\"'"))) == nil {
+            return value
+        }
+        return "\"\(value.replacingOccurrences(of: "\\", with: "\\\\").replacingOccurrences(of: "\"", with: "\\\""))\""
+    }
+}
+
 public struct ProviderConfiguration: Codable, Equatable, Identifiable {
     public var id: String
     public var kind: ProviderKind
@@ -135,7 +251,7 @@ public struct ProviderConfiguration: Codable, Equatable, Identifiable {
                 id: definition.kind.rawValue,
                 kind: definition.kind,
                 displayName: definition.displayName,
-                apiKeyReference: "keychain://provider/\(definition.kind.rawValue)",
+                apiKeyReference: ProviderSecretReference.reference(for: definition.kind),
                 baseURL: definition.defaultBaseURL,
                 model: definition.defaultModel,
                 temperature: 0.2,
@@ -160,7 +276,8 @@ public struct ProviderConfiguration: Codable, Equatable, Identifiable {
         id = try container.decode(String.self, forKey: .id)
         kind = try container.decode(ProviderKind.self, forKey: .kind)
         displayName = try container.decode(String.self, forKey: .displayName)
-        apiKeyReference = try container.decode(String.self, forKey: .apiKeyReference)
+        let decodedReference = try container.decode(String.self, forKey: .apiKeyReference)
+        apiKeyReference = ProviderSecretReference.normalized(decodedReference, kind: kind)
         apiKeyPlaintextForTesting = nil
         baseURL = try container.decode(String.self, forKey: .baseURL)
         model = try container.decode(String.self, forKey: .model)

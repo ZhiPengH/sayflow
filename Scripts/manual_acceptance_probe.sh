@@ -2,11 +2,12 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-VERSION="${VERSION:-1.1.5}"
+VERSION="${VERSION:-1.1.6}"
 APP="${1:-$ROOT/dist/SayFlow.app}"
 SUPPORT_DIR="$HOME/Library/Application Support/SayFlow"
 SETTINGS="$SUPPORT_DIR/settings.json"
 PROMPTS="$SUPPORT_DIR/prompts.json"
+ENV_FILE="$SUPPORT_DIR/provider.env"
 
 failures=0
 
@@ -196,9 +197,10 @@ settings = json.load(open(sys.argv[1]))
 providers = settings.get("providers", [])
 active = next((p for p in providers if p.get("isActive")), None)
 print("active_provider=" + (active.get("displayName", "") if active else "NONE"))
-print("active_model=" + (active.get("model", "") if active else "NONE"))
-print("active_base_url=" + (active.get("baseURL", "") if active else "NONE"))
-print("api_key_reference=" + (active.get("apiKeyReference", "") if active else "NONE"))
+print("active_model=" + ("CONFIGURED" if active and active.get("model") else "NONE"))
+print("active_base_url=" + ("CONFIGURED" if active and active.get("baseURL") else "NONE"))
+reference = active.get("apiKeyReference", "") if active else ""
+print("api_key_env=" + (reference.removeprefix("env://") if reference.startswith("env://") else "NONE"))
 print("popup_position=" + settings.get("display", {}).get("positionStrategy", "missing"))
 print("hotkey=" + settings.get("general", {}).get("hotKey", {}).get("displayText", "missing"))
 print("launch_at_login_setting=" + str(settings.get("general", {}).get("launchAtLogin", False)).lower())
@@ -208,20 +210,38 @@ PY
 fi
 
 if [[ -f "$SETTINGS" ]]; then
-  key_ref="$(
+  key_env="$(
     /usr/bin/python3 - "$SETTINGS" <<'PY'
 import json
 import sys
 
 settings = json.load(open(sys.argv[1]))
 active = next((p for p in settings.get("providers", []) if p.get("isActive")), None)
-print(active.get("apiKeyReference", "") if active else "")
+reference = active.get("apiKeyReference", "") if active else ""
+print(reference.removeprefix("env://") if reference.startswith("env://") else "")
 PY
   )"
-  if [[ -n "$key_ref" ]] && /usr/bin/security find-generic-password -s SayFlow -a "$key_ref" -w >/dev/null 2>&1; then
-    pass "active provider API key exists in Keychain"
+  if [[ -n "$key_env" && -n "${!key_env:-}" ]]; then
+    pass "active provider API key exists in process environment"
+  elif [[ -n "$key_env" && -f "$ENV_FILE" ]] && /usr/bin/python3 - "$ENV_FILE" "$key_env" <<'PY'
+import sys
+
+env_file, key = sys.argv[1], sys.argv[2]
+for line in open(env_file):
+    stripped = line.strip()
+    if not stripped or stripped.startswith("#"):
+        continue
+    if stripped.startswith("export "):
+        stripped = stripped[len("export "):]
+    name, _, value = stripped.partition("=")
+    if name.strip() == key and value.strip():
+        sys.exit(0)
+sys.exit(1)
+PY
+  then
+    pass "active provider API key exists in local environment file"
   else
-    fail "active provider API key is missing in Keychain"
+    warn "active provider API key is not configured in local environment"
   fi
 fi
 

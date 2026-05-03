@@ -5,6 +5,9 @@ struct SayFlowCoreTestRunner {
     static func main() {
         let tests: [TestCase] = [
             TestCase(name: "Provider defaults", run: ProviderTests.defaultCatalogContainsRequiredProvidersWithExpectedDefaults),
+            TestCase(name: "Provider secret references", run: ProviderTests.providerDefaultsUseLocalEnvironmentSecretReferences),
+            TestCase(name: "Local env secret file updates", run: ProviderTests.localEnvironmentFileUpdatesSecretsWithoutDuplicatingKeys),
+            TestCase(name: "Legacy secret references migrate", run: ProviderTests.localEnvironmentSecretReferencesMigrateLegacyKeychainReferences),
             TestCase(name: "Endpoint normalization", run: ProviderTests.endpointNormalizerAcceptsBaseURLAndFullChatCompletionsEndpoint),
             TestCase(name: "Responses endpoint normalization", run: ProviderTests.endpointNormalizerAcceptsFullResponsesEndpoint),
             TestCase(name: "OpenAI request body", run: ProviderTests.providerConfigurationBuildsOpenAICompatibleStreamingJSONRequest),
@@ -70,6 +73,7 @@ struct SayFlowCoreTestRunner {
             TestCase(name: "Settings normalize multiple active providers", run: AppSettingsTests.settingsStoreNormalizesMultipleActiveProvidersOnLoad),
             TestCase(name: "Settings activate first provider when none active", run: AppSettingsTests.settingsStoreActivatesFirstProviderWhenNoneAreActive),
             TestCase(name: "Settings restore missing default providers", run: AppSettingsTests.settingsStoreRestoresMissingDefaultProvidersOnLoad),
+            TestCase(name: "Settings migrate provider secret refs", run: AppSettingsTests.settingsStoreMigratesProviderSecretReferencesToLocalEnvironment),
             TestCase(name: "Settings migrate legacy MiMo default URL", run: AppSettingsTests.settingsStoreMigratesLegacyMimoDefaultBaseURLWithoutOverwritingCustomURL),
             TestCase(name: "General settings clamp external network timeout", run: AppSettingsTests.generalSettingsClampExternallyEditedNetworkTimeout),
             TestCase(name: "General settings default missing accessibility onboarding flag for existing settings", run: AppSettingsTests.generalSettingsDefaultMissingAccessibilityOnboardingFlagToTrueForExistingSettings),

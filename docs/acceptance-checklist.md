@@ -1,6 +1,6 @@
-# SayFlow v1.1.5 Acceptance Checklist
+# SayFlow v1.1.6 Acceptance Checklist
 
-Use this checklist after building `dist/SayFlow.app` or installing `dist/SayFlow-1.1.5.dmg`.
+Use this checklist after building `dist/SayFlow.app` or installing `dist/SayFlow-1.1.6.dmg`.
 Some items require macOS Accessibility permission and must be verified by a logged-in user.
 
 ## Automated Gates
@@ -17,11 +17,11 @@ Scripts/manual_acceptance_probe.sh
 Expected evidence:
 
 - `Scripts/test.sh` reports all SayFlowCore tests passed and `swift build` completes.
-- `Scripts/package_dmg.sh` creates `dist/SayFlow.app`, `dist/SayFlow-1.1.5.dmg`, and `dist/SayFlow-1.1.5.dmg.sha256`.
+- `Scripts/package_dmg.sh` creates `dist/SayFlow.app`, `dist/SayFlow-1.1.6.dmg`, and `dist/SayFlow-1.1.6.dmg.sha256`.
 - `Scripts/verify_package.sh` checks codesign, `x86_64` + `arm64`,
   `LSUIElement=true`, `LSMinimumSystemVersion=13.0`, SHA-256, DMG size below
   30 MB, and the mounted DMG contents using a fixed temporary mount point.
-- `Scripts/manual_acceptance_probe.sh` reports bundle, signing, provider, Keychain,
+- `Scripts/manual_acceptance_probe.sh` reports bundle, signing, provider, local environment,
   package, and Accessibility status without printing API keys. When SayFlow is
   running, it also checks that the app itself is not still showing first-launch
   onboarding or runtime Accessibility permission alerts. It exits non-zero until

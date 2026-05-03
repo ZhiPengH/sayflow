@@ -197,7 +197,7 @@ public struct AppSettings: Codable, Equatable {
             var merged = defaultProvider
             merged.id = existing.id
             merged.displayName = existing.displayName.isEmpty ? defaultProvider.displayName : existing.displayName
-            merged.apiKeyReference = existing.apiKeyReference
+            merged.apiKeyReference = ProviderSecretReference.normalized(existing.apiKeyReference, kind: defaultProvider.kind)
             merged.baseURL = ProviderLegacyDefaultMigrator.migratedBaseURL(
                 kind: existing.kind,
                 existingBaseURL: existing.baseURL,

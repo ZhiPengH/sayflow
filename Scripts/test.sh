@@ -19,14 +19,13 @@ grep -q 'mktemp -d /private/tmp/sayflow-dmg.XXXXXX' Scripts/verify_package.sh
 grep -q 'sayflow_accessibility_permission_alert_visible' Scripts/manual_acceptance_probe.sh
 grep -q '需要辅助功能权限' Scripts/manual_acceptance_probe.sh
 grep -q 'fail "SayFlow app is not running' Scripts/manual_acceptance_probe.sh
-grep -q 'https://api.mimo-v2.com/v1' Scripts/configure_debug_provider.sh
 ! grep -q 'https://api.mimo.mi.com/v1' Scripts/configure_debug_provider.sh
 grep -q 'APP_NAME="${APP_NAME:-SayFlow}"' Scripts/build_app.sh
 grep -q 'DIST="${DIST:-$ROOT/dist}"' Scripts/build_app.sh
-grep -q 'VERSION="${VERSION:-1.1.5}"' Scripts/build_app.sh
-grep -q 'VERSION="${VERSION:-1.1.5}"' Scripts/package_dmg.sh
-grep -q 'VERSION="${VERSION:-1.1.5}"' Scripts/verify_package.sh
-grep -q 'Version 1.1.5' Sources/SayFlowCore/Localization.swift
+grep -q 'VERSION="${VERSION:-1.1.6}"' Scripts/build_app.sh
+grep -q 'VERSION="${VERSION:-1.1.6}"' Scripts/package_dmg.sh
+grep -q 'VERSION="${VERSION:-1.1.6}"' Scripts/verify_package.sh
+grep -q 'Version 1.1.6' Sources/SayFlowCore/Localization.swift
 test -f assets/AppIcon.iconset/icon_512x512@2x.png
 test -f assets/SayFlow.icns
 test -f assets/MenuBarIcon.pdf
@@ -54,6 +53,9 @@ grep -q "displayText: '⌃⌘S'" Scripts/configure_debug_provider.sh
 grep -q 'Control+Command+S' Sources/SayFlowCore/Localization.swift
 grep -q 'ResultPanelLayoutMetrics.panelWidth' Sources/SayFlow/ResultPanel.swift
 grep -q 'applyWrappingConstraints()' Sources/SayFlow/ResultPanel.swift
+grep -q 'correctedHeightConstraint' Sources/SayFlow/ResultPanel.swift
+grep -q 'updateDynamicTextHeights()' Sources/SayFlow/ResultPanel.swift
+grep -q 'layoutManager?.usedRect' Sources/SayFlow/ResultPanel.swift
 ! grep -q 'themePopup' Sources/SayFlow/SettingsWindow.swift
 ! grep -q 'darkAqua' Sources/SayFlow/ResultPanel.swift
 ! grep -q 'case dark' Sources/SayFlowCore/AppSettings.swift
@@ -66,6 +68,12 @@ grep -q 'CODESIGN_IDENTITY="${CODESIGN_IDENTITY:-SayFlow Local Development}"' Sc
 grep -q 'ensure_codesign_identity.sh' Scripts/package_dmg.sh
 grep -q 'dist/SayFlow.app' Scripts/run_manual_test_app.sh
 grep -q 'Signature=adhoc' Scripts/verify_package.sh
+grep -q 'SAYFLOW_OPENAI_API_KEY' Sources/SayFlowCore/Provider.swift
+grep -q 'provider.env' Sources/SayFlow/AppServices.swift
+! grep -q 'KeychainStore' Sources/SayFlow/AppServices.swift Sources/SayFlow/SettingsWindow.swift Sources/SayFlow/SayFlowAppDelegate.swift
+! grep -q 'import Security' Sources/SayFlow/AppServices.swift
+! grep -q 'security find-generic-password' Scripts/manual_acceptance_probe.sh
+! grep -q 'https://api.mimo-v2.com/v1' Scripts/configure_debug_provider.sh
 legacy_brand_pattern='[Gg]raker'
 if rg -n "$legacy_brand_pattern" --glob '!AGENTS.md' --glob '!Sources/SayFlowCore/LegacyAppMigration.swift' --glob '!Tests/SayFlowCoreTests/LegacyAppMigrationTests.swift'; then
   echo "Unexpected legacy brand reference outside migration files." >&2

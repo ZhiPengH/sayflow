@@ -5,8 +5,7 @@ import SayFlowCore
 final class SayFlowAppDelegate: NSObject, NSApplicationDelegate {
     private let settingsStore = AppSettingsStore(applicationSupportDirectory: ApplicationPaths.supportDirectory)
     private let promptStore = PromptStore(applicationSupportDirectory: ApplicationPaths.supportDirectory)
-    private let keychain = KeychainStore()
-    private let legacyKeychain = KeychainStore(service: LegacyProductIdentity.keychainService)
+    private let providerSecrets = LocalEnvironmentSecretStore(applicationSupportDirectory: ApplicationPaths.supportDirectory)
     private let accessibility = AccessibilityTextService()
     private let clipboard = ClipboardService()
     private let networkMonitor = NetworkStatusMonitor()
@@ -37,7 +36,6 @@ final class SayFlowAppDelegate: NSObject, NSApplicationDelegate {
             _ = try? promptStore.resetToDefault()
             settings.prompts = .defaultGrammarCorrection
         }
-        migrateLegacyProviderKeysIfNeeded()
         configureStatusItem()
         configureActions()
         startNetworkMonitor()
@@ -52,30 +50,6 @@ final class SayFlowAppDelegate: NSObject, NSApplicationDelegate {
             from: ApplicationPaths.legacySupportDirectory,
             to: ApplicationPaths.supportDirectory
         )
-    }
-
-    private func migrateLegacyProviderKeysIfNeeded() {
-        let references = LegacyKeychainMigrationPolicy.referencesToMigrate(
-            providers: settings.providers,
-            newSecretExists: { [keychain] reference in
-                guard let secret = keychain.read(reference: reference) else {
-                    return false
-                }
-                return !secret.isEmpty
-            },
-            legacySecretExists: { [legacyKeychain] reference in
-                guard let secret = legacyKeychain.read(reference: reference) else {
-                    return false
-                }
-                return !secret.isEmpty
-            }
-        )
-        for reference in references {
-            guard let secret = legacyKeychain.read(reference: reference), !secret.isEmpty else {
-                continue
-            }
-            try? keychain.save(secret, reference: reference)
-        }
     }
 
     private func configureStatusItem() {
@@ -270,7 +244,7 @@ final class SayFlowAppDelegate: NSObject, NSApplicationDelegate {
             resultPanel.showError(L10n.tr(.noActiveProvider), raw: nil, originalText: selectedText, settings: settings)
             return
         }
-        guard let apiKey = keychain.read(reference: provider.apiKeyReference), !apiKey.isEmpty else {
+        guard let apiKey = providerSecrets.read(reference: provider.apiKeyReference), !apiKey.isEmpty else {
             resultPanel.showError(L10n.tr(.missingAPIKey), raw: nil, originalText: selectedText, settings: settings)
             openSettings()
             return
@@ -310,7 +284,7 @@ final class SayFlowAppDelegate: NSObject, NSApplicationDelegate {
             settingsWindow = SettingsWindowController(
                 settings: settings,
                 settingsStore: settingsStore,
-                keychain: keychain,
+                providerSecrets: providerSecrets,
                 onSettingsChanged: { [weak self] newSettings in
                     self?.settings = newSettings
                     try? self?.promptStore.save(newSettings.prompts)

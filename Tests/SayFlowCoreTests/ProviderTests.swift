@@ -23,6 +23,48 @@ enum ProviderTests {
         try expectEqual(providers.first(where: { $0.kind == .custom })?.protocolName, "OpenAI Compatible")
     }
 
+    static func providerDefaultsUseLocalEnvironmentSecretReferences() throws {
+        let providers = ProviderConfiguration.defaults()
+
+        try expectEqual(
+            providers.first(where: { $0.kind == .openAI })?.apiKeyReference,
+            "env://SAYFLOW_OPENAI_API_KEY"
+        )
+        try expectEqual(
+            providers.first(where: { $0.kind == .custom })?.apiKeyReference,
+            "env://SAYFLOW_CUSTOM_API_KEY"
+        )
+    }
+
+    static func localEnvironmentFileUpdatesSecretsWithoutDuplicatingKeys() throws {
+        let raw = """
+        SAYFLOW_OPENAI_API_KEY=old-value
+        SAYFLOW_CUSTOM_API_KEY=custom-value
+        """
+
+        let updated = LocalEnvironmentFile.render(
+            updating: raw,
+            variableName: "SAYFLOW_OPENAI_API_KEY",
+            value: "new-value"
+        )
+        let parsed = LocalEnvironmentFile.parse(updated)
+
+        try expectEqual(parsed["SAYFLOW_OPENAI_API_KEY"], "new-value")
+        try expectEqual(parsed["SAYFLOW_CUSTOM_API_KEY"], "custom-value")
+        try expectEqual(updated.components(separatedBy: "SAYFLOW_OPENAI_API_KEY=").count, 2)
+    }
+
+    static func localEnvironmentSecretReferencesMigrateLegacyKeychainReferences() throws {
+        try expectEqual(
+            ProviderSecretReference.normalized("keychain://provider/openAI", kind: .openAI),
+            "env://SAYFLOW_OPENAI_API_KEY"
+        )
+        try expectEqual(
+            ProviderSecretReference.normalized("custom-key", kind: .custom),
+            "env://SAYFLOW_CUSTOM_API_KEY"
+        )
+    }
+
     static func endpointNormalizerAcceptsBaseURLAndFullChatCompletionsEndpoint() throws {
         try expectEqual(
             try EndpointNormalizer.chatCompletionsEndpoint(from: "https://api.example.com/v1"),

@@ -4,7 +4,6 @@ import Carbon
 import Foundation
 import SayFlowCore
 import Network
-import Security
 
 enum ApplicationPaths {
     private static let currentSupportDirectoryName = "SayFlow"
@@ -24,55 +23,41 @@ enum ApplicationPaths {
 
 enum CurrentApp {
     static var version: String {
-        Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.1.5"
+        Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.1.6"
     }
 }
 
-final class KeychainStore {
-    private let service: String
+final class LocalEnvironmentSecretStore {
+    private let fileURL: URL
 
-    init(service: String = "SayFlow") {
-        self.service = service
+    init(applicationSupportDirectory: URL) {
+        fileURL = applicationSupportDirectory.appendingPathComponent("provider.env", isDirectory: false)
     }
 
     func read(reference: String) -> String? {
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: service,
-            kSecAttrAccount as String: reference,
-            kSecReturnData as String: true,
-            kSecMatchLimit as String: kSecMatchLimitOne
-        ]
-        var result: CFTypeRef?
-        guard SecItemCopyMatching(query as CFDictionary, &result) == errSecSuccess,
-              let data = result as? Data else {
+        guard let variableName = ProviderSecretReference.environmentVariableName(from: reference) else {
             return nil
         }
-        return String(data: data, encoding: .utf8)
+        if let processValue = ProcessInfo.processInfo.environment[variableName]?.trimmingCharacters(in: .whitespacesAndNewlines),
+           !processValue.isEmpty {
+            return processValue
+        }
+        guard let raw = try? String(contentsOf: fileURL, encoding: .utf8) else {
+            return nil
+        }
+        let value = LocalEnvironmentFile.parse(raw)[variableName]?.trimmingCharacters(in: .whitespacesAndNewlines)
+        return value?.isEmpty == false ? value : nil
     }
 
     func save(_ value: String, reference: String) throws {
-        let data = Data(value.utf8)
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: service,
-            kSecAttrAccount as String: reference
-        ]
-        let update: [String: Any] = [kSecValueData as String: data]
-        let status = SecItemUpdate(query as CFDictionary, update as CFDictionary)
-        if status == errSecSuccess {
-            return
+        guard let variableName = ProviderSecretReference.environmentVariableName(from: reference) else {
+            throw NSError(domain: "SayFlow", code: 1, userInfo: [NSLocalizedDescriptionKey: "Invalid local environment reference."])
         }
-        if status == errSecItemNotFound {
-            var add = query
-            add[kSecValueData as String] = data
-            let addStatus = SecItemAdd(add as CFDictionary, nil)
-            if addStatus == errSecSuccess {
-                return
-            }
-            throw NSError(domain: NSOSStatusErrorDomain, code: Int(addStatus))
-        }
-        throw NSError(domain: NSOSStatusErrorDomain, code: Int(status))
+        try FileManager.default.createDirectory(at: fileURL.deletingLastPathComponent(), withIntermediateDirectories: true)
+        let raw = (try? String(contentsOf: fileURL, encoding: .utf8)) ?? ""
+        let rendered = LocalEnvironmentFile.render(updating: raw, variableName: variableName, value: value)
+        try rendered.write(to: fileURL, atomically: true, encoding: .utf8)
+        try? FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: fileURL.path)
     }
 }
 

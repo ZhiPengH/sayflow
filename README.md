@@ -38,7 +38,7 @@ Scripts/verify_package.sh
 Manual macOS permission and target-app acceptance steps are documented in
 [`docs/acceptance-checklist.md`](docs/acceptance-checklist.md).
 After building the app, run `Scripts/manual_acceptance_probe.sh` to check the
-current app bundle, Keychain-backed provider configuration, DMG checksum, and
+current app bundle, local provider configuration, DMG checksum, and
 Accessibility gate before doing the target-app manual pass.
 
 The package manifest intentionally uses the older SwiftPM manifest format because the available Command Line Tools expose a mismatched PackageDescription interface/dylib for newer manifests. The source itself is Swift 5 mode and builds with the current Swift compiler.
@@ -47,7 +47,7 @@ The package manifest intentionally uses the older SwiftPM manifest format becaus
 
 - Settings: `~/Library/Application Support/SayFlow/settings.json`
 - Prompt template: `~/Library/Application Support/SayFlow/prompts.json`
-- API keys: macOS Keychain, never in JSON settings
+- API keys: `~/Library/Application Support/SayFlow/provider.env` or process environment variables, never in JSON settings
 - Obsidian writes: append-only to the Markdown file selected in Settings
 
 ## Implemented Scope
@@ -75,7 +75,7 @@ For an OpenAI-compatible proxy that exposes the Responses API, configure the Cus
 
 - Base URL / Endpoint: the full `https://.../v1/responses` endpoint
 - Model: the proxy model name
-- API Key: paste it in Settings so SayFlow stores it in macOS Keychain
+- API Key: paste it in Settings so SayFlow stores it in the local `provider.env` file
 
 SayFlow detects `/v1/responses` automatically and sends a Responses API request with `stream: true` and `text.format.type = json_object`. The SSE parser accepts both incremental `response.output_text.delta` chunks and completed events that contain the final output object. Other base URLs continue to use `/chat/completions`.
 
@@ -88,4 +88,4 @@ SAYFLOW_DEBUG_API_KEY="sk-..." \
 Scripts/configure_debug_provider.sh
 ```
 
-The script updates `~/Library/Application Support/SayFlow/settings.json` and stores the key in macOS Keychain under SayFlow's normal custom-provider reference.
+The script updates `~/Library/Application Support/SayFlow/settings.json` and stores the key in `~/Library/Application Support/SayFlow/provider.env` under `SAYFLOW_CUSTOM_API_KEY`.

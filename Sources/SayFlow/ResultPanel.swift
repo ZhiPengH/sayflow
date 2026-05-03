@@ -147,6 +147,7 @@ final class ResultPanelView: NSView, NSTextViewDelegate {
     private var correction: GrammarCorrection?
     private var originalText = ""
     private var rawResponseDisclosure = RawResponseDisclosure()
+    private var correctedHeightConstraint: NSLayoutConstraint?
 
     var onClose: (() -> Void)?
     var onCopy: ((String) -> Void)?
@@ -199,6 +200,7 @@ final class ResultPanelView: NSView, NSTextViewDelegate {
         goodCard.isHidden = true
         correctedView.string = L10n.tr(.checkingGrammar)
         correction = nil
+        updateDynamicTextHeights()
     }
 
     func render(snapshot: CorrectionSnapshot, originalText: String) {
@@ -231,6 +233,7 @@ final class ResultPanelView: NSView, NSTextViewDelegate {
                 goodToKnow: snapshot.goodToKnow
             )
         }
+        updateDynamicTextHeights()
     }
 
     func showError(_ message: String, raw: String?, allowsRetry: Bool = true) {
@@ -238,6 +241,7 @@ final class ResultPanelView: NSView, NSTextViewDelegate {
         errorRow.isHidden = false
         retryButton.isHidden = !allowsRetry
         updateRawResponse(raw)
+        updateDynamicTextHeights()
     }
 
     func flashWriteSuccess() {
@@ -318,7 +322,11 @@ final class ResultPanelView: NSView, NSTextViewDelegate {
             .foregroundColor: NSColor.labelColor,
             .underlineStyle: 0
         ]
-        correctedView.heightAnchor.constraint(greaterThanOrEqualToConstant: 44).isActive = true
+        correctedView.isVerticallyResizable = false
+        correctedView.textContainer?.heightTracksTextView = false
+        let correctedHeightConstraint = correctedView.heightAnchor.constraint(equalToConstant: 44)
+        correctedHeightConstraint.isActive = true
+        self.correctedHeightConstraint = correctedHeightConstraint
         root.addArrangedSubview(correctedView)
 
         glossLabel.font = .systemFont(ofSize: 13)
@@ -366,6 +374,19 @@ final class ResultPanelView: NSView, NSTextViewDelegate {
         correctedView.textContainer?.containerSize = NSSize(width: contentTextWidth, height: CGFloat.greatestFiniteMagnitude)
         glossLabel.preferredMaxLayoutWidth = contentTextWidth
         goodLabel.preferredMaxLayoutWidth = goodToKnowTextWidth
+    }
+
+    private func updateDynamicTextHeights() {
+        applyWrappingConstraints()
+        guard let textContainer = correctedView.textContainer else {
+            return
+        }
+        correctedView.layoutManager?.ensureLayout(for: textContainer)
+        let usedHeight = correctedView.layoutManager?.usedRect(for: textContainer).height ?? 0
+        correctedHeightConstraint?.constant = max(44, ceil(usedHeight + correctedView.textContainerInset.height * 2 + 2))
+        glossLabel.invalidateIntrinsicContentSize()
+        goodLabel.invalidateIntrinsicContentSize()
+        layoutSubtreeIfNeeded()
     }
 
     private func updateRawResponse(_ raw: String?) {

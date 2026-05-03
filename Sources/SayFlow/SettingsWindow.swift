@@ -8,7 +8,7 @@ import ServiceManagement
 final class SettingsWindowController: NSWindowController, NSTextViewDelegate {
     private var settings: AppSettings
     private let settingsStore: AppSettingsStore
-    private let keychain: KeychainStore
+    private let providerSecrets: LocalEnvironmentSecretStore
     private let providerTestClient = ProviderConnectionTestClient()
     private let onSettingsChanged: (AppSettings) -> Void
     private let onTestRun: (String) -> Void
@@ -37,13 +37,13 @@ final class SettingsWindowController: NSWindowController, NSTextViewDelegate {
     init(
         settings: AppSettings,
         settingsStore: AppSettingsStore,
-        keychain: KeychainStore,
+        providerSecrets: LocalEnvironmentSecretStore,
         onSettingsChanged: @escaping (AppSettings) -> Void,
         onTestRun: @escaping (String) -> Void
     ) {
         self.settings = settings
         self.settingsStore = settingsStore
-        self.keychain = keychain
+        self.providerSecrets = providerSecrets
         self.onSettingsChanged = onSettingsChanged
         self.onTestRun = onTestRun
         let window = NSWindow(
@@ -217,7 +217,7 @@ final class SettingsWindowController: NSWindowController, NSTextViewDelegate {
             return
         }
         let provider = settings.providers[index]
-        apiKeyField.stringValue = keychain.read(reference: provider.apiKeyReference) ?? ""
+        apiKeyField.stringValue = providerSecrets.read(reference: provider.apiKeyReference) ?? ""
         baseURLField.stringValue = provider.baseURL
         modelField.stringValue = provider.model
         temperatureField.stringValue = String(provider.temperature)
@@ -254,7 +254,7 @@ final class SettingsWindowController: NSWindowController, NSTextViewDelegate {
         }
         settings.providers[index] = provider
         do {
-            try keychain.save(apiKeyField.stringValue, reference: settings.providers[index].apiKeyReference)
+            try providerSecrets.save(apiKeyField.stringValue, reference: settings.providers[index].apiKeyReference)
             persist()
         } catch {
             showAlert(L10n.tr(.failedSaveAPIKey), error.localizedDescription)

@@ -8,9 +8,9 @@ This audit separates implementation evidence from manual gates. A green script i
 
 Last verified commands:
 
-- `Scripts/test.sh`: passes 99 SayFlowCore tests, validates packaging/probe script invariants, validates the debug-provider bootstrap uses the current MiMo default endpoint, and runs `swift build`.
-- `Scripts/verify_package.sh`: verifies app bundle, signing, `x86_64 arm64`, `LSUIElement=true`, `LSMinimumSystemVersion=13.0`, DMG SHA-256, DMG size below 30 MB, and DMG contents. Latest ad-hoc v1.1.5 DMG SHA-256: `427c9a5d9d7591a2d2f98f08f4bdcd3813c64bd7e6476a79db2c6da0c3d1aecb`; release verification still requires a stable code-signing identity.
-- `Scripts/manual_acceptance_probe.sh`: verifies bundle, expected running app path, signing, provider settings, Keychain reference, package presence, and whether the running SayFlow app is still showing Accessibility onboarding/runtime permission alerts. Latest run passes app launch and Accessibility checks; the current local active OpenAI provider is missing its Keychain API key.
+- `Scripts/test.sh`: passes 103 SayFlowCore tests, validates packaging/probe script invariants, validates the local debug-provider bootstrap, and runs `swift build`.
+- `Scripts/verify_package.sh`: verifies app bundle, signing, `x86_64 arm64`, `LSUIElement=true`, `LSMinimumSystemVersion=13.0`, DMG SHA-256, DMG size below 30 MB, and DMG contents. Latest ad-hoc v1.1.6 DMG SHA-256: `3387c810c11c825b8c44b96d8083a8166a50098b7ebb4822e6543c6b0189416e`; release verification still requires a stable code-signing identity.
+- `Scripts/manual_acceptance_probe.sh`: verifies bundle, expected running app path, signing, redacted provider settings, local environment reference, package presence, and whether the running SayFlow app is still showing Accessibility onboarding/runtime permission alerts.
 - `Scripts/ax_selected_text_probe.sh`: verifies selected-text capture in target apps through Accessibility, including Safari/WebKit text-marker fallback.
 
 ## Requirement Matrix
@@ -31,7 +31,7 @@ Last verified commands:
 | Provider catalog: OpenAI, DeepSeek, MiMo, Kimi, MiniMax, Doubao, Custom | `ProviderCatalog`, `ProviderTests`; MiMo default endpoint follows current MiMo OpenAI-compatible API docs | Automated verified |
 | Base URL and full `/chat/completions` endpoint normalization | `EndpointNormalizer`, `ProviderTests` | Automated verified |
 | Full `/responses` endpoint support for third-party debug provider | `EndpointNormalizer`, `OpenAIRequestFactory`, `ProviderTests`, live Test Run evidence | Automated and live smoke verified |
-| API Key stored outside settings plaintext | `KeychainStore`, `AppSettingsTests.settingsStoreNeverSerializesPlaintextAPIKeys` | Automated verified |
+| API Key stored outside settings plaintext | `LocalEnvironmentSecretStore`, `ProviderSecretReference`, `AppSettingsTests.settingsStoreNeverSerializesPlaintextAPIKeys` | Automated verified |
 | Active provider uniqueness | `AppSettings.normalizeActiveProvider`, `AppSettingsTests` | Automated verified |
 | HTTPS-only provider endpoints | `ProviderSettingsValidator`, `ProviderTests` | Automated verified |
 | MiMo API key header compatibility | `ProviderAuthorizationHeaders`, `ProviderTests.mimoRequestAlsoSendsAPIKeyHeader` | Automated verified |
@@ -53,7 +53,7 @@ Last verified commands:
 | Popup follow mouse, bottom-left, center, last-closed strategies | `PopupPositioner`, `PopupPositionerTests`, Display settings UI | Automated verified; full UI pass still manual |
 | Same selected text refreshes in place | `PopupPositionerTests.sameSelectedTextRefreshKeepsPreviousFrame` | Automated verified |
 | Result/loading panel keeps fixed width and expands height for longer content, clamped to visible screen insets | `PopupPanelSizerTests` | Automated verified |
-| Privacy: API keys in Keychain; selected text not persisted except explicit Obsidian write | `KeychainStore`, `AppSettingsTests`, `ObsidianWriterTests`; runtime keeps current text in memory for retry only | Automated verified for persistence; runtime behavior still manual |
+| Privacy: API keys in local environment storage; selected text not persisted except explicit Obsidian write | `LocalEnvironmentSecretStore`, `LocalEnvironmentFile`, `AppSettingsTests`, `ObsidianWriterTests`; runtime keeps current text in memory for retry only | Automated verified for persistence; runtime behavior still manual |
 | Network: HTTPS-only and 30s configurable timeout | `ProviderSettingsValidator`, `OpenAIRequestFactory`, `ProviderTests.requestFactoryUsesConfigurableTimeout`, `AppSettingsTests.generalSettingsClampExternalNetworkTimeout` | Automated verified |
 | Offline button disabled/network prompt | `NetworkStatusMonitor`, `NetworkAvailabilityPresentation`, `NetworkAvailabilityPresentationTests`, localization | Automated verified; offline manual scenario not yet verified |
 | API errors include HTTP status and provider/raw message | `OpenAIHTTPErrorMessage`, `OpenAIHTTPErrorMessageTests`, `OpenAIStreamingClient`; raw body still available in Raw response | Automated verified; live failure scenario not yet verified |
