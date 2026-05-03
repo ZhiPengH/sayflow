@@ -1,14 +1,24 @@
 import Foundation
 
 enum PopupPanelSizerTests {
-    static func clampsPanelHeightToSixtyPercentOfActiveScreen() throws {
+    static func expandsPanelHeightBeyondSixtyPercentForLongResults() throws {
+        let size = PopupPanelSizer.size(
+            width: 540,
+            contentHeight: 500,
+            screenHeight: 600
+        )
+
+        try expectEqual(size, CGSize(width: 540, height: 500))
+    }
+
+    static func clampsPanelHeightToVisibleScreenInsetsForOversizedResults() throws {
         let size = PopupPanelSizer.size(
             width: 540,
             contentHeight: 700,
             screenHeight: 600
         )
 
-        try expectEqual(size, CGSize(width: 540, height: 360))
+        try expectEqual(size, CGSize(width: 540, height: 552))
     }
 
     static func keepsMinimumHeightForShortContent() throws {

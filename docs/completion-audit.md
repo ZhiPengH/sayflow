@@ -8,8 +8,8 @@ This audit separates implementation evidence from manual gates. A green script i
 
 Last verified commands:
 
-- `Scripts/test.sh`: passes 94 SayFlowCore tests, validates packaging/probe script invariants, validates the debug-provider bootstrap uses the current MiMo default endpoint, and runs `swift build`.
-- `Scripts/verify_package.sh`: verifies app bundle, signing, `x86_64 arm64`, `LSUIElement=true`, `LSMinimumSystemVersion=13.0`, DMG SHA-256, DMG size below 30 MB, and DMG contents. Latest ad-hoc v1.1.0 DMG SHA-256: `afe4f32f55ee04e686766c1ae20bf57dd15237a645dfcd09ab1e63633c6ce9ff`; release verification still requires a stable code-signing identity.
+- `Scripts/test.sh`: passes 95 SayFlowCore tests, validates packaging/probe script invariants, validates the debug-provider bootstrap uses the current MiMo default endpoint, and runs `swift build`.
+- `Scripts/verify_package.sh`: verifies app bundle, signing, `x86_64 arm64`, `LSUIElement=true`, `LSMinimumSystemVersion=13.0`, DMG SHA-256, DMG size below 30 MB, and DMG contents. Latest ad-hoc v1.1.0 DMG SHA-256: `6ecebe3f38b0c0287253f10099de7f965a83ccedabe6d97939805bc2ef14bd92`; release verification still requires a stable code-signing identity.
 - `Scripts/manual_acceptance_probe.sh`: verifies bundle, expected running app path, signing, provider settings, Keychain reference, package presence, and whether the running SayFlow app is still showing Accessibility onboarding/runtime permission alerts. Latest run passes for `dist/SayFlow.app`, including the Accessibility alert check.
 - `Scripts/ax_selected_text_probe.sh`: verifies selected-text capture in target apps through Accessibility, including Safari/WebKit text-marker fallback.
 
@@ -52,7 +52,7 @@ Last verified commands:
 | Obsidian invalid path validation and write-failure messages | `ObsidianTargetPathValidator`, `ObsidianWriteErrorMessage`, `ObsidianWriterTests`; `ResultPanel` uses the friendly message | Automated verified; no-permission UI scenario still manual |
 | Popup follow mouse, bottom-left, center, last-closed strategies | `PopupPositioner`, `PopupPositionerTests`, Display settings UI | Automated verified; full UI pass still manual |
 | Same selected text refreshes in place | `PopupPositionerTests.sameSelectedTextRefreshKeepsPreviousFrame` | Automated verified |
-| Panel height max 60% screen height | `PopupPanelSizerTests` | Automated verified |
+| Result/loading panel keeps fixed width and expands height for longer content, clamped to visible screen insets | `PopupPanelSizerTests` | Automated verified |
 | Privacy: API keys in Keychain; selected text not persisted except explicit Obsidian write | `KeychainStore`, `AppSettingsTests`, `ObsidianWriterTests`; runtime keeps current text in memory for retry only | Automated verified for persistence; runtime behavior still manual |
 | Network: HTTPS-only and 30s configurable timeout | `ProviderSettingsValidator`, `OpenAIRequestFactory`, `ProviderTests.requestFactoryUsesConfigurableTimeout`, `AppSettingsTests.generalSettingsClampExternalNetworkTimeout` | Automated verified |
 | Offline button disabled/network prompt | `NetworkStatusMonitor`, `NetworkAvailabilityPresentation`, `NetworkAvailabilityPresentationTests`, localization | Automated verified; offline manual scenario not yet verified |

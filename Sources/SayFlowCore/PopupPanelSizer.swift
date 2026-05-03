@@ -7,9 +7,9 @@ public enum PopupPanelSizer {
         contentHeight: CGFloat,
         screenHeight: CGFloat,
         minimumHeight: CGFloat = 220,
-        maximumScreenFraction: CGFloat = 0.6
+        screenInset: CGFloat = 24
     ) -> CGSize {
-        let maxHeight = max(1, screenHeight * maximumScreenFraction)
+        let maxHeight = max(1, screenHeight - screenInset * 2)
         let height = min(max(contentHeight, minimumHeight), maxHeight)
         return CGSize(width: width, height: height)
     }
