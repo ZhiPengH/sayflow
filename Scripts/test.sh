@@ -28,7 +28,11 @@ grep -q 'Version 1.1.1' Sources/SayFlowCore/Localization.swift
 test -f assets/icon_32x32@2x.png
 grep -q 'HOT_ZONE_ICON_FILE="${HOT_ZONE_ICON_FILE:-icon_32x32@2x.png}"' Scripts/build_app.sh
 grep -q 'triggerIconFileName = "icon_32x32@2x.png"' Sources/SayFlowCore/SelectionHotZonePolicy.swift
+grep -q 'triggerIconPointSize = 32' Sources/SayFlowCore/SelectionHotZonePolicy.swift
+grep -q 'triggerPanelSideLength = 32' Sources/SayFlowCore/SelectionHotZonePolicy.swift
+grep -q 'triggerButtonInset = 0' Sources/SayFlowCore/SelectionHotZonePolicy.swift
 grep -q 'triggerButtonTitle = ""' Sources/SayFlowCore/SelectionHotZonePolicy.swift
+grep -q 'SelectionHotZonePresentation.triggerPanelSideLength' Sources/SayFlow/SelectionHotZoneController.swift
 grep -q 'displayText: "⌃⌘S"' Sources/SayFlowCore/AppSettings.swift
 grep -q "displayText: '⌃⌘S'" Scripts/configure_debug_provider.sh
 grep -q 'Control+Command+S' Sources/SayFlowCore/Localization.swift

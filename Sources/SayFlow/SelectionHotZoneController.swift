@@ -8,8 +8,9 @@ final class SelectionHotZoneController: NSObject {
     var onTrigger: (() -> Void)?
 
     override init() {
+        let sideLength = CGFloat(SelectionHotZonePresentation.triggerPanelSideLength)
         panel = NSPanel(
-            contentRect: NSRect(x: 0, y: 0, width: 34, height: 30),
+            contentRect: NSRect(x: 0, y: 0, width: sideLength, height: sideLength),
             styleMask: [.borderless, .nonactivatingPanel],
             backing: .buffered,
             defer: false
@@ -26,7 +27,8 @@ final class SelectionHotZoneController: NSObject {
         panel.collectionBehavior = [.canJoinAllSpaces, .transient, .ignoresCycle]
 
         button.appearance = lightAppearance
-        button.bezelStyle = .rounded
+        button.bezelStyle = .regularSquare
+        button.isBordered = false
         button.font = .systemFont(ofSize: 13, weight: .semibold)
         button.image = Self.triggerIconImage()
         button.imagePosition = .imageOnly
@@ -37,7 +39,7 @@ final class SelectionHotZoneController: NSObject {
         button.action = #selector(trigger)
         button.translatesAutoresizingMaskIntoConstraints = false
 
-        let container = NSView(frame: NSRect(x: 0, y: 0, width: 34, height: 30))
+        let container = NSView(frame: NSRect(x: 0, y: 0, width: sideLength, height: sideLength))
         container.appearance = lightAppearance
         container.wantsLayer = true
         container.layer?.backgroundColor = NSColor(red: 0.96, green: 0.94, blue: 0.89, alpha: 0.96).cgColor
@@ -47,11 +49,12 @@ final class SelectionHotZoneController: NSObject {
         container.layer?.shadowRadius = 8
         container.layer?.shadowOffset = CGSize(width: 0, height: -2)
         container.addSubview(button)
+        let inset = CGFloat(SelectionHotZonePresentation.triggerButtonInset)
         NSLayoutConstraint.activate([
-            button.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 2),
-            button.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -2),
-            button.topAnchor.constraint(equalTo: container.topAnchor, constant: 2),
-            button.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -2)
+            button.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: inset),
+            button.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -inset),
+            button.topAnchor.constraint(equalTo: container.topAnchor, constant: inset),
+            button.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -inset)
         ])
         panel.contentView = container
     }
@@ -76,7 +79,8 @@ final class SelectionHotZoneController: NSObject {
     }
 
     private func frame(near mouse: CGPoint, screenFrame: NSRect) -> NSRect {
-        let size = CGSize(width: 34, height: 30)
+        let sideLength = CGFloat(SelectionHotZonePresentation.triggerPanelSideLength)
+        let size = CGSize(width: sideLength, height: sideLength)
         let inset: CGFloat = 8
         var origin = CGPoint(x: mouse.x + 10, y: mouse.y - size.height - 10)
         if origin.y < screenFrame.minY + inset {

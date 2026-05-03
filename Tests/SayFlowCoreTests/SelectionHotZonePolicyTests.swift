@@ -4,7 +4,9 @@ enum SelectionHotZonePolicyTests {
     static func triggerButtonUsesIconInsteadOfTextTitle() throws {
         try expectEqual(SelectionHotZonePresentation.triggerButtonTitle, "")
         try expectEqual(SelectionHotZonePresentation.triggerIconFileName, "icon_32x32@2x.png")
-        try expectEqual(SelectionHotZonePresentation.triggerIconPointSize, 20)
+        try expectEqual(SelectionHotZonePresentation.triggerIconPointSize, 32)
+        try expectEqual(SelectionHotZonePresentation.triggerPanelSideLength, 32)
+        try expectEqual(SelectionHotZonePresentation.triggerButtonInset, 0)
     }
 
     static func showsOnlyForTrustedNonEmptyExternalSelections() throws {
