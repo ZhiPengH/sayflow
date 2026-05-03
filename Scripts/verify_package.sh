@@ -1,0 +1,82 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+VERSION="${VERSION:-1.0.0}"
+APP="$ROOT/dist/Graker.app"
+EXECUTABLE="$APP/Contents/MacOS/Graker"
+INFO_PLIST="$APP/Contents/Info.plist"
+DMG="$ROOT/dist/Graker-$VERSION.dmg"
+SHA_FILE="$DMG.sha256"
+MOUNT_POINT=""
+
+cleanup() {
+  if [[ -n "$MOUNT_POINT" && -d "$MOUNT_POINT" ]]; then
+    detach_mount_point "$MOUNT_POINT"
+    rmdir "$MOUNT_POINT" 2>/dev/null || true
+  fi
+}
+trap cleanup EXIT
+
+detach_mount_point() {
+  local mount_point="$1"
+  if mount | grep -F "on $mount_point " >/dev/null; then
+    hdiutil detach "$mount_point" >/dev/null || hdiutil detach -force "$mount_point" >/dev/null || true
+  fi
+}
+
+cleanup_stale_graker_mounts() {
+  local mount_point
+  while IFS= read -r mount_point; do
+    detach_mount_point "$mount_point"
+    rmdir "$mount_point" 2>/dev/null || true
+  done < <(mount | sed -n 's#^.* on \(/private/tmp/graker-dmg\.[^ ]*\) .*$#\1#p')
+}
+
+pass() {
+  printf 'PASS %s\n' "$1"
+}
+
+[[ -d "$APP" ]]
+pass "app bundle exists"
+
+[[ -x "$EXECUTABLE" ]]
+pass "app executable exists"
+
+codesign --verify --deep --strict --verbose=2 "$APP"
+pass "codesign verifies"
+
+archs="$(lipo -archs "$EXECUTABLE")"
+[[ "$archs" == *"arm64"* ]]
+[[ "$archs" == *"x86_64"* ]]
+printf 'architectures=%s\n' "$archs"
+
+bundle_id="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$INFO_PLIST")"
+minimum_system="$(/usr/libexec/PlistBuddy -c 'Print :LSMinimumSystemVersion' "$INFO_PLIST")"
+lsui_element="$(/usr/libexec/PlistBuddy -c 'Print :LSUIElement' "$INFO_PLIST")"
+[[ "$bundle_id" == "com.zhixing.graker" ]]
+[[ "$minimum_system" == "13.0" ]]
+[[ "$lsui_element" == "true" ]]
+pass "Info.plist release fields are correct"
+
+[[ -f "$DMG" ]]
+[[ -f "$SHA_FILE" ]]
+expected_sha="$(awk '{print $1}' "$SHA_FILE")"
+actual_sha="$(shasum -a 256 "$DMG" | awk '{print $1}')"
+[[ "$expected_sha" == "$actual_sha" ]]
+printf 'dmg_sha256=%s\n' "$actual_sha"
+
+app_size_kb="$(du -sk "$APP" | awk '{print $1}')"
+dmg_size_kb="$(du -sk "$DMG" | awk '{print $1}')"
+printf 'app_size_kb=%s\n' "$app_size_kb"
+printf 'dmg_size_kb=%s\n' "$dmg_size_kb"
+[[ "$dmg_size_kb" -lt 30720 ]]
+pass "DMG size is below 30 MB"
+
+cleanup_stale_graker_mounts
+MOUNT_POINT="$(mktemp -d /private/tmp/graker-dmg.XXXXXX)"
+hdiutil attach -nobrowse -readonly -mountpoint "$MOUNT_POINT" "$DMG" >/dev/null
+[[ -d "$MOUNT_POINT/Graker.app" ]]
+[[ -L "$MOUNT_POINT/Applications" ]]
+[[ "$(readlink "$MOUNT_POINT/Applications")" == "/Applications" ]]
+pass "DMG contains Graker.app and Applications shortcut"

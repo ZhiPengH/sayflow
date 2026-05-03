@@ -1,27 +1,91 @@
-# Graker Release
+# Graker Clone
 
-Distribution channel for [Graker](https://github.com/EryouHao/graker) — a macOS menu bar grammar checker for Chinese English learners.
+Native macOS menu-bar grammar correction app for Chinese English learners. It reads selected text with Accessibility, sends it to an OpenAI-compatible provider as streaming JSON, and renders corrected English, change explanations, Chinese gloss, and a learning tip in a floating panel.
 
-## Download
+## Requirements
 
-Get the latest version from [Releases](https://github.com/EryouHao/graker-release/releases/latest).
+- macOS 13.0+
+- Swift 6.x Command Line Tools are enough for local builds
+- Accessibility permission for selected-text capture and Accept replacement
 
-## Install
+## Development
 
-1. Open the `.dmg`
-2. Drag **Graker** into **Applications**
-3. Launch it from Applications or Spotlight
-4. On first launch, grant **Accessibility** permission so Graker can read selected text
-
-## Verify the download (optional)
-
-Each release lists a SHA-256 checksum. Compare locally:
+Run the local verification suite:
 
 ```bash
-shasum -a 256 ~/Downloads/Graker-*.dmg
+Scripts/test.sh
 ```
 
-## System requirements
+Build a debug executable:
 
-- macOS 13.0 (Ventura) or newer
-- Apple Silicon (M-series) or Intel — universal binary
+```bash
+swift build
+```
+
+Build a signed `.app` bundle:
+
+```bash
+UNIVERSAL=0 Scripts/build_app.sh
+```
+
+Build a universal DMG and SHA-256 checksum:
+
+```bash
+Scripts/package_dmg.sh
+Scripts/verify_package.sh
+```
+
+Manual macOS permission and target-app acceptance steps are documented in
+[`docs/acceptance-checklist.md`](docs/acceptance-checklist.md).
+After building the app, run `Scripts/manual_acceptance_probe.sh` to check the
+current app bundle, Keychain-backed provider configuration, DMG checksum, and
+Accessibility gate before doing the target-app manual pass.
+
+The package manifest intentionally uses the older SwiftPM manifest format because the available Command Line Tools expose a mismatched PackageDescription interface/dylib for newer manifests. The source itself is Swift 5 mode and builds with the current Swift compiler.
+
+## Storage
+
+- Settings: `~/Library/Application Support/Graker/settings.json`
+- Prompt template: `~/Library/Application Support/Graker/prompts.json`
+- API keys: macOS Keychain, never in JSON settings
+- Obsidian writes: append-only to the Markdown file selected in Settings
+
+## Implemented Scope
+
+- Menu-bar-only app with no Dock icon when launched from the generated `.app`
+- First-launch Accessibility guidance explaining selected-text capture and Accept replacement
+- Default global shortcut `⌥G`, editable for `⌥` plus letter shortcuts
+- Selection hot-zone button after selecting text, reusing the same grammar correction flow
+- Accessibility selected-text capture, clipboard fallback prompt, and Accept replacement
+- OpenAI, DeepSeek, Xiaomi MiMo, Kimi, MiniMax, Doubao, and custom OpenAI-compatible providers
+- MiMo requests include the provider's `api-key` header in addition to Bearer auth
+- Base URL, full `/chat/completions`, or full `/responses` endpoint normalization
+- Streaming SSE parsing and incremental structured JSON rendering
+- Editable grammar prompt with reset, import/export, and test run
+- Floating result panel with Corrected, diff highlighting/popover, Chinese gloss, Good to know, copy, Accept, and Obsidian write actions
+- Popup position strategies: follow mouse, bottom-left, center, last closed position
+- Append-only Obsidian Markdown writer with missing-file creation
+- Chinese and English UI localization following the system language
+- Optional automatic GitHub Releases update check
+- DMG packaging script with SHA-256 output
+
+## Debugging A Third-Party Responses Endpoint
+
+For an OpenAI-compatible proxy that exposes the Responses API, configure the Custom provider with:
+
+- Base URL / Endpoint: the full `https://.../v1/responses` endpoint
+- Model: the proxy model name
+- API Key: paste it in Settings so Graker stores it in macOS Keychain
+
+Graker detects `/v1/responses` automatically and sends a Responses API request with `stream: true` and `text.format.type = json_object`. The SSE parser accepts both incremental `response.output_text.delta` chunks and completed events that contain the final output object. Other base URLs continue to use `/chat/completions`.
+
+You can also configure a local debug provider from the terminal without writing the key to project files:
+
+```bash
+GRAKER_DEBUG_ENDPOINT="https://example.com/v1/responses" \
+GRAKER_DEBUG_MODEL="model-name" \
+GRAKER_DEBUG_API_KEY="sk-..." \
+Scripts/configure_debug_provider.sh
+```
+
+The script updates `~/Library/Application Support/Graker/settings.json` and stores the key in macOS Keychain under Graker's normal custom-provider reference.
