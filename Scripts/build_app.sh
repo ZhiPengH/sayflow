@@ -4,7 +4,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 APP_NAME="${APP_NAME:-SayFlow}"
 PRODUCT_NAME="${PRODUCT_NAME:-SayFlow}"
-VERSION="${VERSION:-1.1.2}"
+VERSION="${VERSION:-1.1.5}"
 IDENTIFIER="${IDENTIFIER:-com.zhixing.sayflow}"
 DIST="${DIST:-$ROOT/dist}"
 CODESIGN_IDENTITY="${CODESIGN_IDENTITY:-SayFlow Local Development}"
@@ -12,6 +12,7 @@ ASSETS_DIR="${ASSETS_DIR:-$ROOT/assets}"
 HOT_ZONE_ICON_FILE="${HOT_ZONE_ICON_FILE:-icon_32x32@2x.png}"
 APP_ICONSET_DIR="${APP_ICONSET_DIR:-$ASSETS_DIR/AppIcon.iconset}"
 APP_ICON_FILE="${APP_ICON_FILE:-SayFlow.icns}"
+PREBUILT_APP_ICON="${PREBUILT_APP_ICON:-$ASSETS_DIR/$APP_ICON_FILE}"
 MENUBAR_ICON_FILE="${MENUBAR_ICON_FILE:-MenuBarIcon.pdf}"
 APP="$DIST/$APP_NAME.app"
 MACOS="$APP/Contents/MacOS"
@@ -42,7 +43,11 @@ Place the provided PDF at assets/$MENUBAR_ICON_FILE before building.
 EOF
   exit 1
 fi
-iconutil -c icns "$APP_ICONSET_DIR" -o "$RESOURCES/$APP_ICON_FILE"
+if [[ -f "$PREBUILT_APP_ICON" ]]; then
+  cp "$PREBUILT_APP_ICON" "$RESOURCES/$APP_ICON_FILE"
+else
+  iconutil -c icns "$APP_ICONSET_DIR" -o "$RESOURCES/$APP_ICON_FILE"
+fi
 cp "$ASSETS_DIR/$MENUBAR_ICON_FILE" "$RESOURCES/$MENUBAR_ICON_FILE"
 
 build_arch() {

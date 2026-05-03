@@ -78,6 +78,8 @@ struct SayFlowCoreTestRunner {
             TestCase(name: "Hotkey registration policy", run: HotKeyRegistrationPolicyTests.succeedsOnlyWhenHandlerAndShortcutRegister),
             TestCase(name: "Hotkey parser control command shortcuts", run: HotKeyParserTests.parsesSymbolAndWordBasedControlCommandShortcuts),
             TestCase(name: "Hotkey parser keeps custom option shortcuts", run: HotKeyParserTests.stillParsesCustomOptionShortcutsForExistingUsers),
+            TestCase(name: "Hotkey parser custom modifier shortcuts", run: HotKeyParserTests.parsesCustomModifierLetterShortcuts),
+            TestCase(name: "Hotkey menu presentation", run: HotKeyParserTests.formatsConfiguredShortcutForMenuPresentation),
             TestCase(name: "Hotkey parser rejects unsupported forms", run: HotKeyParserTests.rejectsUnsupportedShortcutForms),
             TestCase(name: "Legacy app support migration", run: LegacyAppMigrationTests.copiesMissingLegacySettingsAndPromptsWithoutOverwritingNewFiles),
             TestCase(name: "Legacy keychain migration policy", run: LegacyAppMigrationTests.migratesOnlyMissingProviderSecretsThatExistInLegacyKeychain),
@@ -96,6 +98,8 @@ struct SayFlowCoreTestRunner {
             TestCase(name: "Text capture sample bypass", run: TextCaptureResolverTests.sampleTextBypassesRuntimeCapture),
             TestCase(name: "Selection hot zone icon presentation", run: SelectionHotZonePolicyTests.triggerButtonUsesIconInsteadOfTextTitle),
             TestCase(name: "Selection hot zone policy", run: SelectionHotZonePolicyTests.showsOnlyForTrustedNonEmptyExternalSelections),
+            TestCase(name: "Selection hot zone shows English candidates", run: SelectionHotZonePolicyTests.showsForEnglishGrammarCandidatesAfterTrimming),
+            TestCase(name: "Selection hot zone hides unsuitable candidates", run: SelectionHotZonePolicyTests.hidesSelectionsThatAreUnsuitableForGrammarCorrection),
             TestCase(name: "Accessibility element validator", run: AccessibilityElementValidatorTests.acceptsAXUIElementValuesAndRejectsOtherCFTypes),
             TestCase(name: "Accept replacement success action", run: AcceptReplacementFallbackTests.successfulReplacementNeedsNoClipboardFallback),
             TestCase(name: "Accept replacement failure fallback", run: AcceptReplacementFallbackTests.failedReplacementFallsBackToClipboardCopy)

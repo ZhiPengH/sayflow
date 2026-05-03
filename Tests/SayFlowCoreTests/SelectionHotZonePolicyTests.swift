@@ -50,4 +50,60 @@ enum SelectionHotZonePolicyTests {
             .hide
         )
     }
+
+    static func showsForEnglishGrammarCandidatesAfterTrimming() throws {
+        try expectEqual(
+            SelectionHotZonePolicy.decision(
+                accessibilityTrusted: true,
+                selectedText: "\n  The market are unpredictable in short-term.  ",
+                frontmostBundleIdentifier: "com.apple.TextEdit",
+                ownBundleIdentifier: "com.zhixing.sayflow"
+            ),
+            .show("The market are unpredictable in short-term.")
+        )
+
+        try expectEqual(
+            SelectionHotZonePolicy.decision(
+                accessibilityTrusted: true,
+                selectedText: "This paragraph are awkward.\nIt need a clearer sentence.",
+                frontmostBundleIdentifier: "com.apple.TextEdit",
+                ownBundleIdentifier: "com.zhixing.sayflow"
+            ),
+            .show("This paragraph are awkward.\nIt need a clearer sentence.")
+        )
+    }
+
+    static func hidesSelectionsThatAreUnsuitableForGrammarCorrection() throws {
+        let hiddenSelections = [
+            "  中文开头 should not show",
+            "https://example.com/article",
+            "http://example.com/article",
+            "sk-live-token-value",
+            "sk_secret_token_value",
+            "Bearer abc.def.ghi",
+            "ghp_abcdefghijklmnopqrstuvwxyz",
+            "xoxb-1234567890-abcdef",
+            "1234567890",
+            "——---///",
+            "writer@example.com",
+            "/Users/me/Documents/file.md",
+            "~/Documents/file.md",
+            "{\"text\":\"hello\"}",
+            "<note>hello</note>",
+            "let value = response.map { $0.id }",
+            "OK"
+        ]
+
+        for selection in hiddenSelections {
+            try expectEqual(
+                SelectionHotZonePolicy.decision(
+                    accessibilityTrusted: true,
+                    selectedText: selection,
+                    frontmostBundleIdentifier: "com.apple.TextEdit",
+                    ownBundleIdentifier: "com.zhixing.sayflow"
+                ),
+                .hide
+            )
+        }
+    }
 }

@@ -104,16 +104,43 @@ final class SayFlowAppDelegate: NSObject, NSApplicationDelegate {
 
     private func rebuildMenu() {
         let menu = NSMenu()
-        let checkGrammarItem = NSMenuItem(title: L10n.tr(.checkGrammar), action: #selector(checkGrammarFromMenu), keyEquivalent: "g")
+        let checkGrammarItem = NSMenuItem(title: L10n.tr(.checkGrammar), action: #selector(checkGrammarFromMenu), keyEquivalent: "")
         checkGrammarItem.isEnabled = networkMonitor.isOnline
         menu.addItem(checkGrammarItem)
         self.checkGrammarItem = checkGrammarItem
+        syncCheckGrammarMenuShortcut()
         menu.addItem(NSMenuItem.separator())
         menu.addItem(NSMenuItem(title: L10n.tr(.settingsMenu), action: #selector(openSettings), keyEquivalent: ","))
         menu.addItem(NSMenuItem.separator())
         menu.addItem(NSMenuItem(title: L10n.tr(.quitMenu), action: #selector(quit), keyEquivalent: "q"))
         menu.items.forEach { $0.target = self }
         statusItem?.menu = menu
+    }
+
+    private func syncCheckGrammarMenuShortcut() {
+        guard let checkGrammarItem else {
+            return
+        }
+        let shortcut = HotKeyMenuShortcutPresentation.shortcut(for: settings.general.hotKey)
+        checkGrammarItem.keyEquivalent = shortcut.keyEquivalent
+        checkGrammarItem.keyEquivalentModifierMask = menuModifierMask(for: shortcut.modifierFlags)
+    }
+
+    private func menuModifierMask(for carbonModifierFlags: UInt32) -> NSEvent.ModifierFlags {
+        var modifierFlags: NSEvent.ModifierFlags = []
+        if carbonModifierFlags & (1 << 8) != 0 {
+            modifierFlags.insert(.command)
+        }
+        if carbonModifierFlags & (1 << 9) != 0 {
+            modifierFlags.insert(.shift)
+        }
+        if carbonModifierFlags & (1 << 11) != 0 {
+            modifierFlags.insert(.option)
+        }
+        if carbonModifierFlags & (1 << 12) != 0 {
+            modifierFlags.insert(.control)
+        }
+        return modifierFlags
     }
 
     private func startNetworkMonitor() {
@@ -196,6 +223,7 @@ final class SayFlowAppDelegate: NSObject, NSApplicationDelegate {
 
     private func registerHotKey() {
         let result = hotKeyManager.register(settings.general.hotKey)
+        syncCheckGrammarMenuShortcut()
         if case .failed(_, let status) = result {
             let message = String(
                 format: L10n.tr(.hotkeyRegistrationFailedMessageFormat),
