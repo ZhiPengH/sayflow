@@ -71,6 +71,8 @@ struct SayFlowCoreTestRunner {
             TestCase(name: "Settings restore missing default providers", run: AppSettingsTests.settingsStoreRestoresMissingDefaultProvidersOnLoad),
             TestCase(name: "Settings migrate legacy MiMo default URL", run: AppSettingsTests.settingsStoreMigratesLegacyMimoDefaultBaseURLWithoutOverwritingCustomURL),
             TestCase(name: "General settings clamp external network timeout", run: AppSettingsTests.generalSettingsClampExternallyEditedNetworkTimeout),
+            TestCase(name: "General settings default missing accessibility onboarding flag for existing settings", run: AppSettingsTests.generalSettingsDefaultMissingAccessibilityOnboardingFlagToTrueForExistingSettings),
+            TestCase(name: "General settings preserve accessibility onboarding flag", run: AppSettingsTests.generalSettingsPreserveAccessibilityOnboardingFlag),
             TestCase(name: "Launch at login setting rollback", run: AppSettingsTests.launchAtLoginToggleKeepsPreviousSettingWhenSystemChangeFails),
             TestCase(name: "Hotkey registration policy", run: HotKeyRegistrationPolicyTests.succeedsOnlyWhenHandlerAndShortcutRegister),
             TestCase(name: "Hotkey parser control command shortcuts", run: HotKeyParserTests.parsesSymbolAndWordBasedControlCommandShortcuts),

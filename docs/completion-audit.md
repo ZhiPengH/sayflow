@@ -8,9 +8,9 @@ This audit separates implementation evidence from manual gates. A green script i
 
 Last verified commands:
 
-- `Scripts/test.sh`: passes 92 SayFlowCore tests, validates packaging/probe script invariants, validates the debug-provider bootstrap uses the current MiMo default endpoint, and runs `swift build`.
-- `Scripts/verify_package.sh`: verifies app bundle, signing, `x86_64 arm64`, `LSUIElement=true`, `LSMinimumSystemVersion=13.0`, DMG SHA-256, DMG size below 30 MB, and DMG contents. Latest ad-hoc v1.1.0 DMG SHA-256: `54f77df1cbac1479f73f0c4bf87c51fecf058b9c3ddaa742638321f72eb34355`; release verification still requires a stable code-signing identity.
-- `Scripts/manual_acceptance_probe.sh`: verifies bundle, expected running app path, signing, provider settings, Keychain reference, package presence, and whether the running SayFlow app is still showing Accessibility onboarding/runtime permission alerts. Latest run fails because `dist/SayFlow.app` is still showing an Accessibility permission alert.
+- `Scripts/test.sh`: passes 94 SayFlowCore tests, validates packaging/probe script invariants, validates the debug-provider bootstrap uses the current MiMo default endpoint, and runs `swift build`.
+- `Scripts/verify_package.sh`: verifies app bundle, signing, `x86_64 arm64`, `LSUIElement=true`, `LSMinimumSystemVersion=13.0`, DMG SHA-256, DMG size below 30 MB, and DMG contents. Latest ad-hoc v1.1.0 DMG SHA-256: `afe4f32f55ee04e686766c1ae20bf57dd15237a645dfcd09ab1e63633c6ce9ff`; release verification still requires a stable code-signing identity.
+- `Scripts/manual_acceptance_probe.sh`: verifies bundle, expected running app path, signing, provider settings, Keychain reference, package presence, and whether the running SayFlow app is still showing Accessibility onboarding/runtime permission alerts. Latest run passes for `dist/SayFlow.app`, including the Accessibility alert check.
 - `Scripts/ax_selected_text_probe.sh`: verifies selected-text capture in target apps through Accessibility, including Safari/WebKit text-marker fallback.
 
 ## Requirement Matrix

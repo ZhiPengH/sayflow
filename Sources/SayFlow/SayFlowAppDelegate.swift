@@ -111,6 +111,11 @@ final class SayFlowAppDelegate: NSObject, NSApplicationDelegate {
         guard !accessibility.isTrusted(prompt: false) else {
             return
         }
+        guard !settings.general.hasShownAccessibilityOnboarding else {
+            return
+        }
+        settings.general.hasShownAccessibilityOnboarding = true
+        try? settingsStore.save(settings)
         let alert = NSAlert()
         alert.messageText = L10n.tr(.accessibilityOnboardingTitle)
         alert.informativeText = L10n.tr(.accessibilityOnboardingMessage)

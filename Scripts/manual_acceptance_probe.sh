@@ -125,7 +125,7 @@ else
   sed -n '1,80p' /tmp/sayflow-codesign.log
 fi
 
-bundle_id="$(/usr/bin/defaults read "$APP/Contents/Info" CFBundleIdentifier 2>/dev/null || true)"
+bundle_id="$(/usr/bin/plutil -extract CFBundleIdentifier raw "$APP/Contents/Info.plist" 2>/dev/null || true)"
 if [[ "$bundle_id" == "com.zhixing.sayflow" ]]; then
   pass "bundle id is com.zhixing.sayflow"
 else

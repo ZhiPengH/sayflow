@@ -7,6 +7,7 @@ enum AppSettingsTests {
         try expectEqual(settings.general.launchAtLogin, false)
         try expectEqual(settings.general.hotKey, HotKeyConfiguration.defaultControlCommandS)
         try expectEqual(settings.general.networkTimeoutSeconds, 30)
+        try expectEqual(settings.general.hasShownAccessibilityOnboarding, false)
         try expectEqual(settings.display.positionStrategy, .followMouse)
         try expectEqual(settings.display.theme, .light)
         try expectEqual(DisplayTheme.allCases, [.light])
@@ -191,6 +192,28 @@ enum AppSettingsTests {
         try expectEqual(high.networkTimeoutSeconds, 120)
     }
 
+    static func generalSettingsDefaultMissingAccessibilityOnboardingFlagToTrueForExistingSettings() throws {
+        let settings = try decodeGeneralSettings(
+            displayText: "⌃⌘S",
+            keyCode: 1,
+            modifierFlags: 4352,
+            includeAccessibilityOnboardingFlag: false
+        )
+
+        try expectEqual(settings.hasShownAccessibilityOnboarding, true)
+    }
+
+    static func generalSettingsPreserveAccessibilityOnboardingFlag() throws {
+        let settings = try decodeGeneralSettings(
+            displayText: "⌃⌘S",
+            keyCode: 1,
+            modifierFlags: 4352,
+            hasShownAccessibilityOnboarding: true
+        )
+
+        try expectEqual(settings.hasShownAccessibilityOnboarding, true)
+    }
+
     static func launchAtLoginToggleKeepsPreviousSettingWhenSystemChangeFails() throws {
         try expectEqual(
             LaunchAtLoginTogglePolicy.resolvedSetting(requested: true, previous: false, systemChangeSucceeded: false),
@@ -214,14 +237,19 @@ enum AppSettingsTests {
         displayText: String,
         keyCode: UInt32,
         modifierFlags: UInt32,
-        networkTimeoutSeconds: Int = 30
+        networkTimeoutSeconds: Int = 30,
+        hasShownAccessibilityOnboarding: Bool = false,
+        includeAccessibilityOnboardingFlag: Bool = true
     ) throws -> GeneralSettings {
+        let onboardingLine = includeAccessibilityOnboardingFlag
+            ? ",\n          \"hasShownAccessibilityOnboarding\": \(hasShownAccessibilityOnboarding)"
+            : ""
         let json = """
         {
           "launchAtLogin": false,
           "hotKey": {"displayText": "\(displayText)", "keyCode": \(keyCode), "modifierFlags": \(modifierFlags)},
           "automaticallyChecksForUpdates": false,
-          "networkTimeoutSeconds": \(networkTimeoutSeconds)
+          "networkTimeoutSeconds": \(networkTimeoutSeconds)\(onboardingLine)
         }
         """
         return try JSONDecoder().decode(GeneralSettings.self, from: Data(json.utf8))

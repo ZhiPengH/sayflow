@@ -33,17 +33,20 @@ public struct GeneralSettings: Codable, Equatable {
     public var hotKey: HotKeyConfiguration
     public var automaticallyChecksForUpdates: Bool
     public var networkTimeoutSeconds: Int
+    public var hasShownAccessibilityOnboarding: Bool
 
     public init(
         launchAtLogin: Bool,
         hotKey: HotKeyConfiguration,
         automaticallyChecksForUpdates: Bool,
-        networkTimeoutSeconds: Int
+        networkTimeoutSeconds: Int,
+        hasShownAccessibilityOnboarding: Bool
     ) {
         self.launchAtLogin = launchAtLogin
         self.hotKey = hotKey
         self.automaticallyChecksForUpdates = automaticallyChecksForUpdates
         self.networkTimeoutSeconds = networkTimeoutSeconds
+        self.hasShownAccessibilityOnboarding = hasShownAccessibilityOnboarding
     }
 
     enum CodingKeys: String, CodingKey {
@@ -51,6 +54,7 @@ public struct GeneralSettings: Codable, Equatable {
         case hotKey
         case automaticallyChecksForUpdates
         case networkTimeoutSeconds
+        case hasShownAccessibilityOnboarding
     }
 
     public init(from decoder: Decoder) throws {
@@ -60,6 +64,7 @@ public struct GeneralSettings: Codable, Equatable {
         automaticallyChecksForUpdates = try container.decodeIfPresent(Bool.self, forKey: .automaticallyChecksForUpdates) ?? false
         let decodedTimeout = try container.decodeIfPresent(Int.self, forKey: .networkTimeoutSeconds) ?? 30
         networkTimeoutSeconds = min(max(decodedTimeout, 5), 120)
+        hasShownAccessibilityOnboarding = try container.decodeIfPresent(Bool.self, forKey: .hasShownAccessibilityOnboarding) ?? true
     }
 }
 
@@ -138,7 +143,8 @@ public struct AppSettings: Codable, Equatable {
                 launchAtLogin: false,
                 hotKey: .defaultControlCommandS,
                 automaticallyChecksForUpdates: false,
-                networkTimeoutSeconds: 30
+                networkTimeoutSeconds: 30,
+                hasShownAccessibilityOnboarding: false
             ),
             providers: ProviderConfiguration.defaults(),
             prompts: .defaultGrammarCorrection,
