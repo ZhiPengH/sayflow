@@ -8,8 +8,8 @@ This audit separates implementation evidence from manual gates. A green script i
 
 Last verified commands:
 
-- `Scripts/test.sh`: passes 105 SayFlowCore tests, validates packaging/probe script invariants, validates the local debug-provider bootstrap, and runs `swift build`.
-- `Scripts/verify_package.sh`: verifies app bundle, signing, `x86_64 arm64`, `LSUIElement=true`, `LSMinimumSystemVersion=13.0`, DMG SHA-256, DMG size below 30 MB, and DMG contents. Latest ad-hoc v1.1.7 DMG SHA-256: `ac23febdc960f507ae627a91bf24b306e598bba6059485b40436cee73c0ab3c0`; release verification still requires a stable code-signing identity.
+- `Scripts/test.sh`: passes 106 SayFlowCore tests, validates packaging/probe script invariants, validates the local debug-provider bootstrap, and runs `swift build`.
+- `Scripts/verify_package.sh`: verifies app bundle, signing, `x86_64 arm64`, `LSUIElement=true`, `LSMinimumSystemVersion=13.0`, DMG SHA-256, DMG size below 30 MB, and DMG contents. Latest ad-hoc v1.2.0 DMG SHA-256 is recorded after packaging; release verification still requires a stable code-signing identity.
 - `Scripts/manual_acceptance_probe.sh`: verifies bundle, expected running app path, signing, redacted provider settings, local environment reference, package presence, and whether the running SayFlow app is still showing Accessibility onboarding/runtime permission alerts.
 - `Scripts/ax_selected_text_probe.sh`: verifies selected-text capture in target apps through Accessibility, including Safari/WebKit text-marker fallback.
 
@@ -38,8 +38,8 @@ Last verified commands:
 | Legacy MiMo default endpoint migration | `ProviderLegacyDefaultMigrator`, `AppSettingsTests.settingsStoreMigratesLegacyMimoDefaultBaseURLWithoutOverwritingCustomURL`; `Scripts/test.sh` also checks debug bootstrap defaults | Automated verified |
 | Structured JSON request with streaming | `OpenAIRequestFactory`, `ProviderTests` | Automated verified |
 | Stream parsing for Chat Completions and Responses API | `OpenAIStreamParser`, `SSEParserTests`, fallback extractor tests | Automated verified |
-| Prompt template stored in `prompts.json`, editable/import/export/default/test run | `PromptStore`, `SettingsWindow`, `PromptTemplateTests`; live Test Run previously returned valid correction | Automated plus live smoke verified |
-| Missing `{{text}}` disables prompt save/test | `PromptTemplateValidator`, `SettingsWindow`, `PromptTemplateTests` | Automated verified |
+| Prompt template stored in `prompts.json`, editable PromptA-PromptE System slots, fixed internal `{{text}}`, import/export/default/test run | `PromptStore`, `SettingsWindow`, `PromptTemplateTests`; live Test Run previously returned valid correction | Automated plus live smoke verified |
+| User Prompt remains hidden in Settings and legacy `userPrompt` imports render through fixed `{{text}}` | `PromptTemplate`, `SettingsWindow`, `settings_editing_probe.sh`, `PromptTemplateTests` | Automated verified |
 | Invalid JSON shows retry warning and raw response disclosure | `CorrectionCompletionPolicy`, `RawResponseDisclosure`, tests | Automated verified |
 | Settings tabs: General, Providers, Prompts, Display, Obsidian, About | `SettingsWindow.buildTabs()` | Implemented; manual UI pass still pending |
 | Result panel: Corrected, diff pills, Chinese gloss, Good to know; no Origin block | `ResultPanel.swift`, `DiffPillLocatorTests`; live panel smoke evidence | Implemented and smoke verified |

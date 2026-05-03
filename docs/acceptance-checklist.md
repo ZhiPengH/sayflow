@@ -1,6 +1,6 @@
-# SayFlow v1.1.7 Acceptance Checklist
+# SayFlow v1.2.0 Acceptance Checklist
 
-Use this checklist after building `dist/SayFlow.app` or installing `dist/SayFlow-1.1.7.dmg`.
+Use this checklist after building `dist/SayFlow.app` or installing `dist/SayFlow-1.2.0.dmg`.
 Some items require macOS Accessibility permission and must be verified by a logged-in user.
 
 ## Automated Gates
@@ -17,7 +17,7 @@ Scripts/manual_acceptance_probe.sh
 Expected evidence:
 
 - `Scripts/test.sh` reports all SayFlowCore tests passed and `swift build` completes.
-- `Scripts/package_dmg.sh` creates `dist/SayFlow.app`, `dist/SayFlow-1.1.7.dmg`, and `dist/SayFlow-1.1.7.dmg.sha256`.
+- `Scripts/package_dmg.sh` creates `dist/SayFlow.app`, `dist/SayFlow-1.2.0.dmg`, and `dist/SayFlow-1.2.0.dmg.sha256`.
 - `Scripts/verify_package.sh` checks codesign, `x86_64` + `arm64`,
   `LSUIElement=true`, `LSMinimumSystemVersion=13.0`, SHA-256, DMG size below
   30 MB, and the mounted DMG contents using a fixed temporary mount point.
@@ -46,7 +46,7 @@ Acceptance:
 - Test Run returns a correction with `corrected`, `changes`, `translation_zh`, and optional `good_to_know`.
 - Invalid JSON displays the retry warning, shows a collapsed Raw response control, and expands the raw response on click instead of crashing.
 - API errors show the HTTP status and raw body.
-- Prompt import rejects templates that fail the same validation as Save, including a missing `{{text}}` placeholder.
+- Prompt import accepts legacy `userPrompt` files, while Settings keeps User Prompt hidden and uses the internal `{{text}}` field.
 
 ## Accessibility Permission
 

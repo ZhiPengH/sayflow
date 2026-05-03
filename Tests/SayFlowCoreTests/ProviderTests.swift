@@ -140,7 +140,7 @@ enum ProviderTests {
         try expectEqual(json?["temperature"] as? Double, 0.2)
         let messages = try unwrap(json?["messages"] as? [[String: String]])
         try expectEqual(messages[0], ["role": "system", "content": "System Market are volatile."])
-        try expectEqual(messages[1], ["role": "user", "content": "Fix Market are volatile."])
+        try expectEqual(messages[1], ["role": "user", "content": "Market are volatile."])
     }
 
     static func requestFactoryAcceptsResolvedKeyWithoutPersistingPlaintext() throws {
@@ -192,7 +192,7 @@ enum ProviderTests {
         try expectEqual(json?["model"] as? String, "gemini-3.1-flash-lite-preview")
         try expectEqual(json?["stream"] as? Bool, true)
         try expectEqual(json?["instructions"] as? String, "System Market are volatile.")
-        try expectEqual(json?["input"] as? String, "Fix Market are volatile.")
+        try expectEqual(json?["input"] as? String, "Market are volatile.")
         try expectNil(json?["messages"])
         try expectNil(json?["response_format"])
         let text = try unwrap(json?["text"] as? [String: Any])

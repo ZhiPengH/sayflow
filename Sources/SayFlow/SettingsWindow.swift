@@ -5,7 +5,7 @@ import SayFlowCore
 import ServiceManagement
 #endif
 
-final class SettingsWindowController: NSWindowController, NSTextViewDelegate {
+final class SettingsWindowController: NSWindowController, NSTextViewDelegate, NSTabViewDelegate {
     private var settings: AppSettings
     private let settingsStore: AppSettingsStore
     private let providerSecrets: LocalEnvironmentSecretStore
@@ -21,7 +21,8 @@ final class SettingsWindowController: NSWindowController, NSTextViewDelegate {
     private let providerTestButton = NSButton(title: L10n.tr(.testProvider), target: nil, action: nil)
     private let providerTestStatusLabel = NSTextField(labelWithString: "")
     private let systemPromptView = NSTextView()
-    private let userPromptView = NSTextView()
+    private let promptTabView = NSTabView()
+    private var systemPromptEditors: [String: NSTextView] = [:]
     private let positionPopup = NSPopUpButton()
     private let obsidianPathField = NSTextField()
     private let obsidianTemplateView = NSTextView()
@@ -129,8 +130,7 @@ final class SettingsWindowController: NSWindowController, NSTextViewDelegate {
 
     private func promptsView() -> NSView {
         let stack = formStack()
-        configureEditor(systemPromptView, height: 170)
-        configureEditor(userPromptView, height: 80)
+        configurePromptTabView()
         let buttons = NSStackView()
         buttons.orientation = .horizontal
         buttons.spacing = 8
@@ -149,9 +149,9 @@ final class SettingsWindowController: NSWindowController, NSTextViewDelegate {
         promptValidationLabel.textColor = .systemRed
         promptValidationLabel.isHidden = true
         stack.addArrangedSubview(label(L10n.tr(.systemPrompt)))
-        stack.addArrangedSubview(systemPromptView.enclosingScrollView ?? scroll(for: systemPromptView, height: 170))
-        stack.addArrangedSubview(label(L10n.tr(.userPrompt)))
-        stack.addArrangedSubview(userPromptView.enclosingScrollView ?? scroll(for: userPromptView, height: 80))
+        promptTabView.heightAnchor.constraint(equalToConstant: 330).isActive = true
+        promptTabView.widthAnchor.constraint(equalToConstant: 650).isActive = true
+        stack.addArrangedSubview(promptTabView)
         stack.addArrangedSubview(promptValidationLabel)
         stack.addArrangedSubview(buttons)
         return padded(stack)
@@ -203,8 +203,7 @@ final class SettingsWindowController: NSWindowController, NSTextViewDelegate {
         launchAtLoginButton.state = settings.general.launchAtLogin ? .on : .off
         updateCheckButton.state = settings.general.automaticallyChecksForUpdates ? .on : .off
         timeoutField.stringValue = String(settings.general.networkTimeoutSeconds)
-        systemPromptView.string = settings.prompts.system
-        userPromptView.string = settings.prompts.user
+        reloadPromptEditors()
         updatePromptValidationState()
         select(positionPopup, representedValue: settings.display.positionStrategy.rawValue)
         obsidianPathField.stringValue = settings.obsidian.targetMarkdownPath ?? ""
@@ -230,6 +229,49 @@ final class SettingsWindowController: NSWindowController, NSTextViewDelegate {
         modelField.addItems(withObjectValues: recommendedModels)
         modelField.completes = !recommendedModels.isEmpty
         modelField.isEditable = true
+    }
+
+    private func configurePromptTabView() {
+        guard promptTabView.numberOfTabViewItems == 0 else {
+            return
+        }
+        promptTabView.delegate = self
+        for slot in PromptTemplate.defaultGrammarCorrection.systemPrompts {
+            let editor = slot.id == PromptTemplate.systemPromptIDs[0] ? systemPromptView : NSTextView()
+            configureEditor(editor, height: 285)
+            systemPromptEditors[slot.id] = editor
+
+            let item = NSTabViewItem(identifier: slot.id)
+            item.label = slot.title
+            item.view = editor.enclosingScrollView ?? scroll(for: editor, height: 285)
+            promptTabView.addTabViewItem(item)
+        }
+    }
+
+    private func reloadPromptEditors() {
+        configurePromptTabView()
+        for slot in settings.prompts.systemPrompts {
+            systemPromptEditors[slot.id]?.string = slot.system
+            if let item = promptTabView.tabViewItems.first(where: { $0.identifier as? String == slot.id }) {
+                item.label = slot.title
+            }
+        }
+        if let item = promptTabView.tabViewItems.first(where: { $0.identifier as? String == settings.prompts.activeSystemPromptID }) {
+            promptTabView.selectTabViewItem(item)
+        }
+    }
+
+    private func promptTemplateFromEditors() -> PromptTemplate {
+        var template = settings.prompts
+        for slot in template.systemPrompts {
+            if let editor = systemPromptEditors[slot.id] {
+                template.setSystem(editor.string, for: slot.id)
+            }
+        }
+        if let activeID = promptTabView.selectedTabViewItem?.identifier as? String {
+            template.activeSystemPromptID = activeID
+        }
+        return template
     }
 
     private func persist() {
@@ -479,7 +521,7 @@ final class SettingsWindowController: NSWindowController, NSTextViewDelegate {
     }
 
     private func savePromptFromEditors(runAfterSave: Bool) {
-        let template = PromptTemplate(system: systemPromptView.string, user: userPromptView.string)
+        let template = promptTemplateFromEditors()
         switch PromptTemplateValidator.validate(template) {
         case .valid:
             settings.prompts = template
@@ -499,8 +541,14 @@ final class SettingsWindowController: NSWindowController, NSTextViewDelegate {
         updatePromptValidationState()
     }
 
+    func tabView(_ tabView: NSTabView, didSelect tabViewItem: NSTabViewItem?) {
+        if tabView == promptTabView {
+            updatePromptValidationState()
+        }
+    }
+
     private func updatePromptValidationState() {
-        let template = PromptTemplate(system: systemPromptView.string, user: userPromptView.string)
+        let template = promptTemplateFromEditors()
         switch PromptTemplateValidator.validate(template) {
         case .valid:
             promptValidationLabel.stringValue = ""

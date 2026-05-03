@@ -35,11 +35,13 @@ for control in \
   modelField \
   temperatureField \
   systemPromptView \
-  userPromptView \
+  promptTabView \
   obsidianPathField \
   obsidianTemplateView; do
   grep -q "$control" Sources/SayFlow/SettingsWindow.swift || fail "SettingsWindow missing editable control $control"
 done
+
+! grep -q 'userPromptView' Sources/SayFlow/SettingsWindow.swift || fail "SettingsWindow should hide the editable User Prompt control"
 
 grep -q 'textView.allowsUndo = true' Sources/SayFlow/SettingsWindow.swift || fail "settings NSTextView editors do not enable Undo"
 

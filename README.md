@@ -61,7 +61,7 @@ The package manifest intentionally uses the older SwiftPM manifest format becaus
 - MiMo requests include the provider's `api-key` header in addition to Bearer auth
 - Base URL, full `/chat/completions`, or full `/responses` endpoint normalization
 - Streaming SSE parsing and incremental structured JSON rendering
-- Editable grammar prompt with reset, import/export, and test run
+- Editable System prompt slots PromptA-PromptE with fixed internal `{{text}}`, reset, import/export, and test run
 - Floating result panel with Corrected, diff highlighting/popover, Chinese gloss, Good to know, copy, Accept, and Obsidian write actions
 - Popup position strategies: follow mouse, bottom-left, center, last closed position
 - Append-only Obsidian Markdown writer with missing-file creation
