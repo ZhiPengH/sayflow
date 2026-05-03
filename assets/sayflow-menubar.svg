@@ -1,0 +1,16 @@
+<svg width="44" height="44" viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg">
+  <title>言顺 SayFlow · Menu Bar Template</title>
+  <!-- macOS template image: solid black on transparent. System auto-inverts for dark menu bar. -->
+  <!-- Strictly proportional to 1024 app icon (×0.04297). Designed for @2x (44px) — covers retina menu bars. -->
+
+  <circle cx="22" cy="11" r="1.51" fill="#000000"/>
+
+  <path d="M 15.81 18.7 Q 17.33 16.91 18.97 18.7 T 22 18.7 T 25.02 18.7 T 28.19 18.7"
+        fill="none" stroke="#000000" stroke-width="1.51" stroke-linecap="round"/>
+
+  <path d="M 12.79 25.3 Q 14.3 23.51 15.81 25.3 T 18.97 25.3 T 22 25.3 T 25.02 25.3 T 28.19 25.3 T 31.21 25.3"
+        fill="none" stroke="#000000" stroke-width="1.51" stroke-linecap="round"/>
+
+  <path d="M 9.62 31.9 Q 11.27 30.11 12.79 31.9 T 15.81 31.9 T 18.97 31.9 T 22 31.9 T 25.02 31.9 T 28.19 31.9 T 31.21 31.9 T 34.38 31.9"
+        fill="none" stroke="#000000" stroke-width="1.51" stroke-linecap="round"/>
+</svg>

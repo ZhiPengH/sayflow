@@ -1,34 +1,35 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-: "${GRAKER_DEBUG_ENDPOINT:?Set GRAKER_DEBUG_ENDPOINT to a /v1/responses or /chat/completions endpoint}"
-: "${GRAKER_DEBUG_MODEL:?Set GRAKER_DEBUG_MODEL to the model name}"
-: "${GRAKER_DEBUG_API_KEY:?Set GRAKER_DEBUG_API_KEY to the provider API key}"
+: "${SAYFLOW_DEBUG_ENDPOINT:?Set SAYFLOW_DEBUG_ENDPOINT to a /v1/responses or /chat/completions endpoint}"
+: "${SAYFLOW_DEBUG_MODEL:?Set SAYFLOW_DEBUG_MODEL to the model name}"
+: "${SAYFLOW_DEBUG_API_KEY:?Set SAYFLOW_DEBUG_API_KEY to the provider API key}"
 
-SUPPORT_DIR="${HOME}/Library/Application Support/Graker"
+SUPPORT_DIR="${HOME}/Library/Application Support/SayFlow"
 SETTINGS_FILE="${SUPPORT_DIR}/settings.json"
 PROMPTS_FILE="${SUPPORT_DIR}/prompts.json"
-KEYCHAIN_REF="keychain://provider/custom"
+ENV_FILE="${SUPPORT_DIR}/provider.env"
+API_KEY_REFERENCE="env://SAYFLOW_CUSTOM_API_KEY"
 
 mkdir -p "$SUPPORT_DIR"
 
-security add-generic-password \
-  -U \
-  -s "Graker" \
-  -a "$KEYCHAIN_REF" \
-  -w "$GRAKER_DEBUG_API_KEY" >/dev/null
-
 SETTINGS_FILE="$SETTINGS_FILE" \
 PROMPTS_FILE="$PROMPTS_FILE" \
-GRAKER_DEBUG_ENDPOINT="$GRAKER_DEBUG_ENDPOINT" \
-GRAKER_DEBUG_MODEL="$GRAKER_DEBUG_MODEL" \
+ENV_FILE="$ENV_FILE" \
+SAYFLOW_DEBUG_ENDPOINT="$SAYFLOW_DEBUG_ENDPOINT" \
+SAYFLOW_DEBUG_MODEL="$SAYFLOW_DEBUG_MODEL" \
+SAYFLOW_DEBUG_API_KEY="$SAYFLOW_DEBUG_API_KEY" \
+API_KEY_REFERENCE="$API_KEY_REFERENCE" \
 node <<'NODE'
 const fs = require('fs');
 
 const settingsFile = process.env.SETTINGS_FILE;
 const promptsFile = process.env.PROMPTS_FILE;
-const endpoint = process.env.GRAKER_DEBUG_ENDPOINT;
-const model = process.env.GRAKER_DEBUG_MODEL;
+const envFile = process.env.ENV_FILE;
+const endpoint = process.env.SAYFLOW_DEBUG_ENDPOINT;
+const model = process.env.SAYFLOW_DEBUG_MODEL;
+const apiKey = process.env.SAYFLOW_DEBUG_API_KEY;
+const apiKeyReference = process.env.API_KEY_REFERENCE;
 
 const defaultPrompt = {
   system: `你是一名面向中国英语学习者的语法批改老师。给定一段英文，你需要：
@@ -47,24 +48,53 @@ const defaultPrompt = {
   user: '{{text}}'
 };
 
-const providers = [
-  ['openAI', 'OpenAI', 'https://api.openai.com/v1', 'gpt-4o-mini'],
-  ['deepSeek', 'DeepSeek', 'https://api.deepseek.com/v1', 'deepseek-v4-flash'],
-  ['mimo', 'Xiaomi MiMo', 'https://api.mimo-v2.com/v1', 'mimo-v2.5'],
-  ['kimi', 'Moonshot Kimi', 'https://api.moonshot.cn/v1', 'kimi-latest'],
-  ['miniMax', 'MiniMax', 'https://api.minimax.chat/v1', 'abab6.5s-chat'],
-  ['doubao', 'Doubao', 'https://ark.cn-beijing.volces.com/api/v3', 'doubao-1-5-pro'],
-  ['custom', 'OpenAI Third Party', endpoint, model],
-].map(([kind, displayName, baseURL, defaultModel]) => ({
-  id: kind,
-  kind,
-  displayName,
-  apiKeyReference: `keychain://provider/${kind}`,
-  baseURL,
-  model: defaultModel,
+function parseEnv(raw) {
+  const values = new Map();
+  for (const line of raw.split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#')) continue;
+    const normalized = trimmed.startsWith('export ') ? trimmed.slice('export '.length) : trimmed;
+    const index = normalized.indexOf('=');
+    if (index === -1) continue;
+    values.set(normalized.slice(0, index).trim(), normalized.slice(index + 1).trim());
+  }
+  return values;
+}
+
+function renderEnv(raw, key, value) {
+  const lines = [];
+  let didUpdate = false;
+  for (const line of raw.split(/\r?\n/)) {
+    const normalized = line.trim().startsWith('export ') ? line.trim().slice('export '.length) : line.trim();
+    const index = normalized.indexOf('=');
+    const lineKey = index === -1 ? '' : normalized.slice(0, index).trim();
+    if (lineKey === key) {
+      didUpdate = true;
+      lines.push(`${key}=${value}`);
+    } else if (line) {
+      lines.push(line);
+    }
+  }
+  if (!didUpdate) {
+    lines.push(`${key}=${value}`);
+  }
+  return `${lines.join('\n')}\n`;
+}
+
+const existingEnv = fs.existsSync(envFile) ? fs.readFileSync(envFile, 'utf8') : '';
+fs.writeFileSync(envFile, renderEnv(existingEnv, 'SAYFLOW_CUSTOM_API_KEY', apiKey));
+fs.chmodSync(envFile, 0o600);
+
+const provider = {
+  id: 'custom',
+  kind: 'custom',
+  displayName: 'Custom',
+  apiKeyReference,
+  baseURL: endpoint,
+  model,
   temperature: 0.2,
-  isActive: kind === 'custom',
-}));
+  isActive: true,
+};
 
 let settings;
 if (fs.existsSync(settingsFile)) {
@@ -73,11 +103,11 @@ if (fs.existsSync(settingsFile)) {
   settings = {
     general: {
       launchAtLogin: false,
-      hotKey: { displayText: '⌥G', keyCode: 5, modifierFlags: 2048 },
+      hotKey: { displayText: '⌃⌘S', keyCode: 1, modifierFlags: 4352 },
       automaticallyChecksForUpdates: false,
       networkTimeoutSeconds: 30,
     },
-    providers,
+    providers: [provider],
     display: { positionStrategy: 'followMouse', theme: 'system' },
     obsidian: {
       targetMarkdownPath: null,
@@ -89,23 +119,23 @@ if (fs.existsSync(settingsFile)) {
 
 const promptTemplate = settings.prompts || defaultPrompt;
 
-settings.providers = providers.map((provider) => {
+settings.providers = [provider].map((provider) => {
   const existing = (settings.providers || []).find((item) => item.kind === provider.kind || item.id === provider.id);
   return {
     ...provider,
     ...(existing || {}),
-    displayName: provider.kind === 'custom' ? 'OpenAI Third Party' : (existing?.displayName || provider.displayName),
-    baseURL: provider.kind === 'custom' ? endpoint : (existing?.baseURL || provider.baseURL),
-    model: provider.kind === 'custom' ? model : (existing?.model || provider.model),
-    apiKeyReference: provider.apiKeyReference,
-    isActive: provider.kind === 'custom',
+    displayName: 'Custom',
+    baseURL: endpoint,
+    model,
+    apiKeyReference,
+    isActive: true,
     apiKeyPlaintextForTesting: undefined,
   };
 });
 
 settings.general = {
   launchAtLogin: false,
-  hotKey: { displayText: '⌥G', keyCode: 5, modifierFlags: 2048 },
+  hotKey: { displayText: '⌃⌘S', keyCode: 1, modifierFlags: 4352 },
   automaticallyChecksForUpdates: false,
   networkTimeoutSeconds: 30,
   ...(settings.general || {}),
@@ -125,4 +155,4 @@ if (!fs.existsSync(promptsFile)) {
 fs.writeFileSync(settingsFile, JSON.stringify(settings, null, 2) + '\n');
 NODE
 
-echo "Configured Graker Custom provider at ${SETTINGS_FILE}"
+echo "Configured SayFlow Custom provider locally at ${SETTINGS_FILE}"

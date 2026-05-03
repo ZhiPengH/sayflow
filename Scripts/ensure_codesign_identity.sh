@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-IDENTITY="${CODESIGN_IDENTITY:-Graker Local Development}"
+IDENTITY="${CODESIGN_IDENTITY:-SayFlow Local Development}"
 KEYCHAIN="${CODESIGN_KEYCHAIN:-$HOME/Library/Keychains/login.keychain-db}"
 
 if [[ "$IDENTITY" == "-" ]]; then
@@ -14,7 +14,7 @@ if security find-identity -v -p codesigning "$KEYCHAIN" 2>/dev/null | grep -F "\
   exit 0
 fi
 
-WORK="$(mktemp -d /tmp/graker-codesign.XXXXXX)"
+WORK="$(mktemp -d /tmp/sayflow-codesign.XXXXXX)"
 PKCS12_PASSWORD="$(uuidgen)"
 cleanup() {
   rm -rf "$WORK"

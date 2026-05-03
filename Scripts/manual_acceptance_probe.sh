@@ -2,11 +2,12 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-VERSION="${VERSION:-1.0.3}"
-APP="${1:-$ROOT/dist/Graker.app}"
-SUPPORT_DIR="$HOME/Library/Application Support/Graker"
+VERSION="${VERSION:-1.2.0}"
+APP="${1:-$ROOT/dist/SayFlow.app}"
+SUPPORT_DIR="$HOME/Library/Application Support/SayFlow"
 SETTINGS="$SUPPORT_DIR/settings.json"
 PROMPTS="$SUPPORT_DIR/prompts.json"
+ENV_FILE="$SUPPORT_DIR/provider.env"
 
 failures=0
 
@@ -27,7 +28,7 @@ fail() {
   failures=$((failures + 1))
 }
 
-graker_accessibility_permission_alert_visible() {
+sayflow_accessibility_permission_alert_visible() {
   if [[ "$#" -eq 0 ]]; then
     printf 'false\n'
     return 0
@@ -38,14 +39,14 @@ import ApplicationServices
 import Foundation
 
 let needles = [
-    "允许 Graker 使用辅助功能",
-    "Graker 只会用辅助功能",
+    "允许言顺使用辅助功能",
+    "言顺只会用辅助功能",
     "需要辅助功能权限",
-    "Graker 需要辅助功能权限",
+    "言顺需要辅助功能权限",
     "打开系统设置",
-    "Allow Accessibility for Graker",
+    "Allow Accessibility for SayFlow",
     "Accessibility permission required",
-    "Graker needs Accessibility permission",
+    "SayFlow needs Accessibility permission",
     "Open System Settings"
 ]
 
@@ -111,31 +112,31 @@ else
   fail "app bundle missing: $APP"
 fi
 
-if [[ -x "$APP/Contents/MacOS/Graker" ]]; then
+if [[ -x "$APP/Contents/MacOS/SayFlow" ]]; then
   pass "app executable exists"
-  file "$APP/Contents/MacOS/Graker"
+  file "$APP/Contents/MacOS/SayFlow"
 else
   fail "app executable missing"
 fi
 
-if /usr/bin/codesign --verify --deep --strict --verbose=2 "$APP" >/tmp/graker-codesign.log 2>&1; then
+if /usr/bin/codesign --verify --deep --strict --verbose=2 "$APP" >/tmp/sayflow-codesign.log 2>&1; then
   pass "codesign verifies"
 else
   fail "codesign verification failed"
-  sed -n '1,80p' /tmp/graker-codesign.log
+  sed -n '1,80p' /tmp/sayflow-codesign.log
 fi
 
-bundle_id="$(/usr/bin/defaults read "$APP/Contents/Info" CFBundleIdentifier 2>/dev/null || true)"
-if [[ "$bundle_id" == "com.zhixing.graker" ]]; then
-  pass "bundle id is com.zhixing.graker"
+bundle_id="$(/usr/bin/plutil -extract CFBundleIdentifier raw "$APP/Contents/Info.plist" 2>/dev/null || true)"
+if [[ "$bundle_id" == "com.zhixing.sayflow" ]]; then
+  pass "bundle id is com.zhixing.sayflow"
 else
   fail "unexpected bundle id: ${bundle_id:-missing}"
 fi
 
-if /usr/bin/pgrep -f "$APP/Contents/MacOS/Graker" >/dev/null 2>&1; then
-  pass "Graker is running from this app bundle"
+if /usr/bin/pgrep -f "$APP/Contents/MacOS/SayFlow" >/dev/null 2>&1; then
+  pass "SayFlow is running from this app bundle"
 else
-  fail "Graker app is not running from this app bundle"
+  fail "SayFlow app is not running from this app bundle"
 fi
 
 section "Accessibility"
@@ -151,27 +152,27 @@ if [[ "$trusted" == "true" ]]; then
 else
   fail "Accessibility trust is not granted"
   cat <<EOF
-Open System Settings -> Privacy & Security -> Accessibility, then enable Graker.
-Expected bundle id: com.zhixing.graker
+Open System Settings -> Privacy & Security -> Accessibility, then enable SayFlow.
+Expected bundle id: com.zhixing.sayflow
 Expected app path: $APP
 EOF
 fi
 
-running_pids="$(/usr/bin/pgrep -f "$APP/Contents/MacOS/Graker" || true)"
+running_pids="$(/usr/bin/pgrep -f "$APP/Contents/MacOS/SayFlow" || true)"
 if [[ -n "$running_pids" ]]; then
-  permission_alert_visible="$(graker_accessibility_permission_alert_visible $running_pids)"
+  permission_alert_visible="$(sayflow_accessibility_permission_alert_visible $running_pids)"
   if [[ "$permission_alert_visible" == "true" ]]; then
-    fail "Graker app is showing an Accessibility permission alert"
+    fail "SayFlow app is showing an Accessibility permission alert"
     cat <<EOF
-The probe process has Accessibility trust, but the running Graker app is still asking for it.
-Open System Settings -> Privacy & Security -> Accessibility, then enable Graker for:
+The probe process has Accessibility trust, but the running SayFlow app is still asking for it.
+Open System Settings -> Privacy & Security -> Accessibility, then enable SayFlow for:
 $APP
 EOF
   else
-    pass "Graker app is not showing Accessibility permission alerts"
+    pass "SayFlow app is not showing Accessibility permission alerts"
   fi
 else
-  fail "Graker app is not running; cannot inspect app-specific Accessibility permission alerts"
+  fail "SayFlow app is not running; cannot inspect app-specific Accessibility permission alerts"
 fi
 
 section "Settings"
@@ -196,9 +197,10 @@ settings = json.load(open(sys.argv[1]))
 providers = settings.get("providers", [])
 active = next((p for p in providers if p.get("isActive")), None)
 print("active_provider=" + (active.get("displayName", "") if active else "NONE"))
-print("active_model=" + (active.get("model", "") if active else "NONE"))
-print("active_base_url=" + (active.get("baseURL", "") if active else "NONE"))
-print("api_key_reference=" + (active.get("apiKeyReference", "") if active else "NONE"))
+print("active_model=" + ("CONFIGURED" if active and active.get("model") else "NONE"))
+print("active_base_url=" + ("CONFIGURED" if active and active.get("baseURL") else "NONE"))
+reference = active.get("apiKeyReference", "") if active else ""
+print("api_key_env=" + (reference.removeprefix("env://") if reference.startswith("env://") else "NONE"))
 print("popup_position=" + settings.get("display", {}).get("positionStrategy", "missing"))
 print("hotkey=" + settings.get("general", {}).get("hotKey", {}).get("displayText", "missing"))
 print("launch_at_login_setting=" + str(settings.get("general", {}).get("launchAtLogin", False)).lower())
@@ -208,35 +210,53 @@ PY
 fi
 
 if [[ -f "$SETTINGS" ]]; then
-  key_ref="$(
+  key_env="$(
     /usr/bin/python3 - "$SETTINGS" <<'PY'
 import json
 import sys
 
 settings = json.load(open(sys.argv[1]))
 active = next((p for p in settings.get("providers", []) if p.get("isActive")), None)
-print(active.get("apiKeyReference", "") if active else "")
+reference = active.get("apiKeyReference", "") if active else ""
+print(reference.removeprefix("env://") if reference.startswith("env://") else "")
 PY
   )"
-  if [[ -n "$key_ref" ]] && /usr/bin/security find-generic-password -s Graker -a "$key_ref" -w >/dev/null 2>&1; then
-    pass "active provider API key exists in Keychain"
+  if [[ -n "$key_env" && -n "${!key_env:-}" ]]; then
+    pass "active provider API key exists in process environment"
+  elif [[ -n "$key_env" && -f "$ENV_FILE" ]] && /usr/bin/python3 - "$ENV_FILE" "$key_env" <<'PY'
+import sys
+
+env_file, key = sys.argv[1], sys.argv[2]
+for line in open(env_file):
+    stripped = line.strip()
+    if not stripped or stripped.startswith("#"):
+        continue
+    if stripped.startswith("export "):
+        stripped = stripped[len("export "):]
+    name, _, value = stripped.partition("=")
+    if name.strip() == key and value.strip():
+        sys.exit(0)
+sys.exit(1)
+PY
+  then
+    pass "active provider API key exists in local environment file"
   else
-    fail "active provider API key is missing in Keychain"
+    warn "active provider API key is not configured in local environment"
   fi
 fi
 
 section "Package"
-if [[ -f "$ROOT/dist/Graker-$VERSION.dmg" ]]; then
+if [[ -f "$ROOT/dist/SayFlow-$VERSION.dmg" ]]; then
   pass "DMG exists"
-  /usr/bin/du -sh "$ROOT/dist/Graker-$VERSION.dmg"
-  /usr/bin/shasum -a 256 "$ROOT/dist/Graker-$VERSION.dmg"
+  /usr/bin/du -sh "$ROOT/dist/SayFlow-$VERSION.dmg"
+  /usr/bin/shasum -a 256 "$ROOT/dist/SayFlow-$VERSION.dmg"
 else
-  warn "DMG missing: $ROOT/dist/Graker-$VERSION.dmg"
+  warn "DMG missing: $ROOT/dist/SayFlow-$VERSION.dmg"
 fi
 
 section "Manual Target-App Checklist"
 cat <<'EOF'
-After Accessibility is granted, verify this sentence with Option+G:
+After Accessibility is granted, verify this sentence with Control+Command+S:
 The market are unpredictable in short-term.
 
 Record:

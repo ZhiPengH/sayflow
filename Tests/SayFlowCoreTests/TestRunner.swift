@@ -1,0 +1,132 @@
+import Foundation
+
+@main
+struct SayFlowCoreTestRunner {
+    static func main() {
+        let tests: [TestCase] = [
+            TestCase(name: "Provider defaults", run: ProviderTests.defaultCatalogContainsRequiredProvidersWithExpectedDefaults),
+            TestCase(name: "NVIDIA model options", run: ProviderTests.nvidiaProviderExposesRecommendedModelOptions),
+            TestCase(name: "Provider secret references", run: ProviderTests.providerDefaultsUseLocalEnvironmentSecretReferences),
+            TestCase(name: "Local env secret file updates", run: ProviderTests.localEnvironmentFileUpdatesSecretsWithoutDuplicatingKeys),
+            TestCase(name: "Legacy secret references migrate", run: ProviderTests.localEnvironmentSecretReferencesMigrateLegacyKeychainReferences),
+            TestCase(name: "Endpoint normalization", run: ProviderTests.endpointNormalizerAcceptsBaseURLAndFullChatCompletionsEndpoint),
+            TestCase(name: "Responses endpoint normalization", run: ProviderTests.endpointNormalizerAcceptsFullResponsesEndpoint),
+            TestCase(name: "OpenAI request body", run: ProviderTests.providerConfigurationBuildsOpenAICompatibleStreamingJSONRequest),
+            TestCase(name: "OpenAI resolved key request", run: ProviderTests.requestFactoryAcceptsResolvedKeyWithoutPersistingPlaintext),
+            TestCase(name: "Responses API request body", run: ProviderTests.requestFactoryBuildsResponsesAPIStreamingJSONRequest),
+            TestCase(name: "Configurable request timeout", run: ProviderTests.requestFactoryUsesConfigurableTimeout),
+            TestCase(name: "MiMo API key header", run: ProviderTests.mimoRequestAlsoSendsAPIKeyHeader),
+            TestCase(name: "NVIDIA request body", run: ProviderTests.nvidiaRequestUsesOpenAICompatibleChatCompletions),
+            TestCase(name: "Provider settings validation", run: ProviderTests.providerSettingsValidationRequiresHTTPSBaseURLAndModel),
+            TestCase(name: "Provider connection probe request", run: ProviderConnectionTestRequestFactoryTests.buildsProbeRequestFromCurrentProviderFields),
+            TestCase(name: "Default prompt template", run: PromptTemplateTests.defaultTemplateMatchesGrammarCorrectionContract),
+            TestCase(name: "Prompt validation", run: PromptTemplateTests.validatorRejectsEmptyActiveSystemPrompt),
+            TestCase(name: "Prompt fixed user placeholder", run: PromptTemplateTests.validatorUsesFixedUserPromptAndDoesNotRequireVisiblePlaceholderEditing),
+            TestCase(name: "Prompt store persistence", run: PromptTemplateTests.promptStoreCreatesDefaultFileAndPreservesCustomTemplate),
+            TestCase(name: "Prompt store rejects externally invalid files", run: PromptTemplateTests.promptStoreRejectsInvalidActiveSystemPromptFilesEditedExternally),
+            TestCase(name: "Prompt import rejects invalid templates", run: PromptTemplateTests.importPolicyRejectsDecodedTemplatesThatWouldFailSaveValidation),
+            TestCase(name: "Prompt import accepts legacy userPrompt", run: PromptTemplateTests.importPolicyAcceptsLegacyUserPromptTemplates),
+            TestCase(name: "Prompt legacy userPrompt compatibility", run: PromptTemplateTests.promptTemplateDecodesLegacyUserPromptKeyAndExportsCompatibilityKeys),
+            TestCase(name: "Streaming fields", run: StreamingCorrectionAccumulatorTests.publishesFieldsAsSoonAsTheyBecomeComplete),
+            TestCase(name: "Fenced JSON", run: StreamingCorrectionAccumulatorTests.acceptsMarkdownFencedJSONAndReportsCompleteObject),
+            TestCase(name: "Invalid JSON diagnostics", run: StreamingCorrectionAccumulatorTests.invalidCompletedJSONKeepsRawResponseForDebugging),
+            TestCase(name: "Completion policy completes valid snapshots", run: CorrectionCompletionPolicyTests.completeSnapshotRoutesToCompletion),
+            TestCase(name: "Completion policy routes malformed raw response", run: CorrectionCompletionPolicyTests.malformedSnapshotRoutesToRetryErrorWithRawResponse),
+            TestCase(name: "Completion policy uses parse error fallback", run: CorrectionCompletionPolicyTests.malformedSnapshotFallsBackToParseErrorWhenRawResponseIsEmpty),
+            TestCase(name: "Raw response hides empty", run: RawResponseDisclosureTests.hidesEmptyRawResponse),
+            TestCase(name: "Raw response starts collapsed", run: RawResponseDisclosureTests.startsCollapsedWhenRawResponseIsAvailable),
+            TestCase(name: "Raw response toggles", run: RawResponseDisclosureTests.togglesRawResponseVisibility),
+            TestCase(name: "Obsidian create and append", run: ObsidianWriterTests.createsMissingMarkdownFileWithHeadingAndAppendsRenderedEntryWithoutOrigin),
+            TestCase(name: "Obsidian append mode", run: ObsidianWriterTests.appendModeDoesNotOverwriteExistingContent),
+            TestCase(name: "Obsidian target path validation", run: ObsidianWriterTests.targetPathValidationRequiresAbsoluteMarkdownPath),
+            TestCase(name: "Obsidian write error messages", run: ObsidianWriterTests.writeErrorMessagesAreActionable),
+            TestCase(name: "Popup follow mouse", run: PopupPositionerTests.followMousePlacesPanelDownAndRightFromCursor),
+            TestCase(name: "Popup edge flipping", run: PopupPositionerTests.followMouseFlipsHorizontallyAndVerticallyAtScreenEdges),
+            TestCase(name: "Popup same text stable frame", run: PopupPositionerTests.sameSelectedTextRefreshKeepsPreviousFrame),
+            TestCase(name: "Popup alternate strategies", run: PopupPositionerTests.otherStrategiesUseExpectedFrames),
+            TestCase(name: "Popup oversized panel fits screen", run: PopupPositionerTests.oversizedPanelIsReducedToFitWithinScreenInsets),
+            TestCase(name: "Popup panel expands beyond sixty percent", run: PopupPanelSizerTests.expandsPanelHeightBeyondSixtyPercentForLongResults),
+            TestCase(name: "Popup panel clamps to visible screen insets", run: PopupPanelSizerTests.clampsPanelHeightToVisibleScreenInsetsForOversizedResults),
+            TestCase(name: "Popup panel minimum height", run: PopupPanelSizerTests.keepsMinimumHeightForShortContent),
+            TestCase(name: "Good to know wraps inside fixed panel width", run: PopupPanelSizerTests.goodToKnowTextWrapsInsideFixedLoadingPanelWidth),
+            TestCase(name: "SSE content parsing", run: SSEParserTests.parsesOpenAICompatibleStreamingContentChunks),
+            TestCase(name: "Responses stream parsing", run: SSEParserTests.parsesResponsesAPIStreamingContentChunks),
+            TestCase(name: "Responses completed full output parsing", run: SSEParserTests.parsesResponsesCompletedEventWithFullOutputWhenNoDeltasArrived),
+            TestCase(name: "Responses output_text.done full output parsing", run: SSEParserTests.parsesResponsesOutputTextDoneWhenNoDeltasArrived),
+            TestCase(name: "Responses completed does not duplicate deltas", run: SSEParserTests.responsesCompletedEventDoesNotDuplicatePreviouslyStreamedDeltas),
+            TestCase(name: "Full response extracts chat content", run: OpenAIFullResponseExtractorTests.extractsChatCompletionMessageContent),
+            TestCase(name: "Full response extracts Responses output_text", run: OpenAIFullResponseExtractorTests.extractsResponsesOutputText),
+            TestCase(name: "Full response extracts Responses output array", run: OpenAIFullResponseExtractorTests.extractsResponsesOutputArrayText),
+            TestCase(name: "Completion fallback preserves stream content", run: OpenAICompletionFallbackTests.doesNotOverrideAccumulatedStreamContentWithRawSSEBody),
+            TestCase(name: "Completion fallback extracts full response", run: OpenAICompletionFallbackTests.extractsFullResponseWhenNoStreamContentArrived),
+            TestCase(name: "Completion fallback keeps raw debug body", run: OpenAICompletionFallbackTests.keepsRawBodyForDebuggingWhenFullResponseCannotBeExtracted),
+            TestCase(name: "HTTP error extracts provider message", run: OpenAIHTTPErrorMessageTests.includesHTTPStatusAndExtractedProviderMessage),
+            TestCase(name: "HTTP error fallback messages", run: OpenAIHTTPErrorMessageTests.fallsBackToTopLevelMessageAndRawBody),
+            TestCase(name: "Diff pill locator ordered ranges", run: DiffPillLocatorTests.locatesChangedSpansInCorrectionOrder),
+            TestCase(name: "Diff pill locator repeated text", run: DiffPillLocatorTests.repeatedReplacementTextUsesNextOccurrence),
+            TestCase(name: "Diff pill locator skips missing text", run: DiffPillLocatorTests.skipsMissingOrEmptyReplacementText),
+            TestCase(name: "Default app settings", run: AppSettingsTests.defaultSettingsMatchProductDefaults),
+            TestCase(name: "Settings store persistence", run: AppSettingsTests.settingsStoreCreatesAndReloadsDefaults),
+            TestCase(name: "No plaintext API keys in settings", run: AppSettingsTests.settingsStoreNeverSerializesPlaintextAPIKeys),
+            TestCase(name: "No prompt templates in settings", run: AppSettingsTests.settingsStoreDoesNotSerializePromptTemplates),
+            TestCase(name: "Legacy settings with prompts load", run: AppSettingsTests.settingsStoreCanReadLegacySettingsThatContainPrompts),
+            TestCase(name: "Legacy display themes migrate to light", run: AppSettingsTests.settingsStoreMigratesLegacyDisplayThemesToLight),
+            TestCase(name: "Legacy default hotkey migrates", run: AppSettingsTests.settingsStoreMigratesOldDefaultHotkeyToControlCommandS),
+            TestCase(name: "Custom legacy hotkey preserved", run: AppSettingsTests.settingsStorePreservesCustomLegacyHotkey),
+            TestCase(name: "Settings normalize multiple active providers", run: AppSettingsTests.settingsStoreNormalizesMultipleActiveProvidersOnLoad),
+            TestCase(name: "Settings activate first provider when none active", run: AppSettingsTests.settingsStoreActivatesFirstProviderWhenNoneAreActive),
+            TestCase(name: "Settings restore missing default providers", run: AppSettingsTests.settingsStoreRestoresMissingDefaultProvidersOnLoad),
+            TestCase(name: "Settings migrate provider secret refs", run: AppSettingsTests.settingsStoreMigratesProviderSecretReferencesToLocalEnvironment),
+            TestCase(name: "Settings migrate legacy MiMo default URL", run: AppSettingsTests.settingsStoreMigratesLegacyMimoDefaultBaseURLWithoutOverwritingCustomURL),
+            TestCase(name: "General settings clamp external network timeout", run: AppSettingsTests.generalSettingsClampExternallyEditedNetworkTimeout),
+            TestCase(name: "General settings default missing accessibility onboarding flag for existing settings", run: AppSettingsTests.generalSettingsDefaultMissingAccessibilityOnboardingFlagToTrueForExistingSettings),
+            TestCase(name: "General settings preserve accessibility onboarding flag", run: AppSettingsTests.generalSettingsPreserveAccessibilityOnboardingFlag),
+            TestCase(name: "Launch at login setting rollback", run: AppSettingsTests.launchAtLoginToggleKeepsPreviousSettingWhenSystemChangeFails),
+            TestCase(name: "Hotkey registration policy", run: HotKeyRegistrationPolicyTests.succeedsOnlyWhenHandlerAndShortcutRegister),
+            TestCase(name: "Hotkey parser control command shortcuts", run: HotKeyParserTests.parsesSymbolAndWordBasedControlCommandShortcuts),
+            TestCase(name: "Hotkey parser keeps custom option shortcuts", run: HotKeyParserTests.stillParsesCustomOptionShortcutsForExistingUsers),
+            TestCase(name: "Hotkey parser custom modifier shortcuts", run: HotKeyParserTests.parsesCustomModifierLetterShortcuts),
+            TestCase(name: "Hotkey menu presentation", run: HotKeyParserTests.formatsConfiguredShortcutForMenuPresentation),
+            TestCase(name: "Hotkey parser rejects unsupported forms", run: HotKeyParserTests.rejectsUnsupportedShortcutForms),
+            TestCase(name: "Legacy app support migration", run: LegacyAppMigrationTests.copiesMissingLegacySettingsAndPromptsWithoutOverwritingNewFiles),
+            TestCase(name: "Legacy keychain migration policy", run: LegacyAppMigrationTests.migratesOnlyMissingProviderSecretsThatExistInLegacyKeychain),
+            TestCase(name: "Prompt test run bypasses accessibility preflight", run: GrammarTriggerPreflightTests.promptTestRunDoesNotRequireAccessibilityPermission),
+            TestCase(name: "Runtime capture requires accessibility preflight", run: GrammarTriggerPreflightTests.runtimeCaptureRequiresAccessibilityPermission),
+            TestCase(name: "Grammar trigger uses silent accessibility check", run: AccessibilityPermissionPromptPolicyTests.grammarTriggerUsesSilentPermissionCheck),
+            TestCase(name: "Localization language resolution", run: LocalizationTests.languageResolutionFollowsSystemPreferredLanguageOrder),
+            TestCase(name: "Localization key translations", run: LocalizationTests.keyUiStringsHaveChineseAndEnglishTranslations),
+            TestCase(name: "Localization coverage", run: LocalizationTests.everyKeyHasBothLanguages),
+            TestCase(name: "Network availability presentation", run: NetworkAvailabilityPresentationTests.mapsNetworkStatusToMenuAndStatusTitle),
+            TestCase(name: "Update checker newer release", run: UpdateCheckerTests.detectsNewerGitHubRelease),
+            TestCase(name: "Update checker ignores non-updates", run: UpdateCheckerTests.treatsSameOlderDraftAndPrereleaseAsUpToDate),
+            TestCase(name: "Text capture prefers accessibility", run: TextCaptureResolverTests.selectedAccessibilityTextWinsOverClipboard),
+            TestCase(name: "Text capture rejects stale clipboard", run: TextCaptureResolverTests.firstAccessibilityMissPromptsInsteadOfUsingStaleClipboard),
+            TestCase(name: "Text capture clipboard fallback requires change", run: TextCaptureResolverTests.clipboardFallbackRequiresClipboardChangeAfterPrompt),
+            TestCase(name: "Text capture sample bypass", run: TextCaptureResolverTests.sampleTextBypassesRuntimeCapture),
+            TestCase(name: "Selection hot zone icon presentation", run: SelectionHotZonePolicyTests.triggerButtonUsesIconInsteadOfTextTitle),
+            TestCase(name: "Selection hot zone policy", run: SelectionHotZonePolicyTests.showsOnlyForTrustedNonEmptyExternalSelections),
+            TestCase(name: "Selection hot zone shows English candidates", run: SelectionHotZonePolicyTests.showsForEnglishGrammarCandidatesAfterTrimming),
+            TestCase(name: "Selection hot zone hides unsuitable candidates", run: SelectionHotZonePolicyTests.hidesSelectionsThatAreUnsuitableForGrammarCorrection),
+            TestCase(name: "Accessibility element validator", run: AccessibilityElementValidatorTests.acceptsAXUIElementValuesAndRejectsOtherCFTypes),
+            TestCase(name: "Accept replacement success action", run: AcceptReplacementFallbackTests.successfulReplacementNeedsNoClipboardFallback),
+            TestCase(name: "Accept replacement failure fallback", run: AcceptReplacementFallbackTests.failedReplacementFallsBackToClipboardCopy)
+        ]
+
+        var failures: [String] = []
+        for test in tests {
+            do {
+                try test.run()
+                print("PASS \(test.name)")
+            } catch {
+                failures.append("FAIL \(test.name): \(error)")
+            }
+        }
+
+        if failures.isEmpty {
+            print("All \(tests.count) SayFlowCore tests passed.")
+        } else {
+            failures.forEach { print($0) }
+            exit(1)
+        }
+    }
+}

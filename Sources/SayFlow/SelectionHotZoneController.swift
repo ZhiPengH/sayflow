@@ -1,0 +1,111 @@
+import AppKit
+import SayFlowCore
+
+final class SelectionHotZoneController: NSObject {
+    private let panel: NSPanel
+    private let button = NSButton(title: SelectionHotZonePresentation.triggerButtonTitle, target: nil, action: nil)
+
+    var onTrigger: (() -> Void)?
+
+    override init() {
+        let sideLength = CGFloat(SelectionHotZonePresentation.triggerPanelSideLength)
+        panel = NSPanel(
+            contentRect: NSRect(x: 0, y: 0, width: sideLength, height: sideLength),
+            styleMask: [.borderless, .nonactivatingPanel],
+            backing: .buffered,
+            defer: false
+        )
+        super.init()
+
+        let lightAppearance = NSAppearance(named: .aqua)
+        panel.appearance = lightAppearance
+        panel.backgroundColor = .clear
+        panel.isOpaque = false
+        panel.level = .floating
+        panel.hidesOnDeactivate = false
+        panel.isReleasedWhenClosed = false
+        panel.collectionBehavior = [.canJoinAllSpaces, .transient, .ignoresCycle]
+
+        button.appearance = lightAppearance
+        button.bezelStyle = .regularSquare
+        button.isBordered = false
+        button.font = .systemFont(ofSize: 13, weight: .semibold)
+        button.image = Self.triggerIconImage()
+        button.imagePosition = .imageOnly
+        button.imageScaling = .scaleProportionallyDown
+        button.alignment = .center
+        button.toolTip = L10n.tr(.checkGrammar)
+        button.target = self
+        button.action = #selector(trigger)
+        button.translatesAutoresizingMaskIntoConstraints = false
+
+        let container = NSView(frame: NSRect(x: 0, y: 0, width: sideLength, height: sideLength))
+        container.appearance = lightAppearance
+        container.wantsLayer = true
+        container.layer?.backgroundColor = NSColor(red: 0.96, green: 0.94, blue: 0.89, alpha: 0.96).cgColor
+        container.layer?.cornerRadius = 8
+        container.layer?.shadowColor = NSColor.black.cgColor
+        container.layer?.shadowOpacity = 0.18
+        container.layer?.shadowRadius = 8
+        container.layer?.shadowOffset = CGSize(width: 0, height: -2)
+        container.addSubview(button)
+        let inset = CGFloat(SelectionHotZonePresentation.triggerButtonInset)
+        NSLayoutConstraint.activate([
+            button.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: inset),
+            button.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -inset),
+            button.topAnchor.constraint(equalTo: container.topAnchor, constant: inset),
+            button.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -inset)
+        ])
+        panel.contentView = container
+    }
+
+    func show(near mouse: CGPoint, selectedText: String) {
+        guard !selectedText.isEmpty else {
+            hide()
+            return
+        }
+        let screen = NSScreen.screens.first(where: { $0.frame.contains(mouse) }) ?? NSScreen.main
+        let screenFrame = screen?.visibleFrame ?? NSRect(x: 0, y: 0, width: 1440, height: 900)
+        panel.setFrame(frame(near: mouse, screenFrame: screenFrame), display: true)
+        panel.orderFrontRegardless()
+    }
+
+    func hide() {
+        panel.close()
+    }
+
+    func contains(point: CGPoint) -> Bool {
+        panel.isVisible && panel.frame.contains(point)
+    }
+
+    private func frame(near mouse: CGPoint, screenFrame: NSRect) -> NSRect {
+        let sideLength = CGFloat(SelectionHotZonePresentation.triggerPanelSideLength)
+        let size = CGSize(width: sideLength, height: sideLength)
+        let inset: CGFloat = 8
+        var origin = CGPoint(x: mouse.x + 10, y: mouse.y - size.height - 10)
+        if origin.y < screenFrame.minY + inset {
+            origin.y = mouse.y + 10
+        }
+        origin.x = min(max(origin.x, screenFrame.minX + inset), screenFrame.maxX - size.width - inset)
+        origin.y = min(max(origin.y, screenFrame.minY + inset), screenFrame.maxY - size.height - inset)
+        return NSRect(origin: origin, size: size)
+    }
+
+    private static func triggerIconImage() -> NSImage? {
+        guard let url = Bundle.main.url(
+            forResource: SelectionHotZonePresentation.triggerIconFileName,
+            withExtension: nil
+        ),
+              let image = NSImage(contentsOf: url) else {
+            return nil
+        }
+        let pointSize = CGFloat(SelectionHotZonePresentation.triggerIconPointSize)
+        image.size = NSSize(width: pointSize, height: pointSize)
+        return image
+    }
+
+    @objc private func trigger() {
+        hide()
+        onTrigger?()
+    }
+}

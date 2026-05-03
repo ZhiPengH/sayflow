@@ -2,10 +2,10 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-VERSION="${VERSION:-1.0.3}"
+VERSION="${VERSION:-1.2.0}"
 DIST="$ROOT/dist"
-APP="$DIST/Graker.app"
-DMG="$DIST/Graker-$VERSION.dmg"
+APP="$DIST/SayFlow.app"
+DMG="$DIST/SayFlow-$VERSION.dmg"
 STAGE="$ROOT/.build/dmg-stage"
 
 CODESIGN_IDENTITY="${CODESIGN_IDENTITY:-$("$ROOT/Scripts/ensure_codesign_identity.sh")}"
@@ -14,12 +14,12 @@ VERSION="$VERSION" "$ROOT/Scripts/build_app.sh"
 
 rm -rf "$STAGE"
 mkdir -p "$STAGE"
-ditto "$APP" "$STAGE/Graker.app"
+ditto "$APP" "$STAGE/SayFlow.app"
 ln -s /Applications "$STAGE/Applications"
 
 rm -f "$DMG"
 hdiutil create \
-  -volname "Graker" \
+  -volname "SayFlow" \
   -srcfolder "$STAGE" \
   -ov \
   -format UDZO \

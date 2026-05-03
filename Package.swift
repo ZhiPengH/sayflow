@@ -3,18 +3,18 @@
 import PackageDescription
 
 let package = Package(
-    name: "Graker",
+    name: "SayFlow",
     products: [
-        .library(name: "GrakerCore", targets: ["GrakerCore"]),
-        .executable(name: "Graker", targets: ["Graker"])
+        .library(name: "SayFlowCore", targets: ["SayFlowCore"]),
+        .executable(name: "SayFlow", targets: ["SayFlow"])
     ],
     targets: [
         .target(
-            name: "GrakerCore"
+            name: "SayFlowCore"
         ),
         .target(
-            name: "Graker",
-            dependencies: ["GrakerCore"]
+            name: "SayFlow",
+            dependencies: ["SayFlowCore"]
         )
     ],
     swiftLanguageVersions: [5]

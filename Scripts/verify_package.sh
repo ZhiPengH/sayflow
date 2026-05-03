@@ -2,11 +2,11 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-VERSION="${VERSION:-1.0.3}"
-APP="$ROOT/dist/Graker.app"
-EXECUTABLE="$APP/Contents/MacOS/Graker"
+VERSION="${VERSION:-1.2.0}"
+APP="$ROOT/dist/SayFlow.app"
+EXECUTABLE="$APP/Contents/MacOS/SayFlow"
 INFO_PLIST="$APP/Contents/Info.plist"
-DMG="$ROOT/dist/Graker-$VERSION.dmg"
+DMG="$ROOT/dist/SayFlow-$VERSION.dmg"
 SHA_FILE="$DMG.sha256"
 MOUNT_POINT=""
 
@@ -25,12 +25,12 @@ detach_mount_point() {
   fi
 }
 
-cleanup_stale_graker_mounts() {
+cleanup_stale_sayflow_mounts() {
   local mount_point
   while IFS= read -r mount_point; do
     detach_mount_point "$mount_point"
     rmdir "$mount_point" 2>/dev/null || true
-  done < <(mount | sed -n 's#^.* on \(/private/tmp/graker-dmg\.[^ ]*\) .*$#\1#p')
+  done < <(mount | sed -n 's#^.* on \(/private/tmp/sayflow-dmg\.[^ ]*\) .*$#\1#p')
 }
 
 pass() {
@@ -59,12 +59,18 @@ archs="$(lipo -archs "$EXECUTABLE")"
 printf 'architectures=%s\n' "$archs"
 
 bundle_id="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$INFO_PLIST")"
+bundle_icon="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIconFile' "$INFO_PLIST")"
 minimum_system="$(/usr/libexec/PlistBuddy -c 'Print :LSMinimumSystemVersion' "$INFO_PLIST")"
 lsui_element="$(/usr/libexec/PlistBuddy -c 'Print :LSUIElement' "$INFO_PLIST")"
-[[ "$bundle_id" == "com.zhixing.graker" ]]
+[[ "$bundle_id" == "com.zhixing.sayflow" ]]
+[[ "$bundle_icon" == "SayFlow" ]]
 [[ "$minimum_system" == "13.0" ]]
 [[ "$lsui_element" == "true" ]]
 pass "Info.plist release fields are correct"
+
+[[ -f "$APP/Contents/Resources/SayFlow.icns" ]]
+[[ -f "$APP/Contents/Resources/MenuBarIcon.pdf" ]]
+pass "app and menu bar icon resources exist"
 
 [[ -f "$DMG" ]]
 [[ -f "$SHA_FILE" ]]
@@ -80,10 +86,10 @@ printf 'dmg_size_kb=%s\n' "$dmg_size_kb"
 [[ "$dmg_size_kb" -lt 30720 ]]
 pass "DMG size is below 30 MB"
 
-cleanup_stale_graker_mounts
-MOUNT_POINT="$(mktemp -d /private/tmp/graker-dmg.XXXXXX)"
+cleanup_stale_sayflow_mounts
+MOUNT_POINT="$(mktemp -d /private/tmp/sayflow-dmg.XXXXXX)"
 hdiutil attach -nobrowse -readonly -mountpoint "$MOUNT_POINT" "$DMG" >/dev/null
-[[ -d "$MOUNT_POINT/Graker.app" ]]
+[[ -d "$MOUNT_POINT/SayFlow.app" ]]
 [[ -L "$MOUNT_POINT/Applications" ]]
 [[ "$(readlink "$MOUNT_POINT/Applications")" == "/Applications" ]]
-pass "DMG contains Graker.app and Applications shortcut"
+pass "DMG contains SayFlow.app and Applications shortcut"
