@@ -5,6 +5,7 @@ struct SayFlowCoreTestRunner {
     static func main() {
         let tests: [TestCase] = [
             TestCase(name: "Provider defaults", run: ProviderTests.defaultCatalogContainsRequiredProvidersWithExpectedDefaults),
+            TestCase(name: "NVIDIA model options", run: ProviderTests.nvidiaProviderExposesRecommendedModelOptions),
             TestCase(name: "Provider secret references", run: ProviderTests.providerDefaultsUseLocalEnvironmentSecretReferences),
             TestCase(name: "Local env secret file updates", run: ProviderTests.localEnvironmentFileUpdatesSecretsWithoutDuplicatingKeys),
             TestCase(name: "Legacy secret references migrate", run: ProviderTests.localEnvironmentSecretReferencesMigrateLegacyKeychainReferences),
@@ -15,6 +16,7 @@ struct SayFlowCoreTestRunner {
             TestCase(name: "Responses API request body", run: ProviderTests.requestFactoryBuildsResponsesAPIStreamingJSONRequest),
             TestCase(name: "Configurable request timeout", run: ProviderTests.requestFactoryUsesConfigurableTimeout),
             TestCase(name: "MiMo API key header", run: ProviderTests.mimoRequestAlsoSendsAPIKeyHeader),
+            TestCase(name: "NVIDIA request body", run: ProviderTests.nvidiaRequestUsesOpenAICompatibleChatCompletions),
             TestCase(name: "Provider settings validation", run: ProviderTests.providerSettingsValidationRequiresHTTPSBaseURLAndModel),
             TestCase(name: "Provider connection probe request", run: ProviderConnectionTestRequestFactoryTests.buildsProbeRequestFromCurrentProviderFields),
             TestCase(name: "Default prompt template", run: PromptTemplateTests.defaultTemplateMatchesGrammarCorrectionContract),

@@ -11,6 +11,7 @@ enum ProviderTests {
             .kimi,
             .miniMax,
             .doubao,
+            .nvidia,
             .custom
         ])
         try expectEqual(providers.first(where: { $0.kind == .openAI })?.defaultModel, "gpt-4o-mini")
@@ -20,7 +21,20 @@ enum ProviderTests {
         try expectEqual(providers.first(where: { $0.kind == .kimi })?.defaultModel, "kimi-latest")
         try expectEqual(providers.first(where: { $0.kind == .miniMax })?.defaultModel, "abab6.5s-chat")
         try expectEqual(providers.first(where: { $0.kind == .doubao })?.defaultModel, "doubao-1-5-pro")
+        try expectEqual(providers.first(where: { $0.kind == .nvidia })?.displayName, "NVIDIA")
+        try expectEqual(providers.first(where: { $0.kind == .nvidia })?.defaultBaseURL, "https://integrate.api.nvidia.com/v1")
+        try expectEqual(providers.first(where: { $0.kind == .nvidia })?.defaultModel, "deepseek-ai/deepseek-v4-flash")
         try expectEqual(providers.first(where: { $0.kind == .custom })?.protocolName, "OpenAI Compatible")
+    }
+
+    static func nvidiaProviderExposesRecommendedModelOptions() throws {
+        try expectEqual(ProviderModelOptions.recommendedModels(for: .nvidia), [
+            "deepseek-ai/deepseek-v4-pro",
+            "moonshotai/kimi-k2.6",
+            "z-ai/glm-5.1",
+            "deepseek-ai/deepseek-v4-flash"
+        ])
+        try expectEqual(ProviderModelOptions.recommendedModels(for: .custom), [])
     }
 
     static func providerDefaultsUseLocalEnvironmentSecretReferences() throws {
@@ -33,6 +47,10 @@ enum ProviderTests {
         try expectEqual(
             providers.first(where: { $0.kind == .custom })?.apiKeyReference,
             "env://SAYFLOW_CUSTOM_API_KEY"
+        )
+        try expectEqual(
+            providers.first(where: { $0.kind == .nvidia })?.apiKeyReference,
+            "env://SAYFLOW_NVIDIA_API_KEY"
         )
     }
 
@@ -62,6 +80,10 @@ enum ProviderTests {
         try expectEqual(
             ProviderSecretReference.normalized("custom-key", kind: .custom),
             "env://SAYFLOW_CUSTOM_API_KEY"
+        )
+        try expectEqual(
+            ProviderSecretReference.normalized("keychain://provider/nvidia", kind: .nvidia),
+            "env://SAYFLOW_NVIDIA_API_KEY"
         )
     }
 
@@ -221,6 +243,34 @@ enum ProviderTests {
 
         try expectEqual(request.value(forHTTPHeaderField: "Authorization"), "Bearer mimo-key")
         try expectEqual(request.value(forHTTPHeaderField: "api-key"), "mimo-key")
+    }
+
+    static func nvidiaRequestUsesOpenAICompatibleChatCompletions() throws {
+        let config = ProviderConfiguration(
+            id: "nvidia",
+            kind: .nvidia,
+            displayName: "NVIDIA",
+            apiKeyReference: "env://SAYFLOW_NVIDIA_API_KEY",
+            apiKeyPlaintextForTesting: "nvidia-redacted-key",
+            baseURL: "https://integrate.api.nvidia.com/v1",
+            model: "deepseek-ai/deepseek-v4-flash",
+            temperature: 0.6,
+            isActive: true
+        )
+
+        let request = try OpenAIRequestFactory.makeRequest(
+            configuration: config,
+            prompt: .defaultGrammarCorrection,
+            selectedText: "I has a book."
+        )
+
+        try expectEqual(request.url, URL(string: "https://integrate.api.nvidia.com/v1/chat/completions"))
+        try expectEqual(request.value(forHTTPHeaderField: "Authorization"), "Bearer nvidia-redacted-key")
+        try expectNil(request.value(forHTTPHeaderField: "api-key"))
+        let body = try unwrap(request.httpBody)
+        let json = try unwrap(JSONSerialization.jsonObject(with: body) as? [String: Any])
+        try expectEqual(json["model"] as? String, "deepseek-ai/deepseek-v4-flash")
+        try expectEqual(json["temperature"] as? Double, 0.6)
     }
 
     static func providerSettingsValidationRequiresHTTPSBaseURLAndModel() throws {

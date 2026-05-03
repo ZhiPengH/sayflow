@@ -16,7 +16,7 @@ final class SettingsWindowController: NSWindowController, NSTextViewDelegate {
     private let providerPopup = NSPopUpButton()
     private let apiKeyField = NSSecureTextField()
     private let baseURLField = NSTextField()
-    private let modelField = NSTextField()
+    private let modelField = NSComboBox()
     private let temperatureField = NSTextField()
     private let providerTestButton = NSButton(title: L10n.tr(.testProvider), target: nil, action: nil)
     private let providerTestStatusLabel = NSTextField(labelWithString: "")
@@ -219,8 +219,17 @@ final class SettingsWindowController: NSWindowController, NSTextViewDelegate {
         let provider = settings.providers[index]
         apiKeyField.stringValue = providerSecrets.read(reference: provider.apiKeyReference) ?? ""
         baseURLField.stringValue = provider.baseURL
+        reloadModelOptions(for: provider)
         modelField.stringValue = provider.model
         temperatureField.stringValue = String(provider.temperature)
+    }
+
+    private func reloadModelOptions(for provider: ProviderConfiguration) {
+        modelField.removeAllItems()
+        let recommendedModels = ProviderModelOptions.recommendedModels(for: provider.kind)
+        modelField.addItems(withObjectValues: recommendedModels)
+        modelField.completes = !recommendedModels.isEmpty
+        modelField.isEditable = true
     }
 
     private func persist() {

@@ -7,6 +7,7 @@ public enum ProviderKind: String, Codable, CaseIterable, Equatable {
     case kimi
     case miniMax
     case doubao
+    case nvidia
     case custom
 }
 
@@ -87,6 +88,12 @@ public enum ProviderCatalog {
             defaultBaseURL: "https://ark.cn-beijing.volces.com/api/v3"
         ),
         ProviderDefinition(
+            kind: .nvidia,
+            displayName: "NVIDIA",
+            defaultModel: "deepseek-ai/deepseek-v4-flash",
+            defaultBaseURL: "https://integrate.api.nvidia.com/v1"
+        ),
+        ProviderDefinition(
             kind: .custom,
             displayName: "Custom",
             defaultModel: "",
@@ -94,6 +101,22 @@ public enum ProviderCatalog {
             protocolName: "OpenAI Compatible"
         )
     ]
+}
+
+public enum ProviderModelOptions {
+    public static func recommendedModels(for kind: ProviderKind) -> [String] {
+        switch kind {
+        case .nvidia:
+            return [
+                "deepseek-ai/deepseek-v4-pro",
+                "moonshotai/kimi-k2.6",
+                "z-ai/glm-5.1",
+                "deepseek-ai/deepseek-v4-flash"
+            ]
+        default:
+            return []
+        }
+    }
 }
 
 public enum ProviderSecretReference {
@@ -111,6 +134,8 @@ public enum ProviderSecretReference {
             return "SAYFLOW_MINIMAX_API_KEY"
         case .doubao:
             return "SAYFLOW_DOUBAO_API_KEY"
+        case .nvidia:
+            return "SAYFLOW_NVIDIA_API_KEY"
         case .custom:
             return "SAYFLOW_CUSTOM_API_KEY"
         }

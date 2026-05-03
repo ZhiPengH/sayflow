@@ -57,7 +57,7 @@ The package manifest intentionally uses the older SwiftPM manifest format becaus
 - Default global shortcut `⌃⌘S`, editable for Control+Command or Option plus letter shortcuts
 - Selection hot-zone button after selecting text, reusing the same grammar correction flow
 - Accessibility selected-text capture, clipboard fallback prompt, and Accept replacement
-- OpenAI, DeepSeek, Xiaomi MiMo, Kimi, MiniMax, Doubao, and custom OpenAI-compatible providers
+- OpenAI, DeepSeek, Xiaomi MiMo, Kimi, MiniMax, Doubao, NVIDIA, and custom OpenAI-compatible providers
 - MiMo requests include the provider's `api-key` header in addition to Bearer auth
 - Base URL, full `/chat/completions`, or full `/responses` endpoint normalization
 - Streaming SSE parsing and incremental structured JSON rendering

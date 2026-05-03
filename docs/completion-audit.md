@@ -8,8 +8,8 @@ This audit separates implementation evidence from manual gates. A green script i
 
 Last verified commands:
 
-- `Scripts/test.sh`: passes 103 SayFlowCore tests, validates packaging/probe script invariants, validates the local debug-provider bootstrap, and runs `swift build`.
-- `Scripts/verify_package.sh`: verifies app bundle, signing, `x86_64 arm64`, `LSUIElement=true`, `LSMinimumSystemVersion=13.0`, DMG SHA-256, DMG size below 30 MB, and DMG contents. Latest ad-hoc v1.1.6 DMG SHA-256: `3387c810c11c825b8c44b96d8083a8166a50098b7ebb4822e6543c6b0189416e`; release verification still requires a stable code-signing identity.
+- `Scripts/test.sh`: passes 105 SayFlowCore tests, validates packaging/probe script invariants, validates the local debug-provider bootstrap, and runs `swift build`.
+- `Scripts/verify_package.sh`: verifies app bundle, signing, `x86_64 arm64`, `LSUIElement=true`, `LSMinimumSystemVersion=13.0`, DMG SHA-256, DMG size below 30 MB, and DMG contents. Latest ad-hoc v1.1.7 DMG SHA-256: `ac23febdc960f507ae627a91bf24b306e598bba6059485b40436cee73c0ab3c0`; release verification still requires a stable code-signing identity.
 - `Scripts/manual_acceptance_probe.sh`: verifies bundle, expected running app path, signing, redacted provider settings, local environment reference, package presence, and whether the running SayFlow app is still showing Accessibility onboarding/runtime permission alerts.
 - `Scripts/ax_selected_text_probe.sh`: verifies selected-text capture in target apps through Accessibility, including Safari/WebKit text-marker fallback.
 
@@ -28,7 +28,7 @@ Last verified commands:
 | Clipboard fallback after Accessibility miss | `TextCaptureResolver`, `TextCaptureResolverTests` | Automated verified |
 | Default global shortcut `Control+Command+S`, editable in General | `HotKeyConfiguration.defaultControlCommandS`, `HotKeyParserTests`, settings UI | Registration logic verified; physical hotkey delivery still manual |
 | Single grammar-correction mode only; no translation/explanation/OCR/history feature surface | `PromptTemplate`, `SettingsWindow` tab layout, `ResultPanel`; repository search shows no alternate mode UI | Implemented; manual UI pass still pending |
-| Provider catalog: OpenAI, DeepSeek, MiMo, Kimi, MiniMax, Doubao, Custom | `ProviderCatalog`, `ProviderTests`; MiMo default endpoint follows current MiMo OpenAI-compatible API docs | Automated verified |
+| Provider catalog: OpenAI, DeepSeek, MiMo, Kimi, MiniMax, Doubao, NVIDIA, Custom | `ProviderCatalog`, `ProviderTests`; MiMo and NVIDIA use OpenAI-compatible chat-completions endpoints | Automated verified |
 | Base URL and full `/chat/completions` endpoint normalization | `EndpointNormalizer`, `ProviderTests` | Automated verified |
 | Full `/responses` endpoint support for third-party debug provider | `EndpointNormalizer`, `OpenAIRequestFactory`, `ProviderTests`, live Test Run evidence | Automated and live smoke verified |
 | API Key stored outside settings plaintext | `LocalEnvironmentSecretStore`, `ProviderSecretReference`, `AppSettingsTests.settingsStoreNeverSerializesPlaintextAPIKeys` | Automated verified |

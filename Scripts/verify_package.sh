@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-VERSION="${VERSION:-1.1.6}"
+VERSION="${VERSION:-1.1.7}"
 APP="$ROOT/dist/SayFlow.app"
 EXECUTABLE="$APP/Contents/MacOS/SayFlow"
 INFO_PLIST="$APP/Contents/Info.plist"
