@@ -2,6 +2,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+VERSION="${VERSION:-1.0.1}"
 APP="${1:-$ROOT/dist/Graker.app}"
 SUPPORT_DIR="$HOME/Library/Application Support/Graker"
 SETTINGS="$SUPPORT_DIR/settings.json"
@@ -225,12 +226,12 @@ PY
 fi
 
 section "Package"
-if [[ -f "$ROOT/dist/Graker-1.0.0.dmg" ]]; then
+if [[ -f "$ROOT/dist/Graker-$VERSION.dmg" ]]; then
   pass "DMG exists"
-  /usr/bin/du -sh "$ROOT/dist/Graker-1.0.0.dmg"
-  /usr/bin/shasum -a 256 "$ROOT/dist/Graker-1.0.0.dmg"
+  /usr/bin/du -sh "$ROOT/dist/Graker-$VERSION.dmg"
+  /usr/bin/shasum -a 256 "$ROOT/dist/Graker-$VERSION.dmg"
 else
-  warn "DMG missing: $ROOT/dist/Graker-1.0.0.dmg"
+  warn "DMG missing: $ROOT/dist/Graker-$VERSION.dmg"
 fi
 
 section "Manual Target-App Checklist"

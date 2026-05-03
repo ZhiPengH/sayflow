@@ -2,13 +2,15 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-VERSION="${VERSION:-1.0.0}"
+VERSION="${VERSION:-1.0.1}"
 DIST="$ROOT/dist"
 APP="$DIST/Graker.app"
 DMG="$DIST/Graker-$VERSION.dmg"
 STAGE="$ROOT/.build/dmg-stage"
 
-"$ROOT/Scripts/build_app.sh"
+CODESIGN_IDENTITY="${CODESIGN_IDENTITY:-$("$ROOT/Scripts/ensure_codesign_identity.sh")}"
+export CODESIGN_IDENTITY
+VERSION="$VERSION" "$ROOT/Scripts/build_app.sh"
 
 rm -rf "$STAGE"
 mkdir -p "$STAGE"

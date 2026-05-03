@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-VERSION="${VERSION:-1.0.0}"
+VERSION="${VERSION:-1.0.1}"
 APP="$ROOT/dist/Graker.app"
 EXECUTABLE="$APP/Contents/MacOS/Graker"
 INFO_PLIST="$APP/Contents/Info.plist"
@@ -45,6 +45,13 @@ pass "app executable exists"
 
 codesign --verify --deep --strict --verbose=2 "$APP"
 pass "codesign verifies"
+
+signature_details="$(codesign -dv --verbose=4 "$APP" 2>&1)"
+if grep -F 'Signature=adhoc' <<<"$signature_details" >/dev/null; then
+  echo "Release app must be signed with a stable code signing identity, not ad-hoc." >&2
+  exit 1
+fi
+pass "codesign identity is stable"
 
 archs="$(lipo -archs "$EXECUTABLE")"
 [[ "$archs" == *"arm64"* ]]

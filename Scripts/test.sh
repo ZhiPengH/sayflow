@@ -20,7 +20,14 @@ grep -q 'https://api.mimo-v2.com/v1' Scripts/configure_debug_provider.sh
 ! grep -q 'https://api.mimo.mi.com/v1' Scripts/configure_debug_provider.sh
 grep -q 'APP_NAME="${APP_NAME:-Graker}"' Scripts/build_app.sh
 grep -q 'DIST="${DIST:-$ROOT/dist}"' Scripts/build_app.sh
-APP_NAME=TestApp IDENTIFIER=com.hzp.testapp DIST="$ROOT/build" UNIVERSAL=0 Scripts/build_app.sh >/tmp/graker-test-app-build.log
+grep -q 'VERSION="${VERSION:-1.0.1}"' Scripts/build_app.sh
+grep -q 'VERSION="${VERSION:-1.0.1}"' Scripts/package_dmg.sh
+grep -q 'VERSION="${VERSION:-1.0.1}"' Scripts/verify_package.sh
+grep -q 'Version 1.0.1' Sources/GrakerCore/Localization.swift
+grep -q 'CODESIGN_IDENTITY="${CODESIGN_IDENTITY:-Graker Local Development}"' Scripts/build_app.sh
+grep -q 'ensure_codesign_identity.sh' Scripts/package_dmg.sh
+grep -q 'Signature=adhoc' Scripts/verify_package.sh
+CODESIGN_IDENTITY=- APP_NAME=TestApp IDENTIFIER=com.hzp.testapp DIST="$ROOT/build" UNIVERSAL=0 Scripts/build_app.sh >/tmp/graker-test-app-build.log
 test -d build/TestApp.app
 test -x build/TestApp.app/Contents/MacOS/TestApp
 test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$ROOT/build/TestApp.app/Contents/Info.plist")" = "com.hzp.testapp"

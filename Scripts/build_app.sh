@@ -4,9 +4,10 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 APP_NAME="${APP_NAME:-Graker}"
 PRODUCT_NAME="${PRODUCT_NAME:-Graker}"
-VERSION="${VERSION:-1.0.0}"
+VERSION="${VERSION:-1.0.1}"
 IDENTIFIER="${IDENTIFIER:-com.zhixing.graker}"
 DIST="${DIST:-$ROOT/dist}"
+CODESIGN_IDENTITY="${CODESIGN_IDENTITY:-Graker Local Development}"
 APP="$DIST/$APP_NAME.app"
 MACOS="$APP/Contents/MacOS"
 RESOURCES="$APP/Contents/Resources"
@@ -65,6 +66,15 @@ cat > "$APP/Contents/Info.plist" <<PLIST
 </plist>
 PLIST
 
-codesign --force --deep --sign - "$APP" >/dev/null
+if [[ "$CODESIGN_IDENTITY" != "-" ]] &&
+   ! security find-identity -v -p codesigning 2>/dev/null | grep -F "\"$CODESIGN_IDENTITY\"" >/dev/null; then
+  cat >&2 <<EOF
+Missing code signing identity: $CODESIGN_IDENTITY
+Run Scripts/ensure_codesign_identity.sh, or set CODESIGN_IDENTITY to another stable code signing identity.
+EOF
+  exit 1
+fi
+
+codesign --force --deep --sign "$CODESIGN_IDENTITY" "$APP" >/dev/null
 echo "Built $APP"
 file "$MACOS/$APP_NAME"
