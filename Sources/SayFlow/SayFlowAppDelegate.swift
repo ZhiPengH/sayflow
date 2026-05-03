@@ -79,9 +79,27 @@ final class SayFlowAppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func configureStatusItem() {
-        statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-        statusItem?.button?.title = L10n.tr(.appName)
+        statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
+        configureStatusIcon()
         rebuildMenu()
+    }
+
+    private func configureStatusIcon() {
+        guard let button = statusItem?.button else {
+            return
+        }
+        button.title = ""
+        button.image = statusIconImage()
+        button.image?.isTemplate = true
+        button.imagePosition = .imageOnly
+        button.toolTip = L10n.tr(.appName)
+    }
+
+    private func statusIconImage() -> NSImage? {
+        guard let url = Bundle.main.url(forResource: "MenuBarIcon.pdf", withExtension: nil) else {
+            return nil
+        }
+        return NSImage(contentsOf: url)
     }
 
     private func rebuildMenu() {
@@ -102,7 +120,7 @@ final class SayFlowAppDelegate: NSObject, NSApplicationDelegate {
         networkMonitor.onStatusChange = { [weak self] isOnline in
             let presentation = NetworkAvailabilityPresentation.presentation(isOnline: isOnline)
             self?.checkGrammarItem?.isEnabled = presentation.menuEnabled
-            self?.statusItem?.button?.title = presentation.statusTitle
+            self?.statusItem?.button?.toolTip = presentation.statusTitle
         }
         networkMonitor.start()
     }

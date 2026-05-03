@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-VERSION="${VERSION:-1.1.1}"
+VERSION="${VERSION:-1.1.2}"
 APP="$ROOT/dist/SayFlow.app"
 EXECUTABLE="$APP/Contents/MacOS/SayFlow"
 INFO_PLIST="$APP/Contents/Info.plist"
@@ -59,12 +59,18 @@ archs="$(lipo -archs "$EXECUTABLE")"
 printf 'architectures=%s\n' "$archs"
 
 bundle_id="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$INFO_PLIST")"
+bundle_icon="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIconFile' "$INFO_PLIST")"
 minimum_system="$(/usr/libexec/PlistBuddy -c 'Print :LSMinimumSystemVersion' "$INFO_PLIST")"
 lsui_element="$(/usr/libexec/PlistBuddy -c 'Print :LSUIElement' "$INFO_PLIST")"
 [[ "$bundle_id" == "com.zhixing.sayflow" ]]
+[[ "$bundle_icon" == "SayFlow" ]]
 [[ "$minimum_system" == "13.0" ]]
 [[ "$lsui_element" == "true" ]]
 pass "Info.plist release fields are correct"
+
+[[ -f "$APP/Contents/Resources/SayFlow.icns" ]]
+[[ -f "$APP/Contents/Resources/MenuBarIcon.pdf" ]]
+pass "app and menu bar icon resources exist"
 
 [[ -f "$DMG" ]]
 [[ -f "$SHA_FILE" ]]

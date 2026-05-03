@@ -9,8 +9,8 @@ This audit separates implementation evidence from manual gates. A green script i
 Last verified commands:
 
 - `Scripts/test.sh`: passes 95 SayFlowCore tests, validates packaging/probe script invariants, validates the debug-provider bootstrap uses the current MiMo default endpoint, and runs `swift build`.
-- `Scripts/verify_package.sh`: verifies app bundle, signing, `x86_64 arm64`, `LSUIElement=true`, `LSMinimumSystemVersion=13.0`, DMG SHA-256, DMG size below 30 MB, and DMG contents. Latest ad-hoc v1.1.1 DMG SHA-256: `85e172af9c761ebae2704cbe62839d2c45709cd9b3d793965df040b1fddd998d`; release verification still requires a stable code-signing identity.
-- `Scripts/manual_acceptance_probe.sh`: verifies bundle, expected running app path, signing, provider settings, Keychain reference, package presence, and whether the running SayFlow app is still showing Accessibility onboarding/runtime permission alerts. Latest run passes for `dist/SayFlow.app`, including the Accessibility alert check.
+- `Scripts/verify_package.sh`: verifies app bundle, signing, `x86_64 arm64`, `LSUIElement=true`, `LSMinimumSystemVersion=13.0`, DMG SHA-256, DMG size below 30 MB, and DMG contents. Latest ad-hoc v1.1.2 DMG SHA-256: `cccff7ce2aef4ad06b0a81198951bb27125a1030348d2da3d42b741ae7817886`; release verification still requires a stable code-signing identity.
+- `Scripts/manual_acceptance_probe.sh`: verifies bundle, expected running app path, signing, provider settings, Keychain reference, package presence, and whether the running SayFlow app is still showing Accessibility onboarding/runtime permission alerts. Latest run passes app launch and Accessibility checks; the current local active OpenAI provider is missing its Keychain API key.
 - `Scripts/ax_selected_text_probe.sh`: verifies selected-text capture in target apps through Accessibility, including Safari/WebKit text-marker fallback.
 
 ## Requirement Matrix
@@ -58,7 +58,7 @@ Last verified commands:
 | Offline button disabled/network prompt | `NetworkStatusMonitor`, `NetworkAvailabilityPresentation`, `NetworkAvailabilityPresentationTests`, localization | Automated verified; offline manual scenario not yet verified |
 | API errors include HTTP status and provider/raw message | `OpenAIHTTPErrorMessage`, `OpenAIHTTPErrorMessageTests`, `OpenAIStreamingClient`; raw body still available in Raw response | Automated verified; live failure scenario not yet verified |
 | Chinese + English localization | `LocalizationTests` | Automated verified |
-| Package size below 30 MB | `Scripts/manual_acceptance_probe.sh` reports latest DMG size 892 KB | Automated verified |
+| Package size below 30 MB | `Scripts/manual_acceptance_probe.sh` reports latest DMG size 1.2 MB | Automated verified |
 | Performance budgets: panel shown before LLM response, streaming fields rendered incrementally | `SayFlowAppDelegate.checkGrammar()` calls `showLoading` before request construction; `StreamingCorrectionAccumulatorTests` verifies incremental field publication | Partially verified; real `<200ms`, token interval, first-token, and full-response timings require live manual measurement |
 | Optional update check toggle | `SettingsWindow`, `UpdateCheckerTests` | Automated verified |
 | Launch at login toggle | `SettingsWindow.applyLaunchAtLogin`, `LaunchAtLoginTogglePolicy` tests | Logic verified; installed-in-Applications manual gate pending |
