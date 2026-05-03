@@ -186,19 +186,8 @@ final class ResultPanelView: NSView, NSTextViewDelegate {
     }
 
     func apply(theme: DisplayTheme) {
-        switch theme {
-        case .system:
-            appearance = nil
-            layer?.backgroundColor = NSColor(red: 0.96, green: 0.94, blue: 0.89, alpha: 1).cgColor
-        case .light:
-            appearance = NSAppearance(named: .aqua)
-            layer?.backgroundColor = NSColor(red: 0.96, green: 0.94, blue: 0.89, alpha: 1).cgColor
-        case .dark:
-            if #available(macOS 10.14, *) {
-                appearance = NSAppearance(named: .darkAqua)
-            }
-            layer?.backgroundColor = NSColor(red: 0.16, green: 0.15, blue: 0.13, alpha: 1).cgColor
-        }
+        appearance = NSAppearance(named: .aqua)
+        layer?.backgroundColor = NSColor(red: 0.96, green: 0.94, blue: 0.89, alpha: 1).cgColor
     }
 
     func showLoading(originalText: String) {

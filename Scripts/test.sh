@@ -21,12 +21,20 @@ grep -q 'https://api.mimo-v2.com/v1' Scripts/configure_debug_provider.sh
 ! grep -q 'https://api.mimo.mi.com/v1' Scripts/configure_debug_provider.sh
 grep -q 'APP_NAME="${APP_NAME:-Graker}"' Scripts/build_app.sh
 grep -q 'DIST="${DIST:-$ROOT/dist}"' Scripts/build_app.sh
-grep -q 'VERSION="${VERSION:-1.0.2}"' Scripts/build_app.sh
-grep -q 'VERSION="${VERSION:-1.0.2}"' Scripts/package_dmg.sh
-grep -q 'VERSION="${VERSION:-1.0.2}"' Scripts/verify_package.sh
-grep -q 'Version 1.0.2' Sources/GrakerCore/Localization.swift
+grep -q 'VERSION="${VERSION:-1.0.3}"' Scripts/build_app.sh
+grep -q 'VERSION="${VERSION:-1.0.3}"' Scripts/package_dmg.sh
+grep -q 'VERSION="${VERSION:-1.0.3}"' Scripts/verify_package.sh
+grep -q 'Version 1.0.3' Sources/GrakerCore/Localization.swift
 grep -q 'ResultPanelLayoutMetrics.panelWidth' Sources/Graker/ResultPanel.swift
 grep -q 'applyWrappingConstraints()' Sources/Graker/ResultPanel.swift
+! grep -q 'themePopup' Sources/Graker/SettingsWindow.swift
+! grep -q 'darkAqua' Sources/Graker/ResultPanel.swift
+! grep -q 'case dark' Sources/GrakerCore/AppSettings.swift
+! grep -q 'case system' Sources/GrakerCore/AppSettings.swift
+grep -q 'panel.appearance = lightAppearance' Sources/Graker/SelectionHotZoneController.swift
+grep -q 'button.appearance = lightAppearance' Sources/Graker/SelectionHotZoneController.swift
+grep -q 'container.appearance = lightAppearance' Sources/Graker/SelectionHotZoneController.swift
+! grep -q 'darkAqua' Sources/Graker/SelectionHotZoneController.swift
 grep -q 'CODESIGN_IDENTITY="${CODESIGN_IDENTITY:-Graker Local Development}"' Scripts/build_app.sh
 grep -q 'ensure_codesign_identity.sh' Scripts/package_dmg.sh
 grep -q 'dist/Graker.app' Scripts/run_manual_test_app.sh

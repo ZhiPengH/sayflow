@@ -60,9 +60,16 @@ public enum LaunchAtLoginTogglePolicy {
 }
 
 public enum DisplayTheme: String, Codable, CaseIterable, Equatable {
-    case system
     case light
-    case dark
+
+    public init(from decoder: Decoder) throws {
+        self = .light
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(rawValue)
+    }
 }
 
 public struct DisplaySettings: Codable, Equatable {
@@ -125,7 +132,7 @@ public struct AppSettings: Codable, Equatable {
             ),
             providers: ProviderConfiguration.defaults(),
             prompts: .defaultGrammarCorrection,
-            display: DisplaySettings(positionStrategy: .followMouse, theme: .system),
+            display: DisplaySettings(positionStrategy: .followMouse, theme: .light),
             obsidian: ObsidianSettings(
                 targetMarkdownPath: nil,
                 writeTemplate: .defaultObsidian,

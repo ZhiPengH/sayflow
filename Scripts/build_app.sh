@@ -4,7 +4,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 APP_NAME="${APP_NAME:-Graker}"
 PRODUCT_NAME="${PRODUCT_NAME:-Graker}"
-VERSION="${VERSION:-1.0.2}"
+VERSION="${VERSION:-1.0.3}"
 IDENTIFIER="${IDENTIFIER:-com.zhixing.graker}"
 DIST="${DIST:-$ROOT/dist}"
 CODESIGN_IDENTITY="${CODESIGN_IDENTITY:-Graker Local Development}"

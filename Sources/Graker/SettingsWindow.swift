@@ -23,7 +23,6 @@ final class SettingsWindowController: NSWindowController, NSTextViewDelegate {
     private let systemPromptView = NSTextView()
     private let userPromptView = NSTextView()
     private let positionPopup = NSPopUpButton()
-    private let themePopup = NSPopUpButton()
     private let obsidianPathField = NSTextField()
     private let obsidianTemplateView = NSTextView()
     private let hotKeyField = NSTextField()
@@ -164,16 +163,9 @@ final class SettingsWindowController: NSWindowController, NSTextViewDelegate {
             positionPopup.addItem(withTitle: title(for: strategy))
             positionPopup.lastItem?.representedObject = strategy.rawValue
         }
-        DisplayTheme.allCases.forEach { theme in
-            themePopup.addItem(withTitle: title(for: theme))
-            themePopup.lastItem?.representedObject = theme.rawValue
-        }
         positionPopup.target = self
         positionPopup.action = #selector(saveDisplay)
-        themePopup.target = self
-        themePopup.action = #selector(saveDisplay)
         stack.addArrangedSubview(labeled(L10n.tr(.popupPosition), field: positionPopup))
-        stack.addArrangedSubview(labeled(L10n.tr(.theme), field: themePopup))
         return padded(stack)
     }
 
@@ -215,7 +207,6 @@ final class SettingsWindowController: NSWindowController, NSTextViewDelegate {
         userPromptView.string = settings.prompts.user
         updatePromptValidationState()
         select(positionPopup, representedValue: settings.display.positionStrategy.rawValue)
-        select(themePopup, representedValue: settings.display.theme.rawValue)
         obsidianPathField.stringValue = settings.obsidian.targetMarkdownPath ?? ""
         timeZonePopup.selectItem(withTitle: settings.obsidian.timeZoneIdentifier ?? L10n.tr(.systemTimeZone))
         obsidianTemplateView.string = settings.obsidian.writeTemplate.markdown
@@ -383,10 +374,6 @@ final class SettingsWindowController: NSWindowController, NSTextViewDelegate {
            let strategy = PopupPositionStrategy(rawValue: rawValue) {
             settings.display.positionStrategy = strategy
         }
-        if let rawValue = themePopup.selectedItem?.representedObject as? String,
-           let theme = DisplayTheme(rawValue: rawValue) {
-            settings.display.theme = theme
-        }
         persist()
     }
 
@@ -529,17 +516,6 @@ final class SettingsWindowController: NSWindowController, NSTextViewDelegate {
             return L10n.tr(.center)
         case .lastClosed:
             return L10n.tr(.lastClosed)
-        }
-    }
-
-    private func title(for theme: DisplayTheme) -> String {
-        switch theme {
-        case .system:
-            return L10n.tr(.themeSystem)
-        case .light:
-            return L10n.tr(.themeLight)
-        case .dark:
-            return L10n.tr(.themeDark)
         }
     }
 

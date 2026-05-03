@@ -8,7 +8,8 @@ enum AppSettingsTests {
         try expectEqual(settings.general.hotKey, HotKeyConfiguration.defaultOptionG)
         try expectEqual(settings.general.networkTimeoutSeconds, 30)
         try expectEqual(settings.display.positionStrategy, .followMouse)
-        try expectEqual(settings.display.theme, .system)
+        try expectEqual(settings.display.theme, .light)
+        try expectEqual(DisplayTheme.allCases, [.light])
         try expectEqual(settings.providers.filter(\.isActive).count, 1)
         try expectEqual(settings.providers.first(where: { $0.kind == .openAI })?.isActive, true)
         try expectEqual(settings.prompts, .defaultGrammarCorrection)
@@ -72,6 +73,30 @@ enum AppSettingsTests {
 
         try expectEqual(loaded.general.hotKey, .defaultOptionG)
         try expectEqual(loaded.prompts, .defaultGrammarCorrection)
+    }
+
+    static func settingsStoreMigratesLegacyDisplayThemesToLight() throws {
+        let directory = try TemporaryDirectory()
+        let store = AppSettingsStore(applicationSupportDirectory: directory.url)
+        let legacy = """
+        {
+          "general": {
+            "launchAtLogin": false,
+            "hotKey": {"displayText": "⌥G", "keyCode": 5, "modifierFlags": 2048},
+            "automaticallyChecksForUpdates": false,
+            "networkTimeoutSeconds": 30
+          },
+          "providers": [],
+          "display": {"positionStrategy": "followMouse", "theme": "dark"},
+          "obsidian": {"writeTemplate": {"markdown": "unused"}}
+        }
+        """
+        try FileManager.default.createDirectory(at: directory.url, withIntermediateDirectories: true)
+        try legacy.data(using: .utf8)?.write(to: store.fileURL)
+
+        let loaded = try store.load()
+
+        try expectEqual(loaded.display.theme, .light)
     }
 
     static func settingsStoreNormalizesMultipleActiveProvidersOnLoad() throws {

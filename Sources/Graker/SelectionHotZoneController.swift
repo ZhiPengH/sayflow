@@ -16,6 +16,8 @@ final class SelectionHotZoneController: NSObject {
         )
         super.init()
 
+        let lightAppearance = NSAppearance(named: .aqua)
+        panel.appearance = lightAppearance
         panel.backgroundColor = .clear
         panel.isOpaque = false
         panel.level = .floating
@@ -23,6 +25,7 @@ final class SelectionHotZoneController: NSObject {
         panel.isReleasedWhenClosed = false
         panel.collectionBehavior = [.canJoinAllSpaces, .transient, .ignoresCycle]
 
+        button.appearance = lightAppearance
         button.bezelStyle = .rounded
         button.font = .systemFont(ofSize: 13, weight: .semibold)
         button.toolTip = L10n.tr(.checkGrammar)
@@ -31,6 +34,7 @@ final class SelectionHotZoneController: NSObject {
         button.translatesAutoresizingMaskIntoConstraints = false
 
         let container = NSView(frame: NSRect(x: 0, y: 0, width: 34, height: 30))
+        container.appearance = lightAppearance
         container.wantsLayer = true
         container.layer?.backgroundColor = NSColor(red: 0.96, green: 0.94, blue: 0.89, alpha: 0.96).cgColor
         container.layer?.cornerRadius = 8

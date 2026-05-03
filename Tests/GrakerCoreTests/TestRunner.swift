@@ -63,6 +63,7 @@ struct GrakerCoreTestRunner {
             TestCase(name: "No plaintext API keys in settings", run: AppSettingsTests.settingsStoreNeverSerializesPlaintextAPIKeys),
             TestCase(name: "No prompt templates in settings", run: AppSettingsTests.settingsStoreDoesNotSerializePromptTemplates),
             TestCase(name: "Legacy settings with prompts load", run: AppSettingsTests.settingsStoreCanReadLegacySettingsThatContainPrompts),
+            TestCase(name: "Legacy display themes migrate to light", run: AppSettingsTests.settingsStoreMigratesLegacyDisplayThemesToLight),
             TestCase(name: "Settings normalize multiple active providers", run: AppSettingsTests.settingsStoreNormalizesMultipleActiveProvidersOnLoad),
             TestCase(name: "Settings activate first provider when none active", run: AppSettingsTests.settingsStoreActivatesFirstProviderWhenNoneAreActive),
             TestCase(name: "Settings restore missing default providers", run: AppSettingsTests.settingsStoreRestoresMissingDefaultProvidersOnLoad),

@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-VERSION="${VERSION:-1.0.2}"
+VERSION="${VERSION:-1.0.3}"
 APP="$ROOT/dist/Graker.app"
 EXECUTABLE="$APP/Contents/MacOS/Graker"
 INFO_PLIST="$APP/Contents/Info.plist"
