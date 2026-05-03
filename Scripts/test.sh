@@ -13,6 +13,8 @@ done
 test -x Scripts/verify_package.sh
 test -x Scripts/ax_selected_text_probe.sh
 test -x Scripts/run_manual_test_app.sh
+test -x Scripts/settings_editing_probe.sh
+Scripts/settings_editing_probe.sh
 grep -q 'mktemp -d /private/tmp/sayflow-dmg.XXXXXX' Scripts/verify_package.sh
 grep -q 'sayflow_accessibility_permission_alert_visible' Scripts/manual_acceptance_probe.sh
 grep -q '需要辅助功能权限' Scripts/manual_acceptance_probe.sh

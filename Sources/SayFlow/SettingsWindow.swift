@@ -572,6 +572,7 @@ final class SettingsWindowController: NSWindowController, NSTextViewDelegate {
     private func configureEditor(_ textView: NSTextView, height: CGFloat) {
         textView.font = NSFont(name: "Menlo", size: 12) ?? NSFont.userFixedPitchFont(ofSize: 12)
         textView.isRichText = false
+        textView.allowsUndo = true
         textView.delegate = self
         _ = scroll(for: textView, height: height)
     }
