@@ -21,10 +21,14 @@ grep -q 'https://api.mimo-v2.com/v1' Scripts/configure_debug_provider.sh
 ! grep -q 'https://api.mimo.mi.com/v1' Scripts/configure_debug_provider.sh
 grep -q 'APP_NAME="${APP_NAME:-SayFlow}"' Scripts/build_app.sh
 grep -q 'DIST="${DIST:-$ROOT/dist}"' Scripts/build_app.sh
-grep -q 'VERSION="${VERSION:-1.1.0}"' Scripts/build_app.sh
-grep -q 'VERSION="${VERSION:-1.1.0}"' Scripts/package_dmg.sh
-grep -q 'VERSION="${VERSION:-1.1.0}"' Scripts/verify_package.sh
-grep -q 'Version 1.1.0' Sources/SayFlowCore/Localization.swift
+grep -q 'VERSION="${VERSION:-1.1.1}"' Scripts/build_app.sh
+grep -q 'VERSION="${VERSION:-1.1.1}"' Scripts/package_dmg.sh
+grep -q 'VERSION="${VERSION:-1.1.1}"' Scripts/verify_package.sh
+grep -q 'Version 1.1.1' Sources/SayFlowCore/Localization.swift
+test -f assets/icon_32x32@2x.png
+grep -q 'HOT_ZONE_ICON_FILE="${HOT_ZONE_ICON_FILE:-icon_32x32@2x.png}"' Scripts/build_app.sh
+grep -q 'triggerIconFileName = "icon_32x32@2x.png"' Sources/SayFlowCore/SelectionHotZonePolicy.swift
+grep -q 'triggerButtonTitle = ""' Sources/SayFlowCore/SelectionHotZonePolicy.swift
 grep -q 'displayText: "⌃⌘S"' Sources/SayFlowCore/AppSettings.swift
 grep -q "displayText: '⌃⌘S'" Scripts/configure_debug_provider.sh
 grep -q 'Control+Command+S' Sources/SayFlowCore/Localization.swift
@@ -50,6 +54,7 @@ fi
 CODESIGN_IDENTITY=- APP_NAME=TestApp IDENTIFIER=com.hzp.testapp DIST="$ROOT/build" UNIVERSAL=0 Scripts/build_app.sh >/tmp/sayflow-test-app-build.log
 test -d build/TestApp.app
 test -x build/TestApp.app/Contents/MacOS/TestApp
+test -f build/TestApp.app/Contents/Resources/icon_32x32@2x.png
 test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$ROOT/build/TestApp.app/Contents/Info.plist")" = "com.hzp.testapp"
 /usr/bin/codesign --verify --deep --strict --verbose=2 "$ROOT/build/TestApp.app"
 swiftc -swift-version 5 Sources/SayFlowCore/*.swift Tests/SayFlowCoreTests/*.swift -o .build/local-tests/SayFlowCoreTests

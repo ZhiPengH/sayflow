@@ -94,7 +94,7 @@ struct SayFlowCoreTestRunner {
             TestCase(name: "Text capture rejects stale clipboard", run: TextCaptureResolverTests.firstAccessibilityMissPromptsInsteadOfUsingStaleClipboard),
             TestCase(name: "Text capture clipboard fallback requires change", run: TextCaptureResolverTests.clipboardFallbackRequiresClipboardChangeAfterPrompt),
             TestCase(name: "Text capture sample bypass", run: TextCaptureResolverTests.sampleTextBypassesRuntimeCapture),
-            TestCase(name: "Selection hot zone button title", run: SelectionHotZonePolicyTests.triggerButtonUsesSayFlowInitial),
+            TestCase(name: "Selection hot zone icon presentation", run: SelectionHotZonePolicyTests.triggerButtonUsesIconInsteadOfTextTitle),
             TestCase(name: "Selection hot zone policy", run: SelectionHotZonePolicyTests.showsOnlyForTrustedNonEmptyExternalSelections),
             TestCase(name: "Accessibility element validator", run: AccessibilityElementValidatorTests.acceptsAXUIElementValuesAndRejectsOtherCFTypes),
             TestCase(name: "Accept replacement success action", run: AcceptReplacementFallbackTests.successfulReplacementNeedsNoClipboardFallback),

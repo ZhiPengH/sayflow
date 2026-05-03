@@ -28,6 +28,10 @@ final class SelectionHotZoneController: NSObject {
         button.appearance = lightAppearance
         button.bezelStyle = .rounded
         button.font = .systemFont(ofSize: 13, weight: .semibold)
+        button.image = Self.triggerIconImage()
+        button.imagePosition = .imageOnly
+        button.imageScaling = .scaleProportionallyDown
+        button.alignment = .center
         button.toolTip = L10n.tr(.checkGrammar)
         button.target = self
         button.action = #selector(trigger)
@@ -81,6 +85,19 @@ final class SelectionHotZoneController: NSObject {
         origin.x = min(max(origin.x, screenFrame.minX + inset), screenFrame.maxX - size.width - inset)
         origin.y = min(max(origin.y, screenFrame.minY + inset), screenFrame.maxY - size.height - inset)
         return NSRect(origin: origin, size: size)
+    }
+
+    private static func triggerIconImage() -> NSImage? {
+        guard let url = Bundle.main.url(
+            forResource: SelectionHotZonePresentation.triggerIconFileName,
+            withExtension: nil
+        ),
+              let image = NSImage(contentsOf: url) else {
+            return nil
+        }
+        let pointSize = CGFloat(SelectionHotZonePresentation.triggerIconPointSize)
+        image.size = NSSize(width: pointSize, height: pointSize)
+        return image
     }
 
     @objc private func trigger() {

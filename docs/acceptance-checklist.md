@@ -1,6 +1,6 @@
 # SayFlow v1.0 Acceptance Checklist
 
-Use this checklist after building `dist/SayFlow.app` or installing `dist/SayFlow-1.1.0.dmg`.
+Use this checklist after building `dist/SayFlow.app` or installing `dist/SayFlow-1.1.1.dmg`.
 Some items require macOS Accessibility permission and must be verified by a logged-in user.
 
 ## Automated Gates
@@ -17,7 +17,7 @@ Scripts/manual_acceptance_probe.sh
 Expected evidence:
 
 - `Scripts/test.sh` reports all SayFlowCore tests passed and `swift build` completes.
-- `Scripts/package_dmg.sh` creates `dist/SayFlow.app`, `dist/SayFlow-1.1.0.dmg`, and `dist/SayFlow-1.1.0.dmg.sha256`.
+- `Scripts/package_dmg.sh` creates `dist/SayFlow.app`, `dist/SayFlow-1.1.1.dmg`, and `dist/SayFlow-1.1.1.dmg.sha256`.
 - `Scripts/verify_package.sh` checks codesign, `x86_64` + `arm64`,
   `LSUIElement=true`, `LSMinimumSystemVersion=13.0`, SHA-256, DMG size below
   30 MB, and the mounted DMG contents using a fixed temporary mount point.

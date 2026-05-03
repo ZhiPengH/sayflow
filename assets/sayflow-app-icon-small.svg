@@ -1,0 +1,24 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <title>言顺 SayFlow · Small Variant (16/32px slices)</title>
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FAF3E2"/>
+      <stop offset="100%" stop-color="#A6C4BC"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1024" height="1024" rx="229" fill="url(#bg)"/>
+
+  <!-- Bigger dot for legibility at 16/32 -->
+  <circle cx="512" cy="240" r="44" fill="#16242E"/>
+
+  <!-- Three lines, 1 cycle each, thicker stroke -->
+  <path d="M 320 410 Q 416 350 512 410 Q 608 470 704 410"
+        fill="none" stroke="#16242E" stroke-width="50" stroke-linecap="round"/>
+
+  <path d="M 256 580 Q 384 510 512 580 Q 640 650 768 580"
+        fill="none" stroke="#16242E" stroke-width="50" stroke-linecap="round"/>
+
+  <path d="M 192 760 Q 352 680 512 760 Q 672 840 832 760"
+        fill="none" stroke="#16242E" stroke-width="50" stroke-linecap="round"/>
+</svg>

@@ -9,7 +9,7 @@ This audit separates implementation evidence from manual gates. A green script i
 Last verified commands:
 
 - `Scripts/test.sh`: passes 95 SayFlowCore tests, validates packaging/probe script invariants, validates the debug-provider bootstrap uses the current MiMo default endpoint, and runs `swift build`.
-- `Scripts/verify_package.sh`: verifies app bundle, signing, `x86_64 arm64`, `LSUIElement=true`, `LSMinimumSystemVersion=13.0`, DMG SHA-256, DMG size below 30 MB, and DMG contents. Latest ad-hoc v1.1.0 DMG SHA-256: `6ecebe3f38b0c0287253f10099de7f965a83ccedabe6d97939805bc2ef14bd92`; release verification still requires a stable code-signing identity.
+- `Scripts/verify_package.sh`: verifies app bundle, signing, `x86_64 arm64`, `LSUIElement=true`, `LSMinimumSystemVersion=13.0`, DMG SHA-256, DMG size below 30 MB, and DMG contents. Latest ad-hoc v1.1.1 DMG SHA-256: `ce498b50ef346d25e01c863dada79ca60b0f4f68a7bc58824424c5975ed88562`; release verification still requires a stable code-signing identity.
 - `Scripts/manual_acceptance_probe.sh`: verifies bundle, expected running app path, signing, provider settings, Keychain reference, package presence, and whether the running SayFlow app is still showing Accessibility onboarding/runtime permission alerts. Latest run passes for `dist/SayFlow.app`, including the Accessibility alert check.
 - `Scripts/ax_selected_text_probe.sh`: verifies selected-text capture in target apps through Accessibility, including Safari/WebKit text-marker fallback.
 
@@ -58,7 +58,7 @@ Last verified commands:
 | Offline button disabled/network prompt | `NetworkStatusMonitor`, `NetworkAvailabilityPresentation`, `NetworkAvailabilityPresentationTests`, localization | Automated verified; offline manual scenario not yet verified |
 | API errors include HTTP status and provider/raw message | `OpenAIHTTPErrorMessage`, `OpenAIHTTPErrorMessageTests`, `OpenAIStreamingClient`; raw body still available in Raw response | Automated verified; live failure scenario not yet verified |
 | Chinese + English localization | `LocalizationTests` | Automated verified |
-| Package size below 30 MB | `Scripts/verify_package.sh` reports latest DMG size 840 KB | Automated verified |
+| Package size below 30 MB | `Scripts/manual_acceptance_probe.sh` reports latest DMG size 892 KB | Automated verified |
 | Performance budgets: panel shown before LLM response, streaming fields rendered incrementally | `SayFlowAppDelegate.checkGrammar()` calls `showLoading` before request construction; `StreamingCorrectionAccumulatorTests` verifies incremental field publication | Partially verified; real `<200ms`, token interval, first-token, and full-response timings require live manual measurement |
 | Optional update check toggle | `SettingsWindow`, `UpdateCheckerTests` | Automated verified |
 | Launch at login toggle | `SettingsWindow.applyLaunchAtLogin`, `LaunchAtLoginTogglePolicy` tests | Logic verified; installed-in-Applications manual gate pending |

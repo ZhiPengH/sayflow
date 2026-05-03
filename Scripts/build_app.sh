@@ -4,10 +4,12 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 APP_NAME="${APP_NAME:-SayFlow}"
 PRODUCT_NAME="${PRODUCT_NAME:-SayFlow}"
-VERSION="${VERSION:-1.1.0}"
+VERSION="${VERSION:-1.1.1}"
 IDENTIFIER="${IDENTIFIER:-com.zhixing.sayflow}"
 DIST="${DIST:-$ROOT/dist}"
 CODESIGN_IDENTITY="${CODESIGN_IDENTITY:-SayFlow Local Development}"
+ASSETS_DIR="${ASSETS_DIR:-$ROOT/assets}"
+HOT_ZONE_ICON_FILE="${HOT_ZONE_ICON_FILE:-icon_32x32@2x.png}"
 APP="$DIST/$APP_NAME.app"
 MACOS="$APP/Contents/MacOS"
 RESOURCES="$APP/Contents/Resources"
@@ -15,6 +17,14 @@ RESOURCES="$APP/Contents/Resources"
 cd "$ROOT"
 rm -rf "$APP"
 mkdir -p "$MACOS" "$RESOURCES"
+if [[ ! -f "$ASSETS_DIR/$HOT_ZONE_ICON_FILE" ]]; then
+  cat >&2 <<EOF
+Missing hot zone icon: $ASSETS_DIR/$HOT_ZONE_ICON_FILE
+Place the provided PNG at assets/$HOT_ZONE_ICON_FILE before building.
+EOF
+  exit 1
+fi
+cp "$ASSETS_DIR/$HOT_ZONE_ICON_FILE" "$RESOURCES/$HOT_ZONE_ICON_FILE"
 
 build_arch() {
   local arch="$1"

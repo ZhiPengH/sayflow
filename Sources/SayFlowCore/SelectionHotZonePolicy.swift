@@ -1,7 +1,9 @@
 import Foundation
 
 public enum SelectionHotZonePresentation {
-    public static let triggerButtonTitle = "S"
+    public static let triggerButtonTitle = ""
+    public static let triggerIconFileName = "icon_32x32@2x.png"
+    public static let triggerIconPointSize = 20
 }
 
 public enum SelectionHotZoneDecision: Equatable {

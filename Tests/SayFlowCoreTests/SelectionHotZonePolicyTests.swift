@@ -1,8 +1,10 @@
 import Foundation
 
 enum SelectionHotZonePolicyTests {
-    static func triggerButtonUsesSayFlowInitial() throws {
-        try expectEqual(SelectionHotZonePresentation.triggerButtonTitle, "S")
+    static func triggerButtonUsesIconInsteadOfTextTitle() throws {
+        try expectEqual(SelectionHotZonePresentation.triggerButtonTitle, "")
+        try expectEqual(SelectionHotZonePresentation.triggerIconFileName, "icon_32x32@2x.png")
+        try expectEqual(SelectionHotZonePresentation.triggerIconPointSize, 20)
     }
 
     static func showsOnlyForTrustedNonEmptyExternalSelections() throws {
