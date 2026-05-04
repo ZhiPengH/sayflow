@@ -52,6 +52,8 @@ public enum L10nKey: String, CaseIterable {
     case popupPosition
     case theme
     case chooseMarkdown
+    case saveFileMenu
+    case noRecentMarkdownFiles
     case targetMarkdownFile
     case timeZone
     case writeTemplate
@@ -167,7 +169,9 @@ public enum L10n {
             .userPrompt: "User",
             .popupPosition: "Popup position",
             .theme: "Theme",
-            .chooseMarkdown: "Choose .md",
+            .chooseMarkdown: "Open",
+            .saveFileMenu: "Save File",
+            .noRecentMarkdownFiles: "No recent Markdown files",
             .targetMarkdownFile: "Target Markdown file",
             .timeZone: "Time zone",
             .writeTemplate: "Write template",
@@ -177,7 +181,7 @@ public enum L10n {
             .invalidObsidianPathRelative: "Use an absolute Markdown file path.",
             .invalidObsidianPathNotMarkdown: "The Obsidian target must be a .md file.",
             .aboutName: "SayFlow",
-            .aboutVersion: "Version 1.2.1",
+            .aboutVersion: "Version 1.2.2",
             .aboutReleases: "Releases: https://github.com/ZhiPengH/sayflow-release/releases",
             .aboutShaNote: "Each DMG build script prints SHA-256 for verification.",
             .systemTimeZone: "System",
@@ -276,7 +280,9 @@ public enum L10n {
             .userPrompt: "User",
             .popupPosition: "弹窗位置",
             .theme: "主题",
-            .chooseMarkdown: "选择 .md",
+            .chooseMarkdown: "打开",
+            .saveFileMenu: "保存文件",
+            .noRecentMarkdownFiles: "暂无最近 Markdown 文件",
             .targetMarkdownFile: "目标 Markdown 文件",
             .timeZone: "时区",
             .writeTemplate: "写入模板",
@@ -286,7 +292,7 @@ public enum L10n {
             .invalidObsidianPathRelative: "请使用 Markdown 文件的绝对路径。",
             .invalidObsidianPathNotMarkdown: "Obsidian 目标文件必须是 .md 文件。",
             .aboutName: "言顺",
-            .aboutVersion: "版本 1.2.1",
+            .aboutVersion: "版本 1.2.2",
             .aboutReleases: "Releases: https://github.com/ZhiPengH/sayflow-release/releases",
             .aboutShaNote: "每次 DMG 构建脚本都会打印 SHA-256 校验值。",
             .systemTimeZone: "跟随系统",

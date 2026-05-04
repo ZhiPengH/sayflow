@@ -16,6 +16,7 @@ enum AppSettingsTests {
         try expectEqual(settings.prompts, .defaultGrammarCorrection)
         try expectEqual(settings.obsidian.writeTemplate, .defaultObsidian)
         try expectNil(settings.obsidian.targetMarkdownPath)
+        try expectEqual(settings.obsidian.recentMarkdownPaths, [])
     }
 
     static func settingsStoreCreatesAndReloadsDefaults() throws {
@@ -29,6 +30,7 @@ enum AppSettingsTests {
         var changed = loaded
         changed.display.positionStrategy = .bottomLeft
         changed.obsidian.targetMarkdownPath = "/tmp/SayFlow-Inbox.md"
+        changed.obsidian.recentMarkdownPaths = ["/tmp/SayFlow-Inbox.md"]
         try store.save(changed)
 
         try expectEqual(try store.load(), changed)
@@ -98,6 +100,7 @@ enum AppSettingsTests {
         let loaded = try store.load()
 
         try expectEqual(loaded.display.theme, .light)
+        try expectEqual(loaded.obsidian.recentMarkdownPaths, [])
     }
 
     static func settingsStoreMigratesOldDefaultHotkeyToControlCommandS() throws {

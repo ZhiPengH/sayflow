@@ -5,7 +5,7 @@ import SayFlowCore
 import ServiceManagement
 #endif
 
-final class SettingsWindowController: NSWindowController, NSTextViewDelegate, NSTabViewDelegate {
+final class SettingsWindowController: NSWindowController, NSTextViewDelegate, NSTabViewDelegate, NSComboBoxDelegate {
     private var settings: AppSettings
     private let settingsStore: AppSettingsStore
     private let providerSecrets: LocalEnvironmentSecretStore
@@ -24,7 +24,7 @@ final class SettingsWindowController: NSWindowController, NSTextViewDelegate, NS
     private let promptTabView = NSTabView()
     private var systemPromptEditors: [String: NSTextView] = [:]
     private let positionPopup = NSPopUpButton()
-    private let obsidianPathField = NSTextField()
+    private let obsidianPathField = NSComboBox()
     private let obsidianTemplateView = NSTextView()
     private let hotKeyField = NSTextField()
     private let launchAtLoginButton = NSButton(checkboxWithTitle: L10n.tr(.launchAtLogin), target: nil, action: nil)
@@ -172,6 +172,12 @@ final class SettingsWindowController: NSWindowController, NSTextViewDelegate, NS
     private func obsidianView() -> NSView {
         let stack = formStack()
         let choose = NSButton(title: L10n.tr(.chooseMarkdown), target: self, action: #selector(chooseObsidianFile))
+        obsidianPathField.isEditable = true
+        obsidianPathField.completes = true
+        obsidianPathField.numberOfVisibleItems = ObsidianRecentMarkdownFiles.limit
+        obsidianPathField.delegate = self
+        obsidianPathField.target = self
+        obsidianPathField.action = #selector(obsidianPathFieldCommitted)
         timeZonePopup.addItems(withTitles: [L10n.tr(.systemTimeZone), TimeZone.current.identifier, "Asia/Shanghai", "UTC", "America/Los_Angeles", "Europe/London"])
         configureEditor(obsidianTemplateView, height: 260)
         let save = NSButton(title: L10n.tr(.saveObsidianSettings), target: self, action: #selector(saveObsidian))
@@ -207,6 +213,7 @@ final class SettingsWindowController: NSWindowController, NSTextViewDelegate, NS
         updatePromptValidationState()
         select(positionPopup, representedValue: settings.display.positionStrategy.rawValue)
         obsidianPathField.stringValue = settings.obsidian.targetMarkdownPath ?? ""
+        reloadObsidianPathHistory()
         timeZonePopup.selectItem(withTitle: settings.obsidian.timeZoneIdentifier ?? L10n.tr(.systemTimeZone))
         obsidianTemplateView.string = settings.obsidian.writeTemplate.markdown
     }
@@ -471,13 +478,30 @@ final class SettingsWindowController: NSWindowController, NSTextViewDelegate, NS
     }
 
     @objc private func chooseObsidianFile() {
-        let panel = NSSavePanel()
+        let panel = NSOpenPanel()
         panel.allowedFileTypes = ["md"]
-        panel.nameFieldStringValue = "SayFlow-Inbox.md"
+        panel.canChooseFiles = true
+        panel.canChooseDirectories = false
+        panel.allowsMultipleSelection = false
+        let currentPath = obsidianPathField.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !currentPath.isEmpty {
+            panel.directoryURL = URL(fileURLWithPath: currentPath).deletingLastPathComponent()
+        }
         if panel.runModal() == .OK, let url = panel.url {
             obsidianPathField.stringValue = url.path
             saveObsidian()
         }
+    }
+
+    @objc private func obsidianPathFieldCommitted() {
+        saveObsidian()
+    }
+
+    func comboBoxSelectionDidChange(_ notification: Notification) {
+        guard notification.object as? NSComboBox === obsidianPathField else {
+            return
+        }
+        saveObsidian()
     }
 
     @objc private func saveObsidian() {
@@ -488,7 +512,12 @@ final class SettingsWindowController: NSWindowController, NSTextViewDelegate, NS
             switch ObsidianTargetPathValidator.validate(rawPath) {
             case .valid(let url):
                 settings.obsidian.targetMarkdownPath = url.path
+                settings.obsidian.recentMarkdownPaths = ObsidianRecentMarkdownFiles.adding(
+                    url.path,
+                    to: settings.obsidian.recentMarkdownPaths
+                )
                 obsidianPathField.stringValue = url.path
+                reloadObsidianPathHistory()
             case .invalid(let error):
                 showAlert(L10n.tr(.invalidObsidianPathTitle), obsidianPathMessage(for: error))
                 return
@@ -498,6 +527,11 @@ final class SettingsWindowController: NSWindowController, NSTextViewDelegate, NS
         settings.obsidian.timeZoneIdentifier = selectedTimeZone == L10n.tr(.systemTimeZone) ? nil : selectedTimeZone
         settings.obsidian.writeTemplate = ObsidianTemplate(markdown: obsidianTemplateView.string)
         persist()
+    }
+
+    private func reloadObsidianPathHistory() {
+        obsidianPathField.removeAllItems()
+        obsidianPathField.addItems(withObjectValues: settings.obsidian.recentMarkdownPaths)
     }
 
     private func obsidianPathMessage(for error: ObsidianTargetPathValidationError) -> String {

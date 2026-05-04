@@ -70,10 +70,14 @@ final class SayFlowAppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func statusIconImage() -> NSImage? {
-        guard let url = Bundle.main.url(forResource: "MenuBarIcon.pdf", withExtension: nil) else {
+        guard let url = Bundle.main.url(forResource: MenuBarIconPresentation.resourceFileName, withExtension: nil),
+              let image = NSImage(contentsOf: url) else {
             return nil
         }
-        return NSImage(contentsOf: url)
+        let sourcePointSize = Int(ceil(max(image.size.width, image.size.height)))
+        let pointSize = CGFloat(MenuBarIconPresentation.displayedPointSize(forSourcePointSize: sourcePointSize))
+        image.size = NSSize(width: pointSize, height: pointSize)
+        return image
     }
 
     private func rebuildMenu() {
@@ -83,12 +87,40 @@ final class SayFlowAppDelegate: NSObject, NSApplicationDelegate {
         menu.addItem(checkGrammarItem)
         self.checkGrammarItem = checkGrammarItem
         syncCheckGrammarMenuShortcut()
+        menu.addItem(saveFileMenuItem())
         menu.addItem(NSMenuItem.separator())
         menu.addItem(NSMenuItem(title: L10n.tr(.settingsMenu), action: #selector(openSettings), keyEquivalent: ","))
         menu.addItem(NSMenuItem.separator())
         menu.addItem(NSMenuItem(title: L10n.tr(.quitMenu), action: #selector(quit), keyEquivalent: "q"))
         menu.items.forEach { $0.target = self }
         statusItem?.menu = menu
+    }
+
+    private func saveFileMenuItem() -> NSMenuItem {
+        let item = NSMenuItem(title: L10n.tr(.saveFileMenu), action: nil, keyEquivalent: "")
+        let submenu = NSMenu()
+        let recentPaths = Array(settings.obsidian.recentMarkdownPaths.prefix(ObsidianRecentMarkdownFiles.limit))
+        if recentPaths.isEmpty {
+            let emptyItem = NSMenuItem(title: L10n.tr(.noRecentMarkdownFiles), action: nil, keyEquivalent: "")
+            emptyItem.isEnabled = false
+            submenu.addItem(emptyItem)
+        } else {
+            for path in recentPaths {
+                let recentItem = NSMenuItem(
+                    title: ObsidianRecentMarkdownFiles.displayTitle(for: path),
+                    action: #selector(selectRecentObsidianFile(_:)),
+                    keyEquivalent: ""
+                )
+                recentItem.target = self
+                recentItem.representedObject = path
+                if path == settings.obsidian.targetMarkdownPath {
+                    recentItem.state = .on
+                }
+                submenu.addItem(recentItem)
+            }
+        }
+        item.submenu = submenu
+        return item
     }
 
     private func syncCheckGrammarMenuShortcut() {
@@ -212,6 +244,24 @@ final class SayFlowAppDelegate: NSObject, NSApplicationDelegate {
         checkGrammar()
     }
 
+    @objc private func selectRecentObsidianFile(_ sender: NSMenuItem) {
+        guard let path = sender.representedObject as? String else {
+            return
+        }
+        settings.obsidian.targetMarkdownPath = path
+        settings.obsidian.recentMarkdownPaths = ObsidianRecentMarkdownFiles.adding(
+            path,
+            to: settings.obsidian.recentMarkdownPaths
+        )
+        do {
+            try settingsStore.save(settings)
+            settingsWindow?.update(settings: settings)
+            rebuildMenu()
+        } catch {
+            showAlert(L10n.tr(.failedSaveSettings), error.localizedDescription)
+        }
+    }
+
     private func checkGrammar(sampleText: String? = nil) {
         selectionHotZone.hide()
         guard networkMonitor.isOnline else {
@@ -288,6 +338,7 @@ final class SayFlowAppDelegate: NSObject, NSApplicationDelegate {
                 onSettingsChanged: { [weak self] newSettings in
                     self?.settings = newSettings
                     try? self?.promptStore.save(newSettings.prompts)
+                    self?.rebuildMenu()
                     self?.registerHotKey()
                 },
                 onTestRun: { [weak self] sample in

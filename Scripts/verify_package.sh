@@ -2,7 +2,8 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-VERSION="${VERSION:-1.2.1}"
+VERSION="${VERSION:-1.2.2}"
+ALLOW_ADHOC_SIGNATURE="${ALLOW_ADHOC_SIGNATURE:-0}"
 APP="$ROOT/dist/SayFlow.app"
 EXECUTABLE="$APP/Contents/MacOS/SayFlow"
 INFO_PLIST="$APP/Contents/Info.plist"
@@ -48,10 +49,15 @@ pass "codesign verifies"
 
 signature_details="$(codesign -dv --verbose=4 "$APP" 2>&1)"
 if grep -F 'Signature=adhoc' <<<"$signature_details" >/dev/null; then
-  echo "Release app must be signed with a stable code signing identity, not ad-hoc." >&2
-  exit 1
+  if [[ "$ALLOW_ADHOC_SIGNATURE" == "1" ]]; then
+    pass "codesign identity is ad-hoc for local verification"
+  else
+    echo "Release app must be signed with a stable code signing identity, not ad-hoc." >&2
+    exit 1
+  fi
+else
+  pass "codesign identity is stable"
 fi
-pass "codesign identity is stable"
 
 archs="$(lipo -archs "$EXECUTABLE")"
 [[ "$archs" == *"arm64"* ]]

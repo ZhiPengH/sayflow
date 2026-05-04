@@ -22,10 +22,11 @@ grep -q 'fail "SayFlow app is not running' Scripts/manual_acceptance_probe.sh
 ! grep -q 'https://api.mimo.mi.com/v1' Scripts/configure_debug_provider.sh
 grep -q 'APP_NAME="${APP_NAME:-SayFlow}"' Scripts/build_app.sh
 grep -q 'DIST="${DIST:-$ROOT/dist}"' Scripts/build_app.sh
-grep -q 'VERSION="${VERSION:-1.2.1}"' Scripts/build_app.sh
-grep -q 'VERSION="${VERSION:-1.2.1}"' Scripts/package_dmg.sh
-grep -q 'VERSION="${VERSION:-1.2.1}"' Scripts/verify_package.sh
-grep -q 'Version 1.2.1' Sources/SayFlowCore/Localization.swift
+grep -q 'VERSION="${VERSION:-1.2.2}"' Scripts/build_app.sh
+grep -q 'VERSION="${VERSION:-1.2.2}"' Scripts/package_dmg.sh
+grep -q 'VERSION="${VERSION:-1.2.2}"' Scripts/verify_package.sh
+grep -q 'ALLOW_ADHOC_SIGNATURE="${ALLOW_ADHOC_SIGNATURE:-0}"' Scripts/verify_package.sh
+grep -q 'Version 1.2.2' Sources/SayFlowCore/Localization.swift
 test -f assets/AppIcon.iconset/icon_512x512@2x.png
 test -f assets/SayFlow.icns
 test -f assets/MenuBarIcon.pdf
@@ -34,7 +35,8 @@ grep -q 'PREBUILT_APP_ICON="${PREBUILT_APP_ICON:-$ASSETS_DIR/$APP_ICON_FILE}"' S
 grep -q 'MENUBAR_ICON_FILE="${MENUBAR_ICON_FILE:-MenuBarIcon.pdf}"' Scripts/build_app.sh
 grep -q 'CFBundleIconFile' Scripts/build_app.sh
 grep -q 'iconutil -c icns' Scripts/build_app.sh
-grep -q 'MenuBarIcon.pdf' Sources/SayFlow/SayFlowAppDelegate.swift
+grep -q 'MenuBarIcon.pdf' Sources/SayFlowCore/MenuBarIconPresentation.swift
+grep -q 'MenuBarIconPresentation.displayedPointSize' Sources/SayFlow/SayFlowAppDelegate.swift
 grep -q 'button.image?.isTemplate = true' Sources/SayFlow/SayFlowAppDelegate.swift
 ! grep -q 'statusItem?.button?.title' Sources/SayFlow/SayFlowAppDelegate.swift
 ! grep -q 'keyEquivalent: "g"' Sources/SayFlow/SayFlowAppDelegate.swift
@@ -71,6 +73,14 @@ grep -q 'Signature=adhoc' Scripts/verify_package.sh
 grep -q 'SAYFLOW_OPENAI_API_KEY' Sources/SayFlowCore/Provider.swift
 grep -q 'provider.env' Sources/SayFlow/AppServices.swift
 grep -q 'NSComboBox' Sources/SayFlow/SettingsWindow.swift
+grep -q 'private let obsidianPathField = NSComboBox()' Sources/SayFlow/SettingsWindow.swift
+grep -q 'panel.canChooseDirectories = false' Sources/SayFlow/SettingsWindow.swift
+grep -q 'ObsidianRecentMarkdownFiles.adding' Sources/SayFlow/SettingsWindow.swift
+grep -q 'ObsidianRecentMarkdownFiles.displayTitle' Sources/SayFlow/SayFlowAppDelegate.swift
+grep -q 'saveFileMenu' Sources/SayFlow/SayFlowAppDelegate.swift
+grep -q 'chooseMarkdown: "打开"' Sources/SayFlowCore/Localization.swift
+grep -q 'saveFileMenu: "保存文件"' Sources/SayFlowCore/Localization.swift
+grep -q 'recentMarkdownPaths' Sources/SayFlowCore/AppSettings.swift
 grep -q 'ProviderModelOptions.recommendedModels' Sources/SayFlow/SettingsWindow.swift
 grep -q 'SAYFLOW_NVIDIA_API_KEY' Sources/SayFlowCore/Provider.swift
 grep -q 'https://integrate.api.nvidia.com/v1' Sources/SayFlowCore/Provider.swift

@@ -99,13 +99,46 @@ public struct DisplaySettings: Codable, Equatable {
 
 public struct ObsidianSettings: Codable, Equatable {
     public var targetMarkdownPath: String?
+    public var recentMarkdownPaths: [String]
     public var writeTemplate: ObsidianTemplate
     public var timeZoneIdentifier: String?
 
-    public init(targetMarkdownPath: String?, writeTemplate: ObsidianTemplate, timeZoneIdentifier: String?) {
+    public init(
+        targetMarkdownPath: String?,
+        recentMarkdownPaths: [String] = [],
+        writeTemplate: ObsidianTemplate,
+        timeZoneIdentifier: String?
+    ) {
         self.targetMarkdownPath = targetMarkdownPath
+        self.recentMarkdownPaths = Array(recentMarkdownPaths.prefix(ObsidianRecentMarkdownFiles.limit))
         self.writeTemplate = writeTemplate
         self.timeZoneIdentifier = timeZoneIdentifier
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case targetMarkdownPath
+        case recentMarkdownPaths
+        case writeTemplate
+        case timeZoneIdentifier
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        targetMarkdownPath = try container.decodeIfPresent(String.self, forKey: .targetMarkdownPath)
+        recentMarkdownPaths = Array(
+            (try container.decodeIfPresent([String].self, forKey: .recentMarkdownPaths) ?? [])
+                .prefix(ObsidianRecentMarkdownFiles.limit)
+        )
+        writeTemplate = try container.decode(ObsidianTemplate.self, forKey: .writeTemplate)
+        timeZoneIdentifier = try container.decodeIfPresent(String.self, forKey: .timeZoneIdentifier)
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encodeIfPresent(targetMarkdownPath, forKey: .targetMarkdownPath)
+        try container.encode(recentMarkdownPaths, forKey: .recentMarkdownPaths)
+        try container.encode(writeTemplate, forKey: .writeTemplate)
+        try container.encodeIfPresent(timeZoneIdentifier, forKey: .timeZoneIdentifier)
     }
 
     public var timeZone: TimeZone {
