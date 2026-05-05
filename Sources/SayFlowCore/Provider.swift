@@ -264,6 +264,7 @@ public struct ProviderConfiguration: Codable, Equatable, Identifiable {
     public var apiKeyPlaintextForTesting: String?
     public var baseURL: String
     public var model: String
+    public var modelHistory: [String]
     public var temperature: Double
     public var isActive: Bool
 
@@ -275,6 +276,7 @@ public struct ProviderConfiguration: Codable, Equatable, Identifiable {
         apiKeyPlaintextForTesting: String? = nil,
         baseURL: String,
         model: String,
+        modelHistory: [String] = [],
         temperature: Double,
         isActive: Bool
     ) {
@@ -285,6 +287,7 @@ public struct ProviderConfiguration: Codable, Equatable, Identifiable {
         self.apiKeyPlaintextForTesting = apiKeyPlaintextForTesting
         self.baseURL = baseURL
         self.model = model
+        self.modelHistory = ProviderModelHistory.normalized(modelHistory)
         self.temperature = temperature
         self.isActive = isActive
     }
@@ -311,6 +314,7 @@ public struct ProviderConfiguration: Codable, Equatable, Identifiable {
         case apiKeyReference
         case baseURL
         case model
+        case modelHistory
         case temperature
         case isActive
     }
@@ -325,6 +329,7 @@ public struct ProviderConfiguration: Codable, Equatable, Identifiable {
         apiKeyPlaintextForTesting = nil
         baseURL = try container.decode(String.self, forKey: .baseURL)
         model = try container.decode(String.self, forKey: .model)
+        modelHistory = ProviderModelHistory.normalized(try container.decodeIfPresent([String].self, forKey: .modelHistory) ?? [])
         temperature = try container.decode(Double.self, forKey: .temperature)
         isActive = try container.decode(Bool.self, forKey: .isActive)
     }
@@ -337,8 +342,41 @@ public struct ProviderConfiguration: Codable, Equatable, Identifiable {
         try container.encode(apiKeyReference, forKey: .apiKeyReference)
         try container.encode(baseURL, forKey: .baseURL)
         try container.encode(model, forKey: .model)
+        try container.encode(modelHistory, forKey: .modelHistory)
         try container.encode(temperature, forKey: .temperature)
         try container.encode(isActive, forKey: .isActive)
+    }
+}
+
+public enum ProviderModelHistory {
+    public static let limit = 10
+
+    public static func normalized(_ models: [String]) -> [String] {
+        var result: [String] = []
+        for model in models {
+            let trimmed = model.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !trimmed.isEmpty, !result.contains(trimmed) else {
+                continue
+            }
+            result.append(trimmed)
+            if result.count == limit {
+                break
+            }
+        }
+        return result
+    }
+
+    public static func record(_ model: String, in provider: inout ProviderConfiguration) {
+        let trimmed = model.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else {
+            return
+        }
+        provider.modelHistory = normalized([trimmed] + provider.modelHistory.filter { $0 != trimmed })
+    }
+
+    public static func delete(_ model: String, from provider: inout ProviderConfiguration) {
+        let trimmed = model.trimmingCharacters(in: .whitespacesAndNewlines)
+        provider.modelHistory = provider.modelHistory.filter { $0 != trimmed }
     }
 }
 

@@ -6,6 +6,7 @@ struct SayFlowCoreTestRunner {
         let tests: [TestCase] = [
             TestCase(name: "Provider defaults", run: ProviderTests.defaultCatalogContainsRequiredProvidersWithExpectedDefaults),
             TestCase(name: "Provider model options", run: ProviderTests.providerExposesRecommendedModelOptions),
+            TestCase(name: "Provider model history", run: ProviderTests.providerModelHistoryKeepsRecentUniqueModelsAndDeletesMistakes),
             TestCase(name: "Provider secret references", run: ProviderTests.providerDefaultsUseLocalEnvironmentSecretReferences),
             TestCase(name: "Local env secret file updates", run: ProviderTests.localEnvironmentFileUpdatesSecretsWithoutDuplicatingKeys),
             TestCase(name: "Legacy secret references migrate", run: ProviderTests.localEnvironmentSecretReferencesMigrateLegacyKeychainReferences),
@@ -74,6 +75,7 @@ struct SayFlowCoreTestRunner {
             TestCase(name: "Settings store persistence", run: AppSettingsTests.settingsStoreCreatesAndReloadsDefaults),
             TestCase(name: "No plaintext API keys in settings", run: AppSettingsTests.settingsStoreNeverSerializesPlaintextAPIKeys),
             TestCase(name: "No prompt templates in settings", run: AppSettingsTests.settingsStoreDoesNotSerializePromptTemplates),
+            TestCase(name: "Provider model history in settings", run: AppSettingsTests.settingsStorePreservesProviderModelHistoryPerProvider),
             TestCase(name: "Legacy settings with prompts load", run: AppSettingsTests.settingsStoreCanReadLegacySettingsThatContainPrompts),
             TestCase(name: "Legacy display themes migrate to light", run: AppSettingsTests.settingsStoreMigratesLegacyDisplayThemesToLight),
             TestCase(name: "Legacy default hotkey migrates", run: AppSettingsTests.settingsStoreMigratesOldDefaultHotkeyToControlCommandS),

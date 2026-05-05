@@ -64,6 +64,28 @@ enum AppSettingsTests {
         try expectEqual(try store.load().prompts, .defaultGrammarCorrection)
     }
 
+    static func settingsStorePreservesProviderModelHistoryPerProvider() throws {
+        let directory = try TemporaryDirectory()
+        let store = AppSettingsStore(applicationSupportDirectory: directory.url)
+        var settings = AppSettings.defaults()
+        let customIndex = try unwrap(settings.providers.firstIndex(where: { $0.kind == .custom }))
+        let openAIIndex = try unwrap(settings.providers.firstIndex(where: { $0.kind == .openAI }))
+        settings.providers[customIndex].modelHistory = ["gemini-3.1-flash-lite-preview"]
+        settings.providers[openAIIndex].modelHistory = ["gpt-4.1-mini"]
+
+        try store.save(settings)
+        let loaded = try store.load()
+
+        try expectEqual(
+            loaded.providers.first(where: { $0.kind == .custom })?.modelHistory,
+            ["gemini-3.1-flash-lite-preview"]
+        )
+        try expectEqual(
+            loaded.providers.first(where: { $0.kind == .openAI })?.modelHistory,
+            ["gpt-4.1-mini"]
+        )
+    }
+
     static func settingsStoreCanReadLegacySettingsThatContainPrompts() throws {
         let directory = try TemporaryDirectory()
         let store = AppSettingsStore(applicationSupportDirectory: directory.url)

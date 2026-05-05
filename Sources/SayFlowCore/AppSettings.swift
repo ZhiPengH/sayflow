@@ -241,6 +241,7 @@ public struct AppSettings: Codable, Equatable {
                 existingModel: existing.model,
                 currentDefaultModel: defaultProvider.model
             )
+            merged.modelHistory = ProviderModelHistory.normalized(existing.modelHistory)
             merged.temperature = existing.temperature
             merged.isActive = existing.isActive
             return merged

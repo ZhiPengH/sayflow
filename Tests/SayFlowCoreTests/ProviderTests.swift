@@ -48,6 +48,51 @@ enum ProviderTests {
         try expectEqual(ProviderModelOptions.recommendedModels(for: .custom), [])
     }
 
+    static func providerModelHistoryKeepsRecentUniqueModelsAndDeletesMistakes() throws {
+        var provider = ProviderConfiguration(
+            id: "custom",
+            kind: .custom,
+            displayName: "Custom",
+            apiKeyReference: "env://SAYFLOW_CUSTOM_API_KEY",
+            baseURL: "https://api.example.com/v1",
+            model: "initial-model",
+            modelHistory: ["old-model", "initial-model"],
+            temperature: 0.2,
+            isActive: true
+        )
+
+        ProviderModelHistory.record(" gemini-3.1-flash-lite-preview ", in: &provider)
+        ProviderModelHistory.record("old-model", in: &provider)
+        ProviderModelHistory.record("", in: &provider)
+        ProviderModelHistory.record("model-1", in: &provider)
+        ProviderModelHistory.record("model-2", in: &provider)
+        ProviderModelHistory.record("model-3", in: &provider)
+        ProviderModelHistory.record("model-4", in: &provider)
+        ProviderModelHistory.record("model-5", in: &provider)
+        ProviderModelHistory.record("model-6", in: &provider)
+        ProviderModelHistory.record("model-7", in: &provider)
+        ProviderModelHistory.record("model-8", in: &provider)
+        ProviderModelHistory.record("model-9", in: &provider)
+
+        try expectEqual(provider.modelHistory, [
+            "model-9",
+            "model-8",
+            "model-7",
+            "model-6",
+            "model-5",
+            "model-4",
+            "model-3",
+            "model-2",
+            "model-1",
+            "old-model"
+        ])
+
+        ProviderModelHistory.delete("old-model", from: &provider)
+
+        try expectEqual(provider.modelHistory.contains("old-model"), false)
+        try expectEqual(provider.model, "initial-model")
+    }
+
     static func providerDefaultsUseLocalEnvironmentSecretReferences() throws {
         let providers = ProviderConfiguration.defaults()
 

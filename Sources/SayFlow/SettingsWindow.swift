@@ -16,7 +16,9 @@ final class SettingsWindowController: NSWindowController, NSTextViewDelegate, NS
     private let providerPopup = NSPopUpButton()
     private let apiKeyField = NSSecureTextField()
     private let baseURLField = NSTextField()
-    private let modelField = NSComboBox()
+    private let modelField = NSTextField()
+    private let modelHistoryButton = NSButton()
+    private var modelHistoryPopover: NSPopover?
     private let temperatureField = NSTextField()
     private let providerTestButton = NSButton(title: L10n.tr(.testProvider), target: nil, action: nil)
     private let providerTestStatusLabel = NSTextField(labelWithString: "")
@@ -122,7 +124,8 @@ final class SettingsWindowController: NSWindowController, NSTextViewDelegate, NS
         stack.addArrangedSubview(labeled(L10n.tr(.activeProvider), field: providerPopup))
         stack.addArrangedSubview(labeled(L10n.tr(.apiKey), field: apiKeyField))
         stack.addArrangedSubview(labeled(L10n.tr(.baseURLEndpoint), field: baseURLField))
-        stack.addArrangedSubview(labeled(L10n.tr(.model), field: modelField))
+        configureModelHistoryButton()
+        stack.addArrangedSubview(labeled(L10n.tr(.model), field: modelField, trailing: modelHistoryButton))
         stack.addArrangedSubview(labeled(L10n.tr(.temperature), field: temperatureField))
         stack.addArrangedSubview(providerTestStatusLabel)
         stack.addArrangedSubview(buttons)
@@ -226,17 +229,31 @@ final class SettingsWindowController: NSWindowController, NSTextViewDelegate, NS
         let provider = settings.providers[index]
         apiKeyField.stringValue = providerSecrets.read(reference: provider.apiKeyReference) ?? ""
         baseURLField.stringValue = provider.baseURL
-        reloadModelOptions(for: provider)
         modelField.stringValue = provider.model
+        updateModelHistoryButton(for: provider)
         temperatureField.stringValue = String(provider.temperature)
     }
 
-    private func reloadModelOptions(for provider: ProviderConfiguration) {
-        modelField.removeAllItems()
-        let recommendedModels = ProviderModelOptions.recommendedModels(for: provider.kind)
-        modelField.addItems(withObjectValues: recommendedModels)
-        modelField.completes = !recommendedModels.isEmpty
-        modelField.isEditable = true
+    private func configureModelHistoryButton() {
+        modelHistoryButton.title = "v"
+        modelHistoryButton.bezelStyle = .rounded
+        modelHistoryButton.target = self
+        modelHistoryButton.action = #selector(showModelHistoryPopover)
+        modelHistoryButton.widthAnchor.constraint(equalToConstant: 36).isActive = true
+    }
+
+    private func updateModelHistoryButton(for provider: ProviderConfiguration) {
+        modelHistoryButton.isEnabled = !modelHistoryEntries(for: provider).isEmpty
+    }
+
+    private func modelHistoryEntries(for provider: ProviderConfiguration) -> [ModelHistoryEntry] {
+        let history = ProviderModelHistory.normalized(provider.modelHistory).map {
+            ModelHistoryEntry(model: $0, canDelete: true)
+        }
+        let recommended = ProviderModelOptions.recommendedModels(for: provider.kind)
+            .filter { model in !history.contains(where: { $0.model == model }) }
+            .map { ModelHistoryEntry(model: $0, canDelete: false) }
+        return history + recommended
     }
 
     private func configurePromptTabView() {
@@ -325,10 +342,12 @@ final class SettingsWindowController: NSWindowController, NSTextViewDelegate, NS
             showAlert(L10n.tr(.invalidProviderTitle), providerSettingsMessage(for: error))
             return
         }
+        ProviderModelHistory.record(provider.model, in: &provider)
         settings.providers[index] = provider
         do {
             try providerSecrets.save(apiKeyField.stringValue, reference: settings.providers[index].apiKeyReference)
             persist()
+            updateModelHistoryButton(for: settings.providers[index])
         } catch {
             showAlert(L10n.tr(.failedSaveAPIKey), error.localizedDescription)
         }
@@ -357,6 +376,7 @@ final class SettingsWindowController: NSWindowController, NSTextViewDelegate, NS
             )
             return
         }
+        recordModelHistory(provider.model, forProviderAt: index)
         do {
             let endpoint = try EndpointNormalizer.openAIEndpoint(from: provider.baseURL)
             let request = try ProviderConnectionTestRequestFactory.makeRequest(
@@ -397,9 +417,67 @@ final class SettingsWindowController: NSWindowController, NSTextViewDelegate, NS
         }
         var provider = settings.providers[index]
         provider.baseURL = baseURLField.stringValue
-        provider.model = modelField.stringValue
+        provider.model = modelField.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
         provider.temperature = Double(temperatureField.stringValue) ?? 0.2
         return provider
+    }
+
+    @objc private func showModelHistoryPopover() {
+        let index = providerPopup.indexOfSelectedItem
+        guard settings.providers.indices.contains(index) else {
+            return
+        }
+        let provider = settings.providers[index]
+        let entries = modelHistoryEntries(for: provider)
+        guard !entries.isEmpty else {
+            return
+        }
+        modelHistoryPopover?.close()
+        let controller = ModelHistoryPopoverController(
+            entries: entries,
+            onSelect: { [weak self] model in
+                self?.modelField.stringValue = model
+                self?.modelHistoryPopover?.close()
+            },
+            onDelete: { [weak self] model in
+                self?.deleteModelHistory(model)
+            }
+        )
+        let popover = NSPopover()
+        popover.behavior = .transient
+        popover.contentViewController = controller
+        modelHistoryPopover = popover
+        popover.show(relativeTo: modelField.bounds, of: modelField, preferredEdge: .maxY)
+    }
+
+    private func recordModelHistory(_ model: String, forProviderAt index: Int) {
+        guard settings.providers.indices.contains(index) else {
+            return
+        }
+        ProviderModelHistory.record(model, in: &settings.providers[index])
+        do {
+            try settingsStore.save(settings)
+            onSettingsChanged(settings)
+            updateModelHistoryButton(for: settings.providers[index])
+        } catch {
+            showAlert(L10n.tr(.failedSaveSettings), error.localizedDescription)
+        }
+    }
+
+    private func deleteModelHistory(_ model: String) {
+        let index = providerPopup.indexOfSelectedItem
+        guard settings.providers.indices.contains(index) else {
+            return
+        }
+        ProviderModelHistory.delete(model, from: &settings.providers[index])
+        do {
+            try settingsStore.save(settings)
+            onSettingsChanged(settings)
+            updateModelHistoryButton(for: settings.providers[index])
+            modelHistoryPopover?.close()
+        } catch {
+            showAlert(L10n.tr(.failedSaveSettings), error.localizedDescription)
+        }
     }
 
     private func showProviderTestStatus(_ message: String, color: NSColor) {
@@ -716,5 +794,114 @@ final class SettingsWindowController: NSWindowController, NSTextViewDelegate, NS
         }
         #endif
         return false
+    }
+}
+
+private struct ModelHistoryEntry: Equatable {
+    var model: String
+    var canDelete: Bool
+}
+
+private final class ModelHistoryPopoverController: NSViewController {
+    private let entries: [ModelHistoryEntry]
+    private let onSelect: (String) -> Void
+    private let onDelete: (String) -> Void
+
+    init(
+        entries: [ModelHistoryEntry],
+        onSelect: @escaping (String) -> Void,
+        onDelete: @escaping (String) -> Void
+    ) {
+        self.entries = entries
+        self.onSelect = onSelect
+        self.onDelete = onDelete
+        super.init(nibName: nil, bundle: nil)
+        preferredContentSize = NSSize(width: 420, height: CGFloat(max(1, entries.count)) * 34 + 16)
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    override func loadView() {
+        let container = NSView()
+        let stack = NSStackView()
+        stack.orientation = .vertical
+        stack.alignment = .leading
+        stack.spacing = 4
+        stack.edgeInsets = NSEdgeInsets(top: 8, left: 8, bottom: 8, right: 8)
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        container.addSubview(stack)
+
+        for entry in entries {
+            stack.addArrangedSubview(row(for: entry))
+        }
+
+        NSLayoutConstraint.activate([
+            stack.leadingAnchor.constraint(equalTo: container.leadingAnchor),
+            stack.trailingAnchor.constraint(equalTo: container.trailingAnchor),
+            stack.topAnchor.constraint(equalTo: container.topAnchor),
+            stack.bottomAnchor.constraint(equalTo: container.bottomAnchor)
+        ])
+        view = container
+    }
+
+    private func row(for entry: ModelHistoryEntry) -> NSView {
+        let row = NSStackView()
+        row.orientation = .horizontal
+        row.alignment = .centerY
+        row.spacing = 6
+        row.widthAnchor.constraint(equalToConstant: 404).isActive = true
+        row.heightAnchor.constraint(equalToConstant: 30).isActive = true
+
+        let selectButton = ModelHistoryActionButton(title: entry.model, model: entry.model) { [weak self] model in
+            self?.onSelect(model)
+        }
+        selectButton.alignment = .left
+        selectButton.isBordered = false
+        selectButton.lineBreakMode = .byTruncatingMiddle
+        selectButton.widthAnchor.constraint(equalToConstant: 360).isActive = true
+        row.addArrangedSubview(selectButton)
+
+        if entry.canDelete {
+            let deleteButton = ModelHistoryActionButton(title: "", model: entry.model) { [weak self] model in
+                self?.onDelete(model)
+            }
+            deleteButton.isBordered = false
+            deleteButton.toolTip = "Delete"
+            deleteButton.title = "x"
+            deleteButton.widthAnchor.constraint(equalToConstant: 24).isActive = true
+            row.addArrangedSubview(deleteButton)
+        } else {
+            let spacer = NSView()
+            spacer.widthAnchor.constraint(equalToConstant: 24).isActive = true
+            row.addArrangedSubview(spacer)
+        }
+
+        return row
+    }
+}
+
+private final class ModelHistoryActionButton: NSButton {
+    private let model: String
+    private let handler: (String) -> Void
+
+    init(title: String, model: String, handler: @escaping (String) -> Void) {
+        self.model = model
+        self.handler = handler
+        super.init(frame: .zero)
+        self.title = title
+        target = self
+        action = #selector(performAction)
+        bezelStyle = .regularSquare
+        setButtonType(.momentaryPushIn)
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    @objc private func performAction() {
+        handler(model)
     }
 }
