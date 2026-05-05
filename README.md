@@ -48,7 +48,7 @@ The package manifest intentionally uses the older SwiftPM manifest format becaus
 - Settings: `~/Library/Application Support/SayFlow/settings.json`
 - Prompt template: `~/Library/Application Support/SayFlow/prompts.json`
 - API keys: `~/Library/Application Support/SayFlow/provider.env` or process environment variables, never in JSON settings
-- Obsidian writes: append-only to the Markdown file selected in Settings
+- Obsidian writes: prepend new entries to the Markdown file selected in Settings
 
 ## Implemented Scope
 
@@ -64,7 +64,7 @@ The package manifest intentionally uses the older SwiftPM manifest format becaus
 - Editable System prompt slots PromptA-PromptE with fixed internal `{{text}}`, reset, import/export, and test run
 - Floating result panel with Corrected, diff highlighting/popover, Chinese gloss, Good to know, copy, Accept, and Obsidian write actions
 - Popup position strategies: follow mouse, bottom-left, center, last closed position
-- Append-only Obsidian Markdown writer with missing-file creation
+- Front-loaded Obsidian Markdown writer with missing-file creation
 - Chinese and English UI localization following the system language
 - Optional automatic GitHub Releases update check
 - DMG packaging script with SHA-256 output

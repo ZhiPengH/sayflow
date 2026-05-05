@@ -1,6 +1,6 @@
-# SayFlow v1.2.2 Acceptance Checklist
+# SayFlow v1.2.3 Acceptance Checklist
 
-Use this checklist after building `dist/SayFlow.app` or installing `dist/SayFlow-1.2.2.dmg`.
+Use this checklist after building `dist/SayFlow.app` or installing `dist/SayFlow-1.2.3.dmg`.
 Some items require macOS Accessibility permission and must be verified by a logged-in user.
 
 ## Automated Gates
@@ -17,7 +17,7 @@ Scripts/manual_acceptance_probe.sh
 Expected evidence:
 
 - `Scripts/test.sh` reports all SayFlowCore tests passed and `swift build` completes.
-- `Scripts/package_dmg.sh` creates `dist/SayFlow.app`, `dist/SayFlow-1.2.2.dmg`, and `dist/SayFlow-1.2.2.dmg.sha256`.
+- `Scripts/package_dmg.sh` creates `dist/SayFlow.app`, `dist/SayFlow-1.2.3.dmg`, and `dist/SayFlow-1.2.3.dmg.sha256`.
 - `Scripts/verify_package.sh` checks codesign, `x86_64` + `arm64`,
   `LSUIElement=true`, `LSMinimumSystemVersion=13.0`, SHA-256, DMG size below
   30 MB, and the mounted DMG contents using a fixed temporary mount point.
@@ -132,7 +132,7 @@ Acceptance:
 - SayFlow does not steal permanent focus from the original app.
 - If the target app refuses Accessibility replacement, SayFlow copies the corrected text to the clipboard and shows a clear warning.
 
-## Obsidian Append
+## Obsidian Write
 
 1. In Settings -> Obsidian, choose a new Markdown file path.
 2. Trigger SayFlow and click the write icon.
@@ -142,7 +142,7 @@ Acceptance:
 
 - Missing parent directories and the Markdown file are created.
 - The file starts with `# SayFlow Inbox` when newly created.
-- The new entry is appended rather than overwriting existing content.
+- The new entry is inserted before older entries rather than overwriting existing content.
 - The entry includes corrected text, changes with explanations, Chinese translation, and Good to know.
 - The original incorrect sentence is not saved.
 - A no-permission path shows a clear error and does not lose the correction.

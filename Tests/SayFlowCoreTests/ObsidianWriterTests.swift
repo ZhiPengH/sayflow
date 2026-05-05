@@ -1,7 +1,7 @@
 import Foundation
 
 enum ObsidianWriterTests {
-    static func createsMissingMarkdownFileWithHeadingAndAppendsRenderedEntryWithoutOrigin() throws {
+    static func createsMissingMarkdownFileWithHeadingAndPrependsRenderedEntryWithoutOrigin() throws {
         let directory = try TemporaryDirectory()
         let target = directory.url
             .appendingPathComponent("Vault")
@@ -34,10 +34,10 @@ enum ObsidianWriterTests {
         try expect(!contents.contains("Market are unpredictable"))
     }
 
-    static func appendModeDoesNotOverwriteExistingContent() throws {
+    static func prependModeKeepsLatestEntryBeforeExistingContent() throws {
         let directory = try TemporaryDirectory()
         let target = directory.url.appendingPathComponent("SayFlow-Inbox.md")
-        try "Existing note\n".write(to: target, atomically: true, encoding: .utf8)
+        try "# SayFlow Inbox\n\nExisting note\n".write(to: target, atomically: true, encoding: .utf8)
 
         let writer = ObsidianWriter(fileURL: target)
         try writer.append(
@@ -49,8 +49,10 @@ enum ObsidianWriterTests {
         )
 
         let contents = try String(contentsOf: target, encoding: .utf8)
-        try expect(contents.hasPrefix("Existing note\n"))
-        try expect(contents.contains("She has a plan."))
+        try expect(contents.hasPrefix("# SayFlow Inbox\n\n"))
+        let newEntryRange = try unwrap(contents.range(of: "She has a plan."))
+        let existingRange = try unwrap(contents.range(of: "Existing note"))
+        try expect(newEntryRange.lowerBound < existingRange.lowerBound)
     }
 
     static func targetPathValidationRequiresAbsoluteMarkdownPath() throws {

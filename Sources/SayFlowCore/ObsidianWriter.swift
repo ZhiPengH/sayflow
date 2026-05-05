@@ -117,14 +117,11 @@ public final class ObsidianWriter {
 
         let parent = fileURL.deletingLastPathComponent()
         try FileManager.default.createDirectory(at: parent, withIntermediateDirectories: true)
-        if !FileManager.default.fileExists(atPath: fileURL.path) {
-            try "# SayFlow Inbox\n".write(to: fileURL, atomically: true, encoding: .utf8)
-        }
-
-        guard let data = rendered.data(using: .utf8) else {
-            return
-        }
-        try appendData(data)
+        let existing = FileManager.default.fileExists(atPath: fileURL.path)
+            ? try String(contentsOf: fileURL, encoding: .utf8)
+            : "# SayFlow Inbox\n"
+        let updated = Self.markdownByPrepending(rendered, to: existing)
+        try updated.write(to: fileURL, atomically: true, encoding: .utf8)
     }
 
     public func render(
@@ -157,29 +154,21 @@ public final class ObsidianWriter {
         return formatter
     }
 
-    private func appendData(_ data: Data) throws {
-        let descriptor = open(fileURL.path, O_WRONLY | O_APPEND | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)
-        guard descriptor >= 0 else {
-            throw POSIXError(POSIXErrorCode(rawValue: errno) ?? .EIO)
-        }
-        defer {
-            close(descriptor)
-        }
+    private static func markdownByPrepending(_ entry: String, to existing: String) -> String {
+        let insertionIndex = bodyStartIndex(in: existing)
+        let prefix = String(existing[..<insertionIndex])
+        let suffix = String(existing[insertionIndex...])
+        let separator = entry.hasSuffix("\n") || suffix.isEmpty ? "" : "\n"
+        return prefix + entry + separator + suffix
+    }
 
-        try data.withUnsafeBytes { rawBuffer in
-            guard let baseAddress = rawBuffer.baseAddress else {
-                return
-            }
-            var remaining = rawBuffer.count
-            var pointer = baseAddress
-            while remaining > 0 {
-                let written = write(descriptor, pointer, remaining)
-                if written < 0 {
-                    throw POSIXError(POSIXErrorCode(rawValue: errno) ?? .EIO)
-                }
-                remaining -= written
-                pointer = pointer.advanced(by: written)
-            }
+    private static func bodyStartIndex(in markdown: String) -> String.Index {
+        guard markdown.hasPrefix("# ") else {
+            return markdown.startIndex
         }
+        guard let lineEnd = markdown.firstIndex(of: "\n") else {
+            return markdown.endIndex
+        }
+        return markdown.index(after: lineEnd)
     }
 }

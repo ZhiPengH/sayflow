@@ -9,7 +9,7 @@ This audit separates implementation evidence from manual gates. A green script i
 Last verified commands:
 
 - `Scripts/test.sh`: passes 109 SayFlowCore tests, validates packaging/probe script invariants, validates the local debug-provider bootstrap, and runs `swift build`.
-- `Scripts/verify_package.sh`: verifies app bundle, signing, `x86_64 arm64`, `LSUIElement=true`, `LSMinimumSystemVersion=13.0`, DMG SHA-256, DMG size below 30 MB, and DMG contents. Latest ad-hoc v1.2.2 DMG SHA-256: `166ce31e57b739bffc7dcfdb0e8a4ecf484265638628246537d1ab39e0e84df0`; release verification still requires a stable code-signing identity.
+- `Scripts/verify_package.sh`: verifies app bundle, signing, `x86_64 arm64`, `LSUIElement=true`, `LSMinimumSystemVersion=13.0`, DMG SHA-256, DMG size below 30 MB, and DMG contents. Latest ad-hoc v1.2.3 DMG SHA-256: `b8295a68bfa9ec2ff1e0494a918862353e8917b18344803632e8c7dc4e10eacf`; release verification still requires a stable code-signing identity.
 - `Scripts/manual_acceptance_probe.sh`: verifies bundle, expected running app path, signing, redacted provider settings, local environment reference, package presence, and whether the running SayFlow app is still showing Accessibility onboarding/runtime permission alerts.
 - `Scripts/ax_selected_text_probe.sh`: verifies selected-text capture in target apps through Accessibility, including Safari/WebKit text-marker fallback.
 
@@ -48,7 +48,7 @@ Last verified commands:
 | Copy corrected text | `ResultPanel.onCopy`, live clipboard smoke evidence | Smoke verified |
 | Accept replacement success in native app | `AccessibilityTextService.replaceSelection`, `AcceptReplacementFallbackTests` | Implementation verified; physical click replacement still manual |
 | Accept fallback copies corrected text and warns | `AcceptReplacementFallbackTests`; live fallback smoke evidence | Verified |
-| Obsidian append, create missing file/parents, H1 heading, no origin | `ObsidianWriter`, `ObsidianWriterTests`; live write smoke evidence | Automated and smoke verified |
+| Obsidian prepend, create missing file/parents, H1 heading, no origin | `ObsidianWriter`, `ObsidianWriterTests`; live write smoke evidence | Automated and smoke verified |
 | Obsidian invalid path validation and write-failure messages | `ObsidianTargetPathValidator`, `ObsidianWriteErrorMessage`, `ObsidianWriterTests`; `ResultPanel` uses the friendly message | Automated verified; no-permission UI scenario still manual |
 | Popup follow mouse, bottom-left, center, last-closed strategies | `PopupPositioner`, `PopupPositionerTests`, Display settings UI | Automated verified; full UI pass still manual |
 | Same selected text refreshes in place | `PopupPositionerTests.sameSelectedTextRefreshKeepsPreviousFrame` | Automated verified |

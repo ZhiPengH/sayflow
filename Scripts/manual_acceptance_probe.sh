@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-VERSION="${VERSION:-1.2.2}"
+VERSION="${VERSION:-1.2.3}"
 APP="${1:-$ROOT/dist/SayFlow.app}"
 SUPPORT_DIR="$HOME/Library/Application Support/SayFlow"
 SETTINGS="$SUPPORT_DIR/settings.json"

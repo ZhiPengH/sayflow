@@ -73,6 +73,24 @@ enum SelectionHotZonePolicyTests {
         )
     }
 
+    static func showsForChineseIntroFollowedByEnglishSentence() throws {
+        let selection = """
+        这是一段纯中文说明。
+
+        The market are unpredictable in short-term.
+        """
+
+        try expectEqual(
+            SelectionHotZonePolicy.decision(
+                accessibilityTrusted: true,
+                selectedText: selection,
+                frontmostBundleIdentifier: "com.apple.TextEdit",
+                ownBundleIdentifier: "com.zhixing.sayflow"
+            ),
+            .show("这是一段纯中文说明。\n\nThe market are unpredictable in short-term.")
+        )
+    }
+
     static func hidesSelectionsThatAreUnsuitableForGrammarCorrection() throws {
         let hiddenSelections = [
             "  中文开头 should not show",

@@ -44,6 +44,9 @@ private enum SelectionHotZoneContentPolicy {
         guard text.count >= minimumTextLength else {
             return false
         }
+        if isChineseIntroFollowedByEnglishSentence(text) {
+            return true
+        }
         guard let firstScalar = firstContentScalar(in: text), !isChinese(firstScalar) else {
             return false
         }
@@ -75,6 +78,46 @@ private enum SelectionHotZoneContentPolicy {
         text.unicodeScalars.contains { scalar in
             (65...90).contains(Int(scalar.value)) || (97...122).contains(Int(scalar.value))
         }
+    }
+
+    private static func isChineseIntroFollowedByEnglishSentence(_ text: String) -> Bool {
+        let paragraphs = text
+            .components(separatedBy: .newlines)
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+        guard paragraphs.count >= 2,
+              isPureChineseParagraph(paragraphs[0]) else {
+            return false
+        }
+        return paragraphs.dropFirst().contains { paragraph in
+            guard let firstScalar = firstContentScalar(in: paragraph),
+                  !isChinese(firstScalar),
+                  containsASCIILetter(paragraph) else {
+                return false
+            }
+            return !looksLikeURL(paragraph)
+                && !looksLikeSecret(paragraph)
+                && !looksLikeEmailAddress(paragraph)
+                && !looksLikeFilePath(paragraph)
+                && !looksLikeStructuredData(paragraph)
+                && !looksLikeCodeSnippet(paragraph)
+        }
+    }
+
+    private static func isPureChineseParagraph(_ text: String) -> Bool {
+        var hasChinese = false
+        for scalar in text.unicodeScalars {
+            if isChinese(scalar) {
+                hasChinese = true
+            } else if isASCIILetter(scalar) || CharacterSet.decimalDigits.contains(scalar) {
+                return false
+            }
+        }
+        return hasChinese
+    }
+
+    private static func isASCIILetter(_ scalar: Unicode.Scalar) -> Bool {
+        (65...90).contains(Int(scalar.value)) || (97...122).contains(Int(scalar.value))
     }
 
     private static func looksLikeURL(_ text: String) -> Bool {
