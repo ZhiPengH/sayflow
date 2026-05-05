@@ -114,6 +114,7 @@ struct SayFlowCoreTestRunner {
             TestCase(name: "Selection hot zone shows English candidates", run: SelectionHotZonePolicyTests.showsForEnglishGrammarCandidatesAfterTrimming),
             TestCase(name: "Selection hot zone shows Chinese intro plus English", run: SelectionHotZonePolicyTests.showsForChineseIntroFollowedByEnglishSentence),
             TestCase(name: "Selection hot zone shows inline Chinese intro plus English", run: SelectionHotZonePolicyTests.showsForInlineChineseIntroFollowedByEnglishSentence),
+            TestCase(name: "Selection hot zone shows inline Chinese context plus English phrase", run: SelectionHotZonePolicyTests.showsForInlineChineseContextFollowedByEnglishPhrase),
             TestCase(name: "Selection hot zone hides unsuitable candidates", run: SelectionHotZonePolicyTests.hidesSelectionsThatAreUnsuitableForGrammarCorrection),
             TestCase(name: "Accessibility element validator", run: AccessibilityElementValidatorTests.acceptsAXUIElementValuesAndRejectsOtherCFTypes),
             TestCase(name: "Accept replacement success action", run: AcceptReplacementFallbackTests.successfulReplacementNeedsNoClipboardFallback),

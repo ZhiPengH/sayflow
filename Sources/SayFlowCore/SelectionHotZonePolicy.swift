@@ -106,7 +106,7 @@ private enum SelectionHotZoneContentPolicy {
         let intro = String(text.unicodeScalars[..<englishStart]).trimmingCharacters(in: .whitespacesAndNewlines)
         let candidate = String(text.unicodeScalars[englishStart...]).trimmingCharacters(in: .whitespacesAndNewlines)
         guard isPureChineseParagraph(intro),
-              endsWithSentenceTerminator(intro) else {
+              endsWithChineseEnglishBoundary(intro) else {
             return false
         }
         return isEnglishGrammarCandidateSegment(candidate)
@@ -126,12 +126,12 @@ private enum SelectionHotZoneContentPolicy {
             && !looksLikeCodeSnippet(text)
     }
 
-    private static func endsWithSentenceTerminator(_ text: String) -> Bool {
+    private static func endsWithChineseEnglishBoundary(_ text: String) -> Bool {
         let ignored = CharacterSet.whitespacesAndNewlines.union(CharacterSet(charactersIn: "\"'”’》）」）]"))
         guard let finalScalar = text.unicodeScalars.reversed().first(where: { !ignored.contains($0) }) else {
             return false
         }
-        return CharacterSet(charactersIn: "。！？!?").contains(finalScalar)
+        return CharacterSet(charactersIn: "。！？!?，,：:；;、").contains(finalScalar)
     }
 
     private static func isPureChineseParagraph(_ text: String) -> Bool {

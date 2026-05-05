@@ -105,6 +105,20 @@ enum SelectionHotZonePolicyTests {
         )
     }
 
+    static func showsForInlineChineseContextFollowedByEnglishPhrase() throws {
+        let selection = "带狗下楼洗澡，bring a dog to the 宠物店。"
+
+        try expectEqual(
+            SelectionHotZonePolicy.decision(
+                accessibilityTrusted: true,
+                selectedText: selection,
+                frontmostBundleIdentifier: "com.apple.TextEdit",
+                ownBundleIdentifier: "com.zhixing.sayflow"
+            ),
+            .show(selection)
+        )
+    }
+
     static func hidesSelectionsThatAreUnsuitableForGrammarCorrection() throws {
         let hiddenSelections = [
             "  中文开头 should not show",
