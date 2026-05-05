@@ -23,7 +23,7 @@ enum ApplicationPaths {
 
 enum CurrentApp {
     static var version: String {
-        Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.2.9"
+        Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.2.10"
     }
 }
 
@@ -87,6 +87,27 @@ final class AccessibilityTextService {
         }
         let result = AXUIElementSetAttributeValue(focused, kAXSelectedTextAttribute as CFString, text as CFTypeRef)
         return result == .success
+    }
+
+    func pasteClipboardIntoFocusedSelection() -> Bool {
+        guard let source = CGEventSource(stateID: .hidSystemState),
+              let keyDown = CGEvent(
+                keyboardEventSource: source,
+                virtualKey: CGKeyCode(kVK_ANSI_V),
+                keyDown: true
+              ),
+              let keyUp = CGEvent(
+                keyboardEventSource: source,
+                virtualKey: CGKeyCode(kVK_ANSI_V),
+                keyDown: false
+              ) else {
+            return false
+        }
+        keyDown.flags = .maskCommand
+        keyUp.flags = .maskCommand
+        keyDown.post(tap: .cghidEventTap)
+        keyUp.post(tap: .cghidEventTap)
+        return true
     }
 
     private func focusedElement() -> AXUIElement? {

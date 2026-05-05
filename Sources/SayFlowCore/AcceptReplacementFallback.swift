@@ -1,12 +1,14 @@
 import Foundation
 
 public enum AcceptReplacementAction: Equatable {
-    case showReplacedFeedback
-    case copyCorrectedToClipboardAndWarn
+    case closePanel
+    case copyCorrectedToClipboardAndClosePanelAfterDelay(TimeInterval)
 }
 
 public enum AcceptReplacementFallback {
-    public static func action(replacementSucceeded: Bool) -> AcceptReplacementAction {
-        replacementSucceeded ? .showReplacedFeedback : .copyCorrectedToClipboardAndWarn
+    public static let fallbackCloseInterval: TimeInterval = 1
+
+    public static func completionAction(replacementSucceeded: Bool) -> AcceptReplacementAction {
+        replacementSucceeded ? .closePanel : .copyCorrectedToClipboardAndClosePanelAfterDelay(fallbackCloseInterval)
     }
 }

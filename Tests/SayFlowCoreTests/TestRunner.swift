@@ -122,8 +122,11 @@ struct SayFlowCoreTestRunner {
             TestCase(name: "Selection hot zone shows inline Chinese context plus English phrase", run: SelectionHotZonePolicyTests.showsForInlineChineseContextFollowedByEnglishPhrase),
             TestCase(name: "Selection hot zone hides unsuitable candidates", run: SelectionHotZonePolicyTests.hidesSelectionsThatAreUnsuitableForGrammarCorrection),
             TestCase(name: "Accessibility element validator", run: AccessibilityElementValidatorTests.acceptsAXUIElementValuesAndRejectsOtherCFTypes),
-            TestCase(name: "Accept replacement success action", run: AcceptReplacementFallbackTests.successfulReplacementNeedsNoClipboardFallback),
-            TestCase(name: "Accept replacement failure fallback", run: AcceptReplacementFallbackTests.failedReplacementFallsBackToClipboardCopy)
+            TestCase(name: "Accept replacement success action", run: AcceptReplacementFallbackTests.successfulReplacementClosesPanel),
+            TestCase(name: "Accept replacement failure fallback", run: AcceptReplacementFallbackTests.failedReplacementFallsBackToClipboardCopy),
+            TestCase(name: "Insert replacement success action", run: InsertReplacementFallbackTests.successfulAccessibilityReplacementNeedsNoClipboardPaste),
+            TestCase(name: "Insert replacement failure fallback", run: InsertReplacementFallbackTests.failedAccessibilityReplacementFallsBackToClipboardPaste),
+            TestCase(name: "Insert replacement final failure auto close", run: InsertReplacementFallbackTests.failedInsertionClosesPanelAfterShowingFailure)
         ]
 
         var failures: [String] = []

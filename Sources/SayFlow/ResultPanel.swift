@@ -8,6 +8,7 @@ final class ResultPanelController: NSObject {
     private let positioner = PopupPositioner()
     private var outsideClickMonitor: Any?
     private var escapeMonitor: Any?
+    private var delayedCloseToken = UUID()
 
     var onCopy: ((String) -> Void)?
     var onInsert: ((String, String) -> Bool)?
@@ -37,20 +38,26 @@ final class ResultPanelController: NSObject {
             if self.onInsert?(original, corrected) ?? false {
                 self.contentView.flashInsertSuccess()
             } else {
-                self.contentView.showError(L10n.tr(.insertFailed), raw: nil, allowsRetry: false)
+                switch InsertReplacementFallback.finalFailureAction() {
+                case .showInsertedFeedback, .pasteReplacementThroughClipboard:
+                    break
+                case .showFailureAndClosePanelAfterDelay(let delay):
+                    self.contentView.showError(L10n.tr(.insertFailed), raw: nil, allowsRetry: false)
+                    self.close(after: delay)
+                }
             }
         }
         contentView.onAccept = { [weak self] text in
             guard let self else {
                 return
             }
-            let action = AcceptReplacementFallback.action(replacementSucceeded: self.onAccept?(text) ?? false)
+            let action = AcceptReplacementFallback.completionAction(replacementSucceeded: self.onAccept?(text) ?? false)
             switch action {
-            case .showReplacedFeedback:
-                self.contentView.flashAcceptSuccess()
-            case .copyCorrectedToClipboardAndWarn:
+            case .closePanel:
+                self.close()
+            case .copyCorrectedToClipboardAndClosePanelAfterDelay(let delay):
                 self.onCopy?(text)
-                self.contentView.showError(L10n.tr(.acceptCopiedFallback), raw: nil, allowsRetry: false)
+                self.close(after: delay)
             }
         }
         contentView.onRetry = { [weak self] in self?.onRetry?() }
@@ -65,6 +72,7 @@ final class ResultPanelController: NSObject {
     }
 
     func showLoading(originalText: String, settings: AppSettings) {
+        delayedCloseToken = UUID()
         contentView.apply(theme: settings.display.theme)
         contentView.showLoading(originalText: originalText)
         showPanel(originalText: originalText, settings: settings)
@@ -83,11 +91,23 @@ final class ResultPanelController: NSObject {
     }
 
     func close() {
+        delayedCloseToken = UUID()
         if panel.isVisible {
             positioner.recordClosedFrame(panel.frame)
         }
         removeEventMonitors()
         panel.close()
+    }
+
+    private func close(after delay: TimeInterval) {
+        let token = UUID()
+        delayedCloseToken = token
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
+            guard let self, self.delayedCloseToken == token else {
+                return
+            }
+            self.close()
+        }
     }
 
     private func showPanel(originalText: String, settings: AppSettings) {

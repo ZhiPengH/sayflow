@@ -8,8 +8,8 @@ This audit separates implementation evidence from manual gates. A green script i
 
 Last verified commands:
 
-- `Scripts/test.sh`: passes 120 SayFlowCore tests, validates packaging/probe script invariants, validates the local debug-provider bootstrap, and runs `swift build`.
-- `Scripts/verify_package.sh`: verifies app bundle, stable signing, `x86_64 arm64`, `LSUIElement=true`, `LSMinimumSystemVersion=13.0`, DMG SHA-256, DMG size below 30 MB, and DMG contents. Latest local-signed v1.2.9 DMG SHA-256: `97803d5a98dc302f1add56e031429d42644d43833d9bbc7d39687106745b134f`.
+- `Scripts/test.sh`: passes 123 SayFlowCore tests, validates packaging/probe script invariants, validates the local debug-provider bootstrap, and runs `swift build`.
+- `Scripts/verify_package.sh`: verifies app bundle, stable signing, `x86_64 arm64`, `LSUIElement=true`, `LSMinimumSystemVersion=13.0`, DMG SHA-256, DMG size below 30 MB, and DMG contents. Latest local-signed v1.2.10 DMG SHA-256: `db303946b96c3992ceb58ebff177cee6c80253164a05faa3e2383fd5b6855a60`.
 - `Scripts/manual_acceptance_probe.sh`: verifies bundle, expected running app path, signing, redacted provider settings, local environment reference, package presence, and whether the running SayFlow app is still showing Accessibility onboarding/runtime permission alerts.
 - `Scripts/ax_selected_text_probe.sh`: verifies selected-text capture in target apps through Accessibility, including Safari/WebKit text-marker fallback.
 
@@ -44,10 +44,10 @@ Last verified commands:
 | Settings tabs: General, Providers, Prompts, Display, Obsidian, About | `SettingsWindow.buildTabs()` | Implemented; manual UI pass still pending |
 | Result panel: Corrected, diff pills, Chinese gloss, Good to know; no Origin block | `ResultPanel.swift`, `DiffPillLocatorTests`; live panel smoke evidence | Implemented and smoke verified |
 | Diff pill popover text | `ResultPanelView.textView(_:clickedOnLink:)` | Implemented; manual click verification still required |
-| Write, copy, Accept button order and tooltips | `ResultPanel.swift`; live AX smoke evidence | Implemented and smoke verified |
-| Copy corrected text | `ResultPanel.onCopy`, live clipboard smoke evidence | Smoke verified |
+| Write, insert, Accept button order and tooltips | `ResultPanel.swift`; live AX smoke evidence | Implemented and smoke verified |
+| Auto-copy corrected text | `ResultPresentationPolicy`, `ResultPanel.onCopy`, tests | Automated verified |
 | Accept replacement success in native app | `AccessibilityTextService.replaceSelection`, `AcceptReplacementFallbackTests` | Implementation verified; physical click replacement still manual |
-| Accept fallback copies corrected text and warns | `AcceptReplacementFallbackTests`; live fallback smoke evidence | Verified |
+| Accept fallback copies corrected text and auto-closes | `AcceptReplacementFallbackTests`; live fallback smoke evidence | Verified |
 | Obsidian prepend, create missing file/parents, H1 heading, no origin | `ObsidianWriter`, `ObsidianWriterTests`; live write smoke evidence | Automated and smoke verified |
 | Obsidian invalid path validation and write-failure messages | `ObsidianTargetPathValidator`, `ObsidianWriteErrorMessage`, `ObsidianWriterTests`; `ResultPanel` uses the friendly message | Automated verified; no-permission UI scenario still manual |
 | Popup follow mouse, bottom-left, center, last-closed strategies | `PopupPositioner`, `PopupPositionerTests`, Display settings UI | Automated verified; full UI pass still manual |

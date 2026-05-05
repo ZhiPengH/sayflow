@@ -1,15 +1,15 @@
 import Foundation
 
 enum AcceptReplacementFallbackTests {
-    static func successfulReplacementNeedsNoClipboardFallback() throws {
-        let action = AcceptReplacementFallback.action(replacementSucceeded: true)
+    static func successfulReplacementClosesPanel() throws {
+        let action = AcceptReplacementFallback.completionAction(replacementSucceeded: true)
 
-        try expectEqual(action, .showReplacedFeedback)
+        try expectEqual(action, .closePanel)
     }
 
     static func failedReplacementFallsBackToClipboardCopy() throws {
-        let action = AcceptReplacementFallback.action(replacementSucceeded: false)
+        let action = AcceptReplacementFallback.completionAction(replacementSucceeded: false)
 
-        try expectEqual(action, .copyCorrectedToClipboardAndWarn)
+        try expectEqual(action, .copyCorrectedToClipboardAndClosePanelAfterDelay(1))
     }
 }

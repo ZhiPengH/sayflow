@@ -229,7 +229,19 @@ final class SayFlowAppDelegate: NSObject, NSApplicationDelegate {
                 originalText: originalText,
                 correctedText: correctedText
             )
-            return self.accessibility.replaceSelection(with: replacement)
+            let action = InsertReplacementFallback.action(
+                accessibilityReplacementSucceeded: self.accessibility.replaceSelection(with: replacement),
+                replacement: replacement
+            )
+            switch action {
+            case .showInsertedFeedback:
+                return true
+            case .pasteReplacementThroughClipboard(let replacement):
+                self.clipboard.copy(replacement)
+                return self.accessibility.pasteClipboardIntoFocusedSelection()
+            case .showFailureAndClosePanelAfterDelay:
+                return false
+            }
         }
         resultPanel.onAccept = { [weak self] text in
             self?.accessibility.replaceSelection(with: text) ?? false
