@@ -7,6 +7,7 @@ enum PromptTemplateTests {
         try expectEqual(template.activeSystemPromptID, "PromptA")
         try expectEqual(template.systemPrompts.map(\.id), ["PromptA", "PromptB", "PromptC", "PromptD", "PromptE"])
         try expectEqual(template.systemPrompts[0].title, "PromptA")
+        try expectEqual(template.systemPrompts.map(\.sceneName), ["PromptA", "PromptB", "PromptC", "PromptD", "PromptE"])
         try expect(template.systemPrompts[1].system.contains("专门辅导中国程序员"))
         try expect(template.systemPrompts[1].system.contains("程序员英语实用贴士"))
         try expect(template.system.contains("corrected"))
@@ -45,6 +46,7 @@ enum PromptTemplateTests {
         var custom = PromptTemplate.defaultGrammarCorrection
         custom.activeSystemPromptID = "PromptB"
         custom.setSystem("Return programmer JSON.", for: "PromptB")
+        custom.setSceneName("邮件润色", for: "PromptB")
         try store.save(custom)
 
         try expectEqual(try store.load(), custom)
@@ -103,5 +105,25 @@ enum PromptTemplateTests {
         let exported = try String(data: JSONEncoder().encode(decoded), encoding: .utf8) ?? ""
         try expect(exported.contains("\"userPrompt\""))
         try expect(exported.contains("\"{{text}}\""))
+    }
+
+    static func promptSceneNamesActAsFixedSlotAliasesForMenuSwitching() throws {
+        var template = PromptTemplate.defaultGrammarCorrection
+        template.activeSystemPromptID = "PromptC"
+        template.setSceneName("日常语法", for: "PromptA")
+        template.setSceneName("邮件润色", for: "PromptB")
+        template.setSceneName("  ", for: "PromptC")
+        template.systemPrompts.append(PromptSystemPrompt(id: "PromptF", title: "PromptF", sceneName: "Extra", system: "Never show"))
+
+        try expectEqual(
+            PromptSceneMenuPresentation.items(for: template),
+            [
+                PromptSceneMenuItem(id: "PromptA", title: "日常语法", isActive: false),
+                PromptSceneMenuItem(id: "PromptB", title: "邮件润色", isActive: false),
+                PromptSceneMenuItem(id: "PromptC", title: "PromptC", isActive: true),
+                PromptSceneMenuItem(id: "PromptD", title: "PromptD", isActive: false),
+                PromptSceneMenuItem(id: "PromptE", title: "PromptE", isActive: false)
+            ]
+        )
     }
 }

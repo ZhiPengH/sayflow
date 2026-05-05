@@ -9,7 +9,7 @@ This audit separates implementation evidence from manual gates. A green script i
 Last verified commands:
 
 - `Scripts/test.sh`: passes 115 SayFlowCore tests, validates packaging/probe script invariants, validates the local debug-provider bootstrap, and runs `swift build`.
-- `Scripts/verify_package.sh`: verifies app bundle, stable signing, `x86_64 arm64`, `LSUIElement=true`, `LSMinimumSystemVersion=13.0`, DMG SHA-256, DMG size below 30 MB, and DMG contents. Latest local-signed v1.2.6 DMG SHA-256: `f572830b3b415a14c182c74e6e3130d41d1143068c9f22a9487204121a187970`.
+- `Scripts/verify_package.sh`: verifies app bundle, stable signing, `x86_64 arm64`, `LSUIElement=true`, `LSMinimumSystemVersion=13.0`, DMG SHA-256, DMG size below 30 MB, and DMG contents. Latest local-signed v1.2.7 DMG SHA-256: `5735a5859b3eb6f5dd931ea55cdf6c71e849e5b1952c1a250dd5b875fdd588c9`.
 - `Scripts/manual_acceptance_probe.sh`: verifies bundle, expected running app path, signing, redacted provider settings, local environment reference, package presence, and whether the running SayFlow app is still showing Accessibility onboarding/runtime permission alerts.
 - `Scripts/ax_selected_text_probe.sh`: verifies selected-text capture in target apps through Accessibility, including Safari/WebKit text-marker fallback.
 

@@ -29,6 +29,7 @@ struct SayFlowCoreTestRunner {
             TestCase(name: "Prompt import rejects invalid templates", run: PromptTemplateTests.importPolicyRejectsDecodedTemplatesThatWouldFailSaveValidation),
             TestCase(name: "Prompt import accepts legacy userPrompt", run: PromptTemplateTests.importPolicyAcceptsLegacyUserPromptTemplates),
             TestCase(name: "Prompt legacy userPrompt compatibility", run: PromptTemplateTests.promptTemplateDecodesLegacyUserPromptKeyAndExportsCompatibilityKeys),
+            TestCase(name: "Prompt scene aliases menu presentation", run: PromptTemplateTests.promptSceneNamesActAsFixedSlotAliasesForMenuSwitching),
             TestCase(name: "Streaming fields", run: StreamingCorrectionAccumulatorTests.publishesFieldsAsSoonAsTheyBecomeComplete),
             TestCase(name: "Fenced JSON", run: StreamingCorrectionAccumulatorTests.acceptsMarkdownFencedJSONAndReportsCompleteObject),
             TestCase(name: "Invalid JSON diagnostics", run: StreamingCorrectionAccumulatorTests.invalidCompletedJSONKeepsRawResponseForDebugging),

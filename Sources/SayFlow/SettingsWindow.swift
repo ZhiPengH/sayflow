@@ -23,6 +23,7 @@ final class SettingsWindowController: NSWindowController, NSTextViewDelegate, NS
     private let systemPromptView = NSTextView()
     private let promptTabView = NSTabView()
     private var systemPromptEditors: [String: NSTextView] = [:]
+    private var sceneNameFields: [String: NSTextField] = [:]
     private let positionPopup = NSPopUpButton()
     private let obsidianPathField = NSComboBox()
     private let obsidianTemplateView = NSTextView()
@@ -245,12 +246,22 @@ final class SettingsWindowController: NSWindowController, NSTextViewDelegate, NS
         promptTabView.delegate = self
         for slot in PromptTemplate.defaultGrammarCorrection.systemPrompts {
             let editor = slot.id == PromptTemplate.systemPromptIDs[0] ? systemPromptView : NSTextView()
-            configureEditor(editor, height: 285)
+            let sceneNameField = NSTextField()
+            sceneNameField.placeholderString = slot.title
+            configureEditor(editor, height: 250)
             systemPromptEditors[slot.id] = editor
+            sceneNameFields[slot.id] = sceneNameField
+
+            let stack = NSStackView()
+            stack.orientation = .vertical
+            stack.alignment = .leading
+            stack.spacing = 8
+            stack.addArrangedSubview(labeled(L10n.tr(.sceneName), field: sceneNameField))
+            stack.addArrangedSubview(scroll(for: editor, height: 250))
 
             let item = NSTabViewItem(identifier: slot.id)
             item.label = slot.title
-            item.view = editor.enclosingScrollView ?? scroll(for: editor, height: 285)
+            item.view = stack
             promptTabView.addTabViewItem(item)
         }
     }
@@ -259,6 +270,7 @@ final class SettingsWindowController: NSWindowController, NSTextViewDelegate, NS
         configurePromptTabView()
         for slot in settings.prompts.systemPrompts {
             systemPromptEditors[slot.id]?.string = slot.system
+            sceneNameFields[slot.id]?.stringValue = slot.sceneName
             if let item = promptTabView.tabViewItems.first(where: { $0.identifier as? String == slot.id }) {
                 item.label = slot.title
             }
@@ -273,6 +285,9 @@ final class SettingsWindowController: NSWindowController, NSTextViewDelegate, NS
         for slot in template.systemPrompts {
             if let editor = systemPromptEditors[slot.id] {
                 template.setSystem(editor.string, for: slot.id)
+            }
+            if let field = sceneNameFields[slot.id] {
+                template.setSceneName(field.stringValue, for: slot.id)
             }
         }
         if let activeID = promptTabView.selectedTabViewItem?.identifier as? String {
@@ -665,7 +680,6 @@ final class SettingsWindowController: NSWindowController, NSTextViewDelegate, NS
         textView.isRichText = false
         textView.allowsUndo = true
         textView.delegate = self
-        _ = scroll(for: textView, height: height)
     }
 
     private func scroll(for textView: NSTextView, height: CGFloat) -> NSScrollView {

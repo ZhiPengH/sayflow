@@ -49,6 +49,8 @@ public enum L10nKey: String, CaseIterable {
     case consumesOneAPICall
     case systemPrompt
     case userPrompt
+    case sceneName
+    case sceneSwitchMenu
     case popupPosition
     case theme
     case chooseMarkdown
@@ -167,6 +169,8 @@ public enum L10n {
             .consumesOneAPICall: "Consumes one API call.",
             .systemPrompt: "System",
             .userPrompt: "User",
+            .sceneName: "Scene name",
+            .sceneSwitchMenu: "Switch Scene",
             .popupPosition: "Popup position",
             .theme: "Theme",
             .chooseMarkdown: "Open",
@@ -181,7 +185,7 @@ public enum L10n {
             .invalidObsidianPathRelative: "Use an absolute Markdown file path.",
             .invalidObsidianPathNotMarkdown: "The Obsidian target must be a .md file.",
             .aboutName: "SayFlow",
-            .aboutVersion: "Version 1.2.6",
+            .aboutVersion: "Version 1.2.7",
             .aboutReleases: "Releases: https://github.com/ZhiPengH/sayflow-release/releases",
             .aboutShaNote: "Each DMG build script prints SHA-256 for verification.",
             .systemTimeZone: "System",
@@ -278,6 +282,8 @@ public enum L10n {
             .consumesOneAPICall: "会消耗一次 API 调用。",
             .systemPrompt: "System",
             .userPrompt: "User",
+            .sceneName: "场景命名",
+            .sceneSwitchMenu: "场景切换",
             .popupPosition: "弹窗位置",
             .theme: "主题",
             .chooseMarkdown: "打开",
@@ -292,7 +298,7 @@ public enum L10n {
             .invalidObsidianPathRelative: "请使用 Markdown 文件的绝对路径。",
             .invalidObsidianPathNotMarkdown: "Obsidian 目标文件必须是 .md 文件。",
             .aboutName: "言顺",
-            .aboutVersion: "版本 1.2.6",
+            .aboutVersion: "版本 1.2.7",
             .aboutReleases: "Releases: https://github.com/ZhiPengH/sayflow-release/releases",
             .aboutShaNote: "每次 DMG 构建脚本都会打印 SHA-256 校验值。",
             .systemTimeZone: "跟随系统",

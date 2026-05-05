@@ -88,6 +88,7 @@ final class SayFlowAppDelegate: NSObject, NSApplicationDelegate {
         self.checkGrammarItem = checkGrammarItem
         syncCheckGrammarMenuShortcut()
         menu.addItem(saveFileMenuItem())
+        menu.addItem(sceneSwitchMenuItem())
         menu.addItem(NSMenuItem.separator())
         menu.addItem(NSMenuItem(title: L10n.tr(.settingsMenu), action: #selector(openSettings), keyEquivalent: ","))
         menu.addItem(NSMenuItem.separator())
@@ -118,6 +119,24 @@ final class SayFlowAppDelegate: NSObject, NSApplicationDelegate {
                 }
                 submenu.addItem(recentItem)
             }
+        }
+        item.submenu = submenu
+        return item
+    }
+
+    private func sceneSwitchMenuItem() -> NSMenuItem {
+        let item = NSMenuItem(title: L10n.tr(.sceneSwitchMenu), action: nil, keyEquivalent: "")
+        let submenu = NSMenu()
+        for scene in PromptSceneMenuPresentation.items(for: settings.prompts) {
+            let sceneItem = NSMenuItem(
+                title: scene.title,
+                action: #selector(selectPromptScene(_:)),
+                keyEquivalent: ""
+            )
+            sceneItem.target = self
+            sceneItem.representedObject = scene.id
+            sceneItem.state = scene.isActive ? .on : .off
+            submenu.addItem(sceneItem)
         }
         item.submenu = submenu
         return item
@@ -255,6 +274,21 @@ final class SayFlowAppDelegate: NSObject, NSApplicationDelegate {
         )
         do {
             try settingsStore.save(settings)
+            settingsWindow?.update(settings: settings)
+            rebuildMenu()
+        } catch {
+            showAlert(L10n.tr(.failedSaveSettings), error.localizedDescription)
+        }
+    }
+
+    @objc private func selectPromptScene(_ sender: NSMenuItem) {
+        guard let promptID = sender.representedObject as? String,
+              PromptTemplate.systemPromptIDs.contains(promptID) else {
+            return
+        }
+        settings.prompts.activeSystemPromptID = promptID
+        do {
+            try promptStore.save(settings.prompts)
             settingsWindow?.update(settings: settings)
             rebuildMenu()
         } catch {

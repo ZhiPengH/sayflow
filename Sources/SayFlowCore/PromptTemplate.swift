@@ -3,12 +3,34 @@ import Foundation
 public struct PromptSystemPrompt: Codable, Equatable {
     public var id: String
     public var title: String
+    public var sceneName: String
     public var system: String
 
-    public init(id: String, title: String, system: String) {
+    public init(id: String, title: String, sceneName: String? = nil, system: String) {
         self.id = id
         self.title = title
+        self.sceneName = sceneName ?? title
         self.system = system
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case title
+        case sceneName
+        case system
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        title = try container.decode(String.self, forKey: .title)
+        sceneName = try container.decodeIfPresent(String.self, forKey: .sceneName) ?? title
+        system = try container.decode(String.self, forKey: .system)
+    }
+
+    public var sceneDisplayName: String {
+        let trimmed = sceneName.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? title : trimmed
     }
 }
 
@@ -49,6 +71,12 @@ public struct PromptTemplate: Codable, Equatable {
     public mutating func setSystem(_ system: String, for id: String) {
         if let index = systemPrompts.firstIndex(where: { $0.id == id }) {
             systemPrompts[index].system = system
+        }
+    }
+
+    public mutating func setSceneName(_ sceneName: String, for id: String) {
+        if let index = systemPrompts.firstIndex(where: { $0.id == id }) {
+            systemPrompts[index].sceneName = sceneName.trimmingCharacters(in: .whitespacesAndNewlines)
         }
     }
 
@@ -160,6 +188,7 @@ public struct PromptTemplate: Codable, Equatable {
             defaults[index] = PromptSystemPrompt(
                 id: prompt.id,
                 title: prompt.title.isEmpty ? defaults[index].title : prompt.title,
+                sceneName: prompt.sceneName.trimmingCharacters(in: .whitespacesAndNewlines),
                 system: prompt.system
             )
         }
@@ -168,6 +197,33 @@ public struct PromptTemplate: Codable, Equatable {
             defaults[0].system = legacySystem
         }
         return defaults
+    }
+}
+
+public struct PromptSceneMenuItem: Equatable {
+    public var id: String
+    public var title: String
+    public var isActive: Bool
+
+    public init(id: String, title: String, isActive: Bool) {
+        self.id = id
+        self.title = title
+        self.isActive = isActive
+    }
+}
+
+public enum PromptSceneMenuPresentation {
+    public static func items(for template: PromptTemplate) -> [PromptSceneMenuItem] {
+        PromptTemplate.systemPromptIDs.compactMap { id in
+            guard let prompt = template.systemPrompts.first(where: { $0.id == id }) else {
+                return nil
+            }
+            return PromptSceneMenuItem(
+                id: prompt.id,
+                title: prompt.sceneDisplayName,
+                isActive: prompt.id == template.activeSystemPromptID
+            )
+        }
     }
 }
 
