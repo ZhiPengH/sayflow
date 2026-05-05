@@ -17,23 +17,42 @@ public struct GrammarCorrection: Codable, Equatable {
     public var changes: [GrammarChange]
     public var translationZh: String
     public var goodToKnow: String?
+    public var mode: CorrectionMode
 
     enum CodingKeys: String, CodingKey {
+        case mode
         case corrected
         case changes
         case translationZh = "translation_zh"
         case goodToKnow = "good_to_know"
     }
 
-    public init(corrected: String, changes: [GrammarChange], translationZh: String, goodToKnow: String?) {
+    public init(
+        corrected: String,
+        changes: [GrammarChange],
+        translationZh: String,
+        goodToKnow: String?,
+        mode: CorrectionMode = .grammar
+    ) {
         self.corrected = corrected
         self.changes = changes
         self.translationZh = translationZh
         self.goodToKnow = goodToKnow
+        self.mode = mode
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        mode = try container.decodeIfPresent(CorrectionMode.self, forKey: .mode) ?? .grammar
+        corrected = try container.decode(String.self, forKey: .corrected)
+        changes = try container.decode([GrammarChange].self, forKey: .changes)
+        translationZh = try container.decode(String.self, forKey: .translationZh)
+        goodToKnow = try container.decodeIfPresent(String.self, forKey: .goodToKnow)
     }
 }
 
 public struct CorrectionSnapshot: Equatable {
+    public var mode: CorrectionMode
     public var corrected: String?
     public var changes: [GrammarChange]?
     public var translationZh: String?
@@ -43,6 +62,7 @@ public struct CorrectionSnapshot: Equatable {
     public var rawResponse: String
 
     public init(
+        mode: CorrectionMode = .grammar,
         corrected: String? = nil,
         changes: [GrammarChange]? = nil,
         translationZh: String? = nil,
@@ -51,6 +71,7 @@ public struct CorrectionSnapshot: Equatable {
         parseError: String? = nil,
         rawResponse: String = ""
     ) {
+        self.mode = mode
         self.corrected = corrected
         self.changes = changes
         self.translationZh = translationZh

@@ -31,6 +31,7 @@ public enum OpenAIRequestFactory {
         }
 
         let endpoint = try EndpointNormalizer.openAIEndpoint(from: configuration.baseURL)
+        let mode = CorrectionModePolicy.mode(for: selectedText)
         var request = URLRequest(url: endpoint.url)
         request.httpMethod = "POST"
         request.timeoutInterval = timeout
@@ -47,14 +48,15 @@ public enum OpenAIRequestFactory {
             body = chatCompletionsBody(
                 configuration: configuration,
                 prompt: prompt,
-                selectedText: selectedText
+                selectedText: selectedText,
+                mode: mode
             )
         case .responses:
             body = [
                 "model": configuration.model,
                 "temperature": configuration.temperature,
                 "stream": true,
-                "instructions": prompt.renderSystem(text: selectedText),
+                "instructions": prompt.renderSystem(text: selectedText, mode: mode),
                 "input": prompt.renderUser(text: selectedText),
                 "text": [
                     "format": ["type": "json_object"]
@@ -68,7 +70,8 @@ public enum OpenAIRequestFactory {
     private static func chatCompletionsBody(
         configuration: ProviderConfiguration,
         prompt: PromptTemplate,
-        selectedText: String
+        selectedText: String,
+        mode: CorrectionMode
     ) -> [String: Any] {
         if configuration.kind == .zAiCN {
             return [
@@ -76,7 +79,7 @@ public enum OpenAIRequestFactory {
                 "messages": [
                     [
                         "role": "system",
-                        "content": prompt.renderSystem(text: selectedText)
+                        "content": prompt.renderSystem(text: selectedText, mode: mode)
                     ],
                     [
                         "role": "user",
@@ -93,7 +96,7 @@ public enum OpenAIRequestFactory {
                 "messages": [
                     [
                         "role": "system",
-                        "content": prompt.renderSystem(text: selectedText),
+                        "content": prompt.renderSystem(text: selectedText, mode: mode),
                         "name": "MiniMax AI"
                     ],
                     [
@@ -110,7 +113,7 @@ public enum OpenAIRequestFactory {
             "stream": true,
             "response_format": ["type": "json_object"],
             "messages": [
-                ["role": "system", "content": prompt.renderSystem(text: selectedText)],
+                ["role": "system", "content": prompt.renderSystem(text: selectedText, mode: mode)],
                 ["role": "user", "content": prompt.renderUser(text: selectedText)]
             ]
         ]

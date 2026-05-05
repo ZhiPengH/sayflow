@@ -8,6 +8,7 @@ final class SayFlowAppDelegate: NSObject, NSApplicationDelegate {
     private let providerSecrets = LocalEnvironmentSecretStore(applicationSupportDirectory: ApplicationPaths.supportDirectory)
     private let accessibility = AccessibilityTextService()
     private let clipboard = ClipboardService()
+    private let speech = SpeechService()
     private let networkMonitor = NetworkStatusMonitor()
     private let updateCheckService = UpdateCheckService()
     private let hotKeyManager = HotKeyManager()
@@ -221,6 +222,9 @@ final class SayFlowAppDelegate: NSObject, NSApplicationDelegate {
         resultPanel.onCopy = { [weak self] text in
             self?.clipboard.copy(text)
         }
+        resultPanel.onSpeak = { [weak self] text in
+            self?.speech.speak(text)
+        }
         resultPanel.onInsert = { [weak self] originalText, correctedText in
             guard let self else {
                 return false
@@ -344,6 +348,7 @@ final class SayFlowAppDelegate: NSObject, NSApplicationDelegate {
             return
         }
 
+        let correctionMode = CorrectionModePolicy.mode(for: selectedText)
         currentOriginalText = selectedText
         resultPanel.showLoading(originalText: selectedText, settings: settings)
         guard let provider = settings.activeProvider else {
@@ -368,7 +373,11 @@ final class SayFlowAppDelegate: NSObject, NSApplicationDelegate {
                 request: request,
                 onSnapshot: { [weak self] snapshot in
                     guard let self else { return }
-                    self.resultPanel.update(snapshot: snapshot, originalText: selectedText, settings: self.settings)
+                    self.resultPanel.update(
+                        snapshot: TranslationModePresentation.snapshot(snapshot, mode: correctionMode),
+                        originalText: selectedText,
+                        settings: self.settings
+                    )
                 },
                 onError: { [weak self] message, raw in
                     guard let self else { return }
@@ -376,8 +385,9 @@ final class SayFlowAppDelegate: NSObject, NSApplicationDelegate {
                 },
                 onComplete: { [weak self] snapshot in
                     guard let self else { return }
-                    self.resultPanel.update(snapshot: snapshot, originalText: selectedText, settings: self.settings)
-                    if let text = ResultPresentationPolicy.autoClipboardText(for: snapshot) {
+                    let presented = TranslationModePresentation.snapshot(snapshot, mode: correctionMode)
+                    self.resultPanel.update(snapshot: presented, originalText: selectedText, settings: self.settings)
+                    if let text = ResultPresentationPolicy.autoClipboardText(for: presented) {
                         self.clipboard.copy(text)
                     }
                 }

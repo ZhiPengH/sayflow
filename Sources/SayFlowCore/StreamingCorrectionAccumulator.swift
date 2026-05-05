@@ -21,6 +21,7 @@ public struct StreamingCorrectionAccumulator {
         let sanitized = sanitize(raw)
         if let full = decodeFullCorrection(from: sanitized) {
             return CorrectionSnapshot(
+                mode: full.mode,
                 corrected: full.corrected,
                 changes: full.changes,
                 translationZh: full.translationZh,
@@ -32,6 +33,7 @@ public struct StreamingCorrectionAccumulator {
         }
 
         let snapshot = CorrectionSnapshot(
+            mode: extractMode(from: sanitized),
             corrected: extractStringField("corrected", from: sanitized),
             changes: extractChanges(from: sanitized),
             translationZh: extractStringField("translation_zh", from: sanitized),
@@ -41,6 +43,14 @@ public struct StreamingCorrectionAccumulator {
             rawResponse: raw
         )
         return snapshot
+    }
+
+    private func extractMode(from text: String) -> CorrectionMode {
+        guard let rawMode = extractStringField("mode", from: text),
+              let mode = CorrectionMode(rawValue: rawMode) else {
+            return .grammar
+        }
+        return mode
     }
 
     private func decodeFullCorrection(from text: String) -> GrammarCorrection? {

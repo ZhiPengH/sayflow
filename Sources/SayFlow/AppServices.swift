@@ -23,7 +23,7 @@ enum ApplicationPaths {
 
 enum CurrentApp {
     static var version: String {
-        Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.2.10"
+        Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.3.0 Beta"
     }
 }
 
@@ -159,6 +159,21 @@ final class ClipboardService {
 
     func currentString() -> String? {
         NSPasteboard.general.string(forType: .string)
+    }
+}
+
+final class SpeechService {
+    private let synthesizer = NSSpeechSynthesizer()
+
+    func speak(_ text: String) {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else {
+            return
+        }
+        if synthesizer.isSpeaking {
+            synthesizer.stopSpeaking()
+        }
+        synthesizer.startSpeaking(trimmed)
     }
 }
 

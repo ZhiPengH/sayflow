@@ -41,9 +41,6 @@ private enum SelectionHotZoneContentPolicy {
     private static let minimumTextLength = 6
 
     static func isSuitableGrammarCandidate(_ text: String) -> Bool {
-        guard text.count >= minimumTextLength else {
-            return false
-        }
         if isChineseIntroFollowedByEnglishSentence(text) {
             return true
         }
@@ -57,6 +54,12 @@ private enum SelectionHotZoneContentPolicy {
             return false
         }
         if looksLikeFilePath(text) || looksLikeStructuredData(text) || looksLikeCodeSnippet(text) {
+            return false
+        }
+        if text.count >= 3, CorrectionModePolicy.mode(for: text) == .translation {
+            return true
+        }
+        guard text.count >= minimumTextLength else {
             return false
         }
         return true

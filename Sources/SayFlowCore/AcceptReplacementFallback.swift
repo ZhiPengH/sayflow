@@ -11,4 +11,13 @@ public enum AcceptReplacementFallback {
     public static func completionAction(replacementSucceeded: Bool) -> AcceptReplacementAction {
         replacementSucceeded ? .closePanel : .copyCorrectedToClipboardAndClosePanelAfterDelay(fallbackCloseInterval)
     }
+
+    public static func action(mode: CorrectionMode, replacementSucceeded: Bool) -> AcceptReplacementAction {
+        switch mode {
+        case .grammar:
+            return completionAction(replacementSucceeded: replacementSucceeded)
+        case .translation:
+            return .closePanel
+        }
+    }
 }

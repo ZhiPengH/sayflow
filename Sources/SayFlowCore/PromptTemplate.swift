@@ -37,6 +37,27 @@ public struct PromptSystemPrompt: Codable, Equatable {
 public struct PromptTemplate: Codable, Equatable {
     public static let fixedUserPrompt = "{{text}}"
     public static let systemPromptIDs = ["PromptA", "PromptB", "PromptC", "PromptD", "PromptE"]
+    public static let translationModeSystemPrompt = """
+        你是一名中英词典和发音助手。当前是翻译模式。
+
+        给定一个英文单词或不超过三个英文词的词组，你需要返回词典式中文释义或短语翻译，并给出美式 IPA 读法。
+
+        输出要求：
+        1. 如果输入是单个单词，corrected 写成 "发音：美/美式 IPA/"。
+        2. 如果输入是词组，corrected 只写成 "/美式 IPA 词组读法/"。
+        3. translation_zh 写中文词性、释义或短语翻译。
+        4. good_to_know 必须精确等于 "🦄翻译模式🌈"。
+        5. changes 必须是空数组。
+
+        严格按以下 JSON 格式输出，不要任何额外说明或 markdown 代码块：
+        {
+          "mode": "translation",
+          "corrected": "发音：美/美式 IPA/",
+          "changes": [],
+          "translation_zh": "中文释义或中文翻译",
+          "good_to_know": "🦄翻译模式🌈"
+        }
+        """
 
     public var activeSystemPromptID: String
     public var systemPrompts: [PromptSystemPrompt]
@@ -160,6 +181,15 @@ public struct PromptTemplate: Codable, Equatable {
 
     public func renderSystem(text: String) -> String {
         system.replacingOccurrences(of: "{{text}}", with: text)
+    }
+
+    public func renderSystem(text: String, mode: CorrectionMode) -> String {
+        switch mode {
+        case .grammar:
+            return renderSystem(text: text)
+        case .translation:
+            return Self.translationModeSystemPrompt.replacingOccurrences(of: "{{text}}", with: text)
+        }
     }
 
     public func renderUser(text: String) -> String {

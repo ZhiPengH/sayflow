@@ -207,6 +207,36 @@ enum ProviderTests {
         try expectEqual(messages[1], ["role": "user", "content": "Market are volatile."])
     }
 
+    static func requestFactorySwitchesShortPhrasesToTranslationMode() throws {
+        let config = ProviderConfiguration(
+            id: "custom",
+            kind: .custom,
+            displayName: "Custom",
+            apiKeyReference: "keychain://custom",
+            apiKeyPlaintextForTesting: "sk-test",
+            baseURL: "https://api.example.com/v1",
+            model: "translation-model",
+            temperature: 0.2,
+            isActive: true
+        )
+
+        let request = try OpenAIRequestFactory.makeRequest(
+            configuration: config,
+            prompt: .defaultGrammarCorrection,
+            selectedText: "Accessibility selected-text capture"
+        )
+
+        let body = try unwrap(request.httpBody)
+        let json = try JSONSerialization.jsonObject(with: body) as? [String: Any]
+        let messages = try unwrap(json?["messages"] as? [[String: String]])
+        let system = try unwrap(messages.first?["content"])
+        try expect(system.contains("翻译模式"))
+        try expect(system.contains("美式 IPA"))
+        try expect(system.contains("🦄翻译模式🌈"))
+        try expect(system.contains("\"changes\": []"))
+        try expectEqual(messages[1], ["role": "user", "content": "Accessibility selected-text capture"])
+    }
+
     static func requestFactoryAcceptsResolvedKeyWithoutPersistingPlaintext() throws {
         let config = ProviderConfiguration(
             id: "openAI",

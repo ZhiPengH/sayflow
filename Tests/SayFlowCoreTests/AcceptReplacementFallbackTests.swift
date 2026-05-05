@@ -12,4 +12,13 @@ enum AcceptReplacementFallbackTests {
 
         try expectEqual(action, .copyCorrectedToClipboardAndClosePanelAfterDelay(1))
     }
+
+    static func translationModeAcceptOnlyClosesPanel() throws {
+        let action = AcceptReplacementFallback.action(
+            mode: .translation,
+            replacementSucceeded: false
+        )
+
+        try expectEqual(action, .closePanel)
+    }
 }

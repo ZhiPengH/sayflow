@@ -40,6 +40,27 @@ enum StreamingCorrectionAccumulatorTests {
         try expectNil(snapshot.parseError)
     }
 
+    static func decodesTranslationModeSnapshots() throws {
+        var accumulator = StreamingCorrectionAccumulator()
+
+        let snapshot = accumulator.finish(with: """
+        {
+          "mode": "translation",
+          "corrected": "发音：美/ˌæksɛsəˈbɪlɪti/",
+          "changes": [],
+          "translation_zh": "n.\\n可访问性",
+          "good_to_know": "🦄翻译模式🌈"
+        }
+        """)
+
+        try expectEqual(snapshot.mode, .translation)
+        try expectEqual(snapshot.corrected, "发音：美/ˌæksɛsəˈbɪlɪti/")
+        try expectEqual(snapshot.changes, [])
+        try expectEqual(snapshot.translationZh, "n.\n可访问性")
+        try expectEqual(snapshot.goodToKnow, "🦄翻译模式🌈")
+        try expect(snapshot.isComplete)
+    }
+
     static func invalidCompletedJSONKeepsRawResponseForDebugging() throws {
         var accumulator = StreamingCorrectionAccumulator()
 

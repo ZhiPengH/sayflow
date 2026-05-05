@@ -11,6 +11,7 @@ final class ResultPanelController: NSObject {
     private var delayedCloseToken = UUID()
 
     var onCopy: ((String) -> Void)?
+    var onSpeak: ((String) -> Void)?
     var onInsert: ((String, String) -> Bool)?
     var onAccept: ((String) -> Bool)?
     var onWrite: ((GrammarCorrection) throws -> Void)?
@@ -31,6 +32,7 @@ final class ResultPanelController: NSObject {
         panel.hidesOnDeactivate = false
         panel.isReleasedWhenClosed = false
         contentView.onClose = { [weak self] in self?.close() }
+        contentView.onSpeak = { [weak self] text in self?.onSpeak?(text) }
         contentView.onInsert = { [weak self] original, corrected in
             guard let self else {
                 return
@@ -47,16 +49,19 @@ final class ResultPanelController: NSObject {
                 }
             }
         }
-        contentView.onAccept = { [weak self] text in
+        contentView.onAccept = { [weak self] correction in
             guard let self else {
                 return
             }
-            let action = AcceptReplacementFallback.completionAction(replacementSucceeded: self.onAccept?(text) ?? false)
+            let action = AcceptReplacementFallback.action(
+                mode: correction.mode,
+                replacementSucceeded: correction.mode == .translation ? true : self.onAccept?(correction.corrected) ?? false
+            )
             switch action {
             case .closePanel:
                 self.close()
             case .copyCorrectedToClipboardAndClosePanelAfterDelay(let delay):
-                self.onCopy?(text)
+                self.onCopy?(correction.corrected)
                 self.close(after: delay)
             }
         }
@@ -166,7 +171,9 @@ final class ResultPanelView: NSView, NSTextViewDelegate {
     private let retryButton = NSButton(title: L10n.tr(.retry), target: nil, action: nil)
     private let rawResponseButton = NSButton(title: "", target: nil, action: nil)
     private let rawResponseView = NSTextView()
+    private let correctedRow = NSStackView()
     private let correctedView = NSTextView()
+    private let speakButton = NSButton(title: "", target: nil, action: nil)
     private let glossLabel = NSTextField(labelWithString: "")
     private let goodCard = NSBox()
     private let goodLabel = NSTextField(labelWithString: "")
@@ -176,12 +183,14 @@ final class ResultPanelView: NSView, NSTextViewDelegate {
 
     private var correction: GrammarCorrection?
     private var originalText = ""
+    private var speechText = ""
     private var rawResponseDisclosure = RawResponseDisclosure()
     private var correctedHeightConstraint: NSLayoutConstraint?
 
     var onClose: (() -> Void)?
+    var onSpeak: ((String) -> Void)?
     var onInsert: ((String, String) -> Void)?
-    var onAccept: ((String) -> Void)?
+    var onAccept: ((GrammarCorrection) -> Void)?
     var onWrite: ((GrammarCorrection) -> Void)?
     var onRetry: (() -> Void)?
 
@@ -223,19 +232,23 @@ final class ResultPanelView: NSView, NSTextViewDelegate {
 
     func showLoading(originalText: String) {
         self.originalText = originalText
+        speechText = originalText
         headerLabel.stringValue = "📌 \(L10n.tr(.appName))     \(Self.preview(originalText))"
         errorRow.isHidden = true
         updateRawResponse(nil)
         glossLabel.stringValue = ""
         goodCard.isHidden = true
         correctedView.string = L10n.tr(.checkingGrammar)
+        speakButton.isHidden = true
         correction = nil
         updateDynamicTextHeights()
     }
 
     func render(snapshot: CorrectionSnapshot, originalText: String) {
         self.originalText = originalText
+        speechText = originalText
         headerLabel.stringValue = "📌 \(L10n.tr(.appName))     \(Self.preview(originalText))"
+        speakButton.isHidden = snapshot.mode != .translation
         errorRow.isHidden = snapshot.parseError == nil
         if let parseError = snapshot.parseError {
             errorLabel.stringValue = parseError
@@ -249,7 +262,9 @@ final class ResultPanelView: NSView, NSTextViewDelegate {
         glossLabel.stringValue = snapshot.translationZh.map { "│  \($0)" } ?? ""
 
         if let good = snapshot.goodToKnow, !good.isEmpty {
-            goodLabel.stringValue = "💡 \(L10n.tr(.goodToKnow))\n\(good)"
+            goodLabel.stringValue = snapshot.mode == .translation
+                ? good
+                : "💡 \(L10n.tr(.goodToKnow))\n\(good)"
             goodCard.isHidden = false
         } else {
             goodCard.isHidden = true
@@ -260,7 +275,8 @@ final class ResultPanelView: NSView, NSTextViewDelegate {
                 corrected: corrected,
                 changes: changes,
                 translationZh: translation,
-                goodToKnow: snapshot.goodToKnow
+                goodToKnow: snapshot.goodToKnow,
+                mode: snapshot.mode
             )
         }
         updateDynamicTextHeights()
@@ -361,7 +377,14 @@ final class ResultPanelView: NSView, NSTextViewDelegate {
         let correctedHeightConstraint = correctedView.heightAnchor.constraint(equalToConstant: 44)
         correctedHeightConstraint.isActive = true
         self.correctedHeightConstraint = correctedHeightConstraint
-        root.addArrangedSubview(correctedView)
+        correctedRow.orientation = .horizontal
+        correctedRow.alignment = .centerY
+        correctedRow.spacing = 8
+        correctedRow.addArrangedSubview(correctedView)
+        configureIconButton(speakButton, symbol: "speaker.wave.2", fallback: L10n.tr(.speakFallback), tooltip: L10n.tr(.speakTooltip), action: #selector(speakTapped))
+        speakButton.isHidden = true
+        correctedRow.addArrangedSubview(speakButton)
+        root.addArrangedSubview(correctedRow)
 
         glossLabel.font = .systemFont(ofSize: 13)
         glossLabel.textColor = .secondaryLabelColor
@@ -404,8 +427,12 @@ final class ResultPanelView: NSView, NSTextViewDelegate {
 
     private func applyWrappingConstraints() {
         let contentTextWidth = ResultPanelLayoutMetrics.contentTextWidth
+        let speakerWidth: CGFloat = speakButton.isHidden ? 0 : 40
         let goodToKnowTextWidth = ResultPanelLayoutMetrics.goodToKnowTextWidth
-        correctedView.textContainer?.containerSize = NSSize(width: contentTextWidth, height: CGFloat.greatestFiniteMagnitude)
+        correctedView.textContainer?.containerSize = NSSize(
+            width: max(120, contentTextWidth - speakerWidth),
+            height: CGFloat.greatestFiniteMagnitude
+        )
         glossLabel.preferredMaxLayoutWidth = contentTextWidth
         goodLabel.preferredMaxLayoutWidth = goodToKnowTextWidth
     }
@@ -540,7 +567,11 @@ final class ResultPanelView: NSView, NSTextViewDelegate {
         guard let correction else {
             return
         }
-        onAccept?(correction.corrected)
+        onAccept?(correction)
+    }
+
+    @objc private func speakTapped() {
+        onSpeak?(speechText)
     }
 
     private static func preview(_ text: String) -> String {

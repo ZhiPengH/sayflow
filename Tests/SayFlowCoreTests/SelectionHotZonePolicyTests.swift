@@ -73,6 +73,28 @@ enum SelectionHotZonePolicyTests {
         )
     }
 
+    static func showsForShortTranslationCandidates() throws {
+        try expectEqual(
+            SelectionHotZonePolicy.decision(
+                accessibilityTrusted: true,
+                selectedText: "cat",
+                frontmostBundleIdentifier: "com.apple.TextEdit",
+                ownBundleIdentifier: "com.zhixing.sayflow"
+            ),
+            .show("cat")
+        )
+
+        try expectEqual(
+            SelectionHotZonePolicy.decision(
+                accessibilityTrusted: true,
+                selectedText: "Accessibility selected-text capture",
+                frontmostBundleIdentifier: "com.apple.TextEdit",
+                ownBundleIdentifier: "com.zhixing.sayflow"
+            ),
+            .show("Accessibility selected-text capture")
+        )
+    }
+
     static func showsForChineseIntroFollowedByEnglishSentence() throws {
         let selection = """
         这是一段纯中文说明。
