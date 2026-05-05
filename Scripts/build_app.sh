@@ -4,7 +4,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 APP_NAME="${APP_NAME:-SayFlow}"
 PRODUCT_NAME="${PRODUCT_NAME:-SayFlow}"
-VERSION="${VERSION:-1.2.3}"
+VERSION="${VERSION:-1.2.4}"
 IDENTIFIER="${IDENTIFIER:-com.zhixing.sayflow}"
 DIST="${DIST:-$ROOT/dist}"
 CODESIGN_IDENTITY="${CODESIGN_IDENTITY:-SayFlow Local Development}"
