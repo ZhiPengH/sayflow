@@ -23,7 +23,7 @@ enum ApplicationPaths {
 
 enum CurrentApp {
     static var version: String {
-        Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.3.0 Beta"
+        Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.3.1"
     }
 }
 
@@ -99,6 +99,27 @@ final class AccessibilityTextService {
               let keyUp = CGEvent(
                 keyboardEventSource: source,
                 virtualKey: CGKeyCode(kVK_ANSI_V),
+                keyDown: false
+              ) else {
+            return false
+        }
+        keyDown.flags = .maskCommand
+        keyUp.flags = .maskCommand
+        keyDown.post(tap: .cghidEventTap)
+        keyUp.post(tap: .cghidEventTap)
+        return true
+    }
+
+    func copyFocusedSelectionToClipboard() -> Bool {
+        guard let source = CGEventSource(stateID: .hidSystemState),
+              let keyDown = CGEvent(
+                keyboardEventSource: source,
+                virtualKey: CGKeyCode(kVK_ANSI_C),
+                keyDown: true
+              ),
+              let keyUp = CGEvent(
+                keyboardEventSource: source,
+                virtualKey: CGKeyCode(kVK_ANSI_C),
                 keyDown: false
               ) else {
             return false

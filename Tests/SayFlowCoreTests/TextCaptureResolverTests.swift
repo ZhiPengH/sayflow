@@ -53,6 +53,67 @@ enum TextCaptureResolverTests {
         try expectEqual(changed, .captured("Copied target"))
     }
 
+    static func runtimeAccessibilityMissRequestsCopyShortcutFallback() throws {
+        try expectEqual(
+            ClipboardShortcutCapturePolicy.action(
+                sampleText: nil,
+                requiresAccessibility: true,
+                captureDecision: .needsClipboardCopyPrompt
+            ),
+            .tryCopyShortcut
+        )
+    }
+
+    static func sampleTextMissDoesNotRequestCopyShortcutFallback() throws {
+        try expectEqual(
+            ClipboardShortcutCapturePolicy.action(
+                sampleText: "Test run text",
+                requiresAccessibility: false,
+                captureDecision: .needsClipboardCopyPrompt
+            ),
+            .showNoSelectedTextPrompt
+        )
+    }
+
+    static func weChatHotZoneAccessibilityMissAfterDragRequestsCopyFallback() throws {
+        try expectEqual(
+            SelectionHotZoneClipboardFallbackPolicy.action(
+                accessibilityTrusted: true,
+                selectedText: nil,
+                frontmostBundleIdentifier: "com.tencent.xinWeChat",
+                ownBundleIdentifier: "com.zhixing.sayflow",
+                mouseDragDistance: 24
+            ),
+            .tryCopyShortcut
+        )
+    }
+
+    static func weChatHotZoneFallbackRequiresDragGesture() throws {
+        try expectEqual(
+            SelectionHotZoneClipboardFallbackPolicy.action(
+                accessibilityTrusted: true,
+                selectedText: nil,
+                frontmostBundleIdentifier: "com.tencent.xinWeChat",
+                ownBundleIdentifier: "com.zhixing.sayflow",
+                mouseDragDistance: 2
+            ),
+            .showNoSelectedTextPrompt
+        )
+    }
+
+    static func nonWeChatHotZoneMissDoesNotProbeClipboard() throws {
+        try expectEqual(
+            SelectionHotZoneClipboardFallbackPolicy.action(
+                accessibilityTrusted: true,
+                selectedText: nil,
+                frontmostBundleIdentifier: "com.apple.TextEdit",
+                ownBundleIdentifier: "com.zhixing.sayflow",
+                mouseDragDistance: 24
+            ),
+            .showNoSelectedTextPrompt
+        )
+    }
+
     static func sampleTextBypassesRuntimeCapture() throws {
         var resolver = TextCaptureResolver()
 

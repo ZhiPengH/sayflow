@@ -22,11 +22,11 @@ grep -q 'fail "SayFlow app is not running' Scripts/manual_acceptance_probe.sh
 ! grep -q 'https://api.mimo.mi.com/v1' Scripts/configure_debug_provider.sh
 grep -q 'APP_NAME="${APP_NAME:-SayFlow}"' Scripts/build_app.sh
 grep -q 'DIST="${DIST:-$ROOT/dist}"' Scripts/build_app.sh
-grep -q 'VERSION="${VERSION:-1.3.0 Beta}"' Scripts/build_app.sh
-grep -q 'VERSION="${VERSION:-1.3.0 Beta}"' Scripts/package_dmg.sh
-grep -q 'VERSION="${VERSION:-1.3.0 Beta}"' Scripts/verify_package.sh
+grep -q 'VERSION="${VERSION:-1.3.1}"' Scripts/build_app.sh
+grep -q 'VERSION="${VERSION:-1.3.1}"' Scripts/package_dmg.sh
+grep -q 'VERSION="${VERSION:-1.3.1}"' Scripts/verify_package.sh
 grep -q 'ALLOW_ADHOC_SIGNATURE="${ALLOW_ADHOC_SIGNATURE:-0}"' Scripts/verify_package.sh
-grep -q 'Version 1.3.0 Beta' Sources/SayFlowCore/Localization.swift
+grep -q 'Version 1.3.1' Sources/SayFlowCore/Localization.swift
 test -f assets/AppIcon.iconset/icon_512x512@2x.png
 test -f assets/SayFlow.icns
 test -f assets/MenuBarIcon.pdf

@@ -21,7 +21,10 @@ final class SayFlowAppDelegate: NSObject, NSApplicationDelegate {
     private var settingsWindow: SettingsWindowController?
     private var currentOriginalText = ""
     private var textCaptureResolver = TextCaptureResolver()
+    private var selectionMouseDownMonitor: Any?
     private var selectionMouseUpMonitor: Any?
+    private var selectionMouseDownLocation: CGPoint?
+    private var selectionClipboardFallbackToken = 0
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         migrateLegacyAppSupportIfNeeded()
@@ -343,11 +346,42 @@ final class SayFlowAppDelegate: NSObject, NSApplicationDelegate {
             clipboardText: requiresAccessibility ? clipboard.currentString() : nil,
             clipboardChangeCount: clipboard.changeCount
         )
+        switch captureDecision {
+        case .captured(let selectedText):
+            checkGrammar(for: selectedText)
+        case .needsClipboardCopyPrompt:
+            let fallbackAction = ClipboardShortcutCapturePolicy.action(
+                sampleText: sampleText,
+                requiresAccessibility: requiresAccessibility,
+                captureDecision: captureDecision
+            )
+            guard fallbackAction == .tryCopyShortcut,
+                  accessibility.copyFocusedSelectionToClipboard() else {
+                showAlert(L10n.tr(.noSelectedTextTitle), L10n.tr(.noSelectedTextMessage))
+                return
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.16) { [weak self] in
+                self?.checkGrammarFromClipboardFallback()
+            }
+            return
+        }
+    }
+
+    private func checkGrammarFromClipboardFallback() {
+        let captureDecision = textCaptureResolver.resolve(
+            sampleText: nil,
+            accessibilityText: nil,
+            clipboardText: clipboard.currentString(),
+            clipboardChangeCount: clipboard.changeCount
+        )
         guard case .captured(let selectedText) = captureDecision else {
             showAlert(L10n.tr(.noSelectedTextTitle), L10n.tr(.noSelectedTextMessage))
             return
         }
+        checkGrammar(for: selectedText)
+    }
 
+    private func checkGrammar(for selectedText: String) {
         let correctionMode = CorrectionModePolicy.mode(for: selectedText)
         currentOriginalText = selectedText
         resultPanel.showLoading(originalText: selectedText, settings: settings)
@@ -446,32 +480,89 @@ final class SayFlowAppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func startSelectionHotZoneMonitor() {
-        guard selectionMouseUpMonitor == nil else {
+        guard selectionMouseDownMonitor == nil, selectionMouseUpMonitor == nil else {
             return
+        }
+        selectionMouseDownMonitor = NSEvent.addGlobalMonitorForEvents(matching: .leftMouseDown) { [weak self] _ in
+            self?.selectionMouseDownLocation = NSEvent.mouseLocation
         }
         selectionMouseUpMonitor = NSEvent.addGlobalMonitorForEvents(matching: .leftMouseUp) { [weak self] _ in
             guard let self else {
                 return
             }
             let mouse = NSEvent.mouseLocation
+            let mouseDragDistance = self.mouseDragDistance(to: mouse)
             guard !self.selectionHotZone.contains(point: mouse) else {
                 return
             }
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) {
-                self.updateSelectionHotZone(near: mouse)
+                self.updateSelectionHotZone(near: mouse, mouseDragDistance: mouseDragDistance)
             }
         }
     }
 
-    private func updateSelectionHotZone(near mouse: CGPoint) {
+    private func updateSelectionHotZone(near mouse: CGPoint, mouseDragDistance: Double?) {
+        selectionClipboardFallbackToken += 1
+        let fallbackToken = selectionClipboardFallbackToken
         let trusted = accessibility.isTrusted(prompt: false)
         let selectedText = trusted ? accessibility.selectedText() : nil
         let ownBundleIdentifier = Bundle.main.bundleIdentifier ?? "com.zhixing.sayflow"
+        let frontmostBundleIdentifier = NSWorkspace.shared.frontmostApplication?.bundleIdentifier
         let decision = SelectionHotZonePolicy.decision(
             accessibilityTrusted: trusted,
             selectedText: selectedText,
-            frontmostBundleIdentifier: NSWorkspace.shared.frontmostApplication?.bundleIdentifier,
+            frontmostBundleIdentifier: frontmostBundleIdentifier,
             ownBundleIdentifier: ownBundleIdentifier
+        )
+        switch decision {
+        case .show(let text):
+            selectionHotZone.show(near: mouse, selectedText: text)
+        case .hide:
+            let fallbackAction = SelectionHotZoneClipboardFallbackPolicy.action(
+                accessibilityTrusted: trusted,
+                selectedText: selectedText,
+                frontmostBundleIdentifier: frontmostBundleIdentifier,
+                ownBundleIdentifier: ownBundleIdentifier,
+                mouseDragDistance: mouseDragDistance
+            )
+            guard fallbackAction == .tryCopyShortcut else {
+                selectionHotZone.hide()
+                return
+            }
+            let previousClipboardChangeCount = clipboard.changeCount
+            guard accessibility.copyFocusedSelectionToClipboard() else {
+                selectionHotZone.hide()
+                return
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.16) { [weak self] in
+                self?.updateSelectionHotZoneFromClipboardFallback(
+                    near: mouse,
+                    previousClipboardChangeCount: previousClipboardChangeCount,
+                    frontmostBundleIdentifier: frontmostBundleIdentifier,
+                    fallbackToken: fallbackToken
+                )
+            }
+        }
+    }
+
+    private func updateSelectionHotZoneFromClipboardFallback(
+        near mouse: CGPoint,
+        previousClipboardChangeCount: Int,
+        frontmostBundleIdentifier: String?,
+        fallbackToken: Int
+    ) {
+        guard fallbackToken == selectionClipboardFallbackToken else {
+            return
+        }
+        guard clipboard.changeCount != previousClipboardChangeCount else {
+            selectionHotZone.hide()
+            return
+        }
+        let decision = SelectionHotZonePolicy.decision(
+            accessibilityTrusted: accessibility.isTrusted(prompt: false),
+            selectedText: clipboard.currentString(),
+            frontmostBundleIdentifier: frontmostBundleIdentifier,
+            ownBundleIdentifier: Bundle.main.bundleIdentifier ?? "com.zhixing.sayflow"
         )
         switch decision {
         case .show(let text):
@@ -479,6 +570,15 @@ final class SayFlowAppDelegate: NSObject, NSApplicationDelegate {
         case .hide:
             selectionHotZone.hide()
         }
+    }
+
+    private func mouseDragDistance(to mouse: CGPoint) -> Double? {
+        guard let down = selectionMouseDownLocation else {
+            return nil
+        }
+        let x = Double(mouse.x - down.x)
+        let y = Double(mouse.y - down.y)
+        return (x * x + y * y).squareRoot()
     }
 
     private func showUpdateAvailable(version: String, url: URL?) {

@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-VERSION="${VERSION:-1.3.0 Beta}"
+VERSION="${VERSION:-1.3.1}"
 DIST="$ROOT/dist"
 APP="$DIST/SayFlow.app"
 DMG="$DIST/SayFlow-$VERSION.dmg"
