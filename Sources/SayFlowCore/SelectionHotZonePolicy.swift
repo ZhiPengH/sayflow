@@ -81,6 +81,13 @@ private enum SelectionHotZoneContentPolicy {
     }
 
     private static func isChineseIntroFollowedByEnglishSentence(_ text: String) -> Bool {
+        if isNewlineSeparatedChineseIntroFollowedByEnglishSentence(text) {
+            return true
+        }
+        return isInlineChineseIntroFollowedByEnglishSentence(text)
+    }
+
+    private static func isNewlineSeparatedChineseIntroFollowedByEnglishSentence(_ text: String) -> Bool {
         let paragraphs = text
             .components(separatedBy: .newlines)
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
@@ -89,19 +96,42 @@ private enum SelectionHotZoneContentPolicy {
               isPureChineseParagraph(paragraphs[0]) else {
             return false
         }
-        return paragraphs.dropFirst().contains { paragraph in
-            guard let firstScalar = firstContentScalar(in: paragraph),
-                  !isChinese(firstScalar),
-                  containsASCIILetter(paragraph) else {
-                return false
-            }
-            return !looksLikeURL(paragraph)
-                && !looksLikeSecret(paragraph)
-                && !looksLikeEmailAddress(paragraph)
-                && !looksLikeFilePath(paragraph)
-                && !looksLikeStructuredData(paragraph)
-                && !looksLikeCodeSnippet(paragraph)
+        return paragraphs.dropFirst().contains { isEnglishGrammarCandidateSegment($0) }
+    }
+
+    private static func isInlineChineseIntroFollowedByEnglishSentence(_ text: String) -> Bool {
+        guard let englishStart = text.unicodeScalars.firstIndex(where: { isASCIILetter($0) }) else {
+            return false
         }
+        let intro = String(text.unicodeScalars[..<englishStart]).trimmingCharacters(in: .whitespacesAndNewlines)
+        let candidate = String(text.unicodeScalars[englishStart...]).trimmingCharacters(in: .whitespacesAndNewlines)
+        guard isPureChineseParagraph(intro),
+              endsWithSentenceTerminator(intro) else {
+            return false
+        }
+        return isEnglishGrammarCandidateSegment(candidate)
+    }
+
+    private static func isEnglishGrammarCandidateSegment(_ text: String) -> Bool {
+        guard let firstScalar = firstContentScalar(in: text),
+              !isChinese(firstScalar),
+              containsASCIILetter(text) else {
+            return false
+        }
+        return !looksLikeURL(text)
+            && !looksLikeSecret(text)
+            && !looksLikeEmailAddress(text)
+            && !looksLikeFilePath(text)
+            && !looksLikeStructuredData(text)
+            && !looksLikeCodeSnippet(text)
+    }
+
+    private static func endsWithSentenceTerminator(_ text: String) -> Bool {
+        let ignored = CharacterSet.whitespacesAndNewlines.union(CharacterSet(charactersIn: "\"'”’》）」）]"))
+        guard let finalScalar = text.unicodeScalars.reversed().first(where: { !ignored.contains($0) }) else {
+            return false
+        }
+        return CharacterSet(charactersIn: "。！？!?").contains(finalScalar)
     }
 
     private static func isPureChineseParagraph(_ text: String) -> Bool {
