@@ -71,6 +71,8 @@ struct SayFlowCoreTestRunner {
             TestCase(name: "Diff pill locator ordered ranges", run: DiffPillLocatorTests.locatesChangedSpansInCorrectionOrder),
             TestCase(name: "Diff pill locator repeated text", run: DiffPillLocatorTests.repeatedReplacementTextUsesNextOccurrence),
             TestCase(name: "Diff pill locator skips missing text", run: DiffPillLocatorTests.skipsMissingOrEmptyReplacementText),
+            TestCase(name: "Result auto copy corrected text", run: ResultPresentationPolicyTests.completedCorrectionAutoCopiesCorrectedText),
+            TestCase(name: "Result insert preserves original", run: ResultPresentationPolicyTests.insertReplacementKeepsOriginalBeforeCorrectedWithoutSeparator),
             TestCase(name: "Default app settings", run: AppSettingsTests.defaultSettingsMatchProductDefaults),
             TestCase(name: "Settings store persistence", run: AppSettingsTests.settingsStoreCreatesAndReloadsDefaults),
             TestCase(name: "No plaintext API keys in settings", run: AppSettingsTests.settingsStoreNeverSerializesPlaintextAPIKeys),

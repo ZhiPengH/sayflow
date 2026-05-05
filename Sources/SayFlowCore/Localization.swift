@@ -77,6 +77,9 @@ public enum L10nKey: String, CaseIterable {
     case writeTooltip
     case copyFallback
     case copyTooltip
+    case insertFallback
+    case insertTooltip
+    case insertFailed
     case accept
     case acceptCopiedFallback
     case goodToKnow
@@ -185,7 +188,7 @@ public enum L10n {
             .invalidObsidianPathRelative: "Use an absolute Markdown file path.",
             .invalidObsidianPathNotMarkdown: "The Obsidian target must be a .md file.",
             .aboutName: "SayFlow",
-            .aboutVersion: "Version 1.2.8",
+            .aboutVersion: "Version 1.2.9",
             .aboutReleases: "Releases: https://github.com/ZhiPengH/sayflow-release/releases",
             .aboutShaNote: "Each DMG build script prints SHA-256 for verification.",
             .systemTimeZone: "System",
@@ -197,6 +200,9 @@ public enum L10n {
             .writeTooltip: "Write to Obsidian",
             .copyFallback: "Copy",
             .copyTooltip: "Copy",
+            .insertFallback: "Insert",
+            .insertTooltip: "Insert",
+            .insertFailed: "Could not insert into the original app. The corrected text is already on the clipboard.",
             .accept: "Accept",
             .acceptCopiedFallback: "Could not replace the original selection. The corrected text was copied to the clipboard.",
             .goodToKnow: "Good to know",
@@ -298,7 +304,7 @@ public enum L10n {
             .invalidObsidianPathRelative: "请使用 Markdown 文件的绝对路径。",
             .invalidObsidianPathNotMarkdown: "Obsidian 目标文件必须是 .md 文件。",
             .aboutName: "言顺",
-            .aboutVersion: "版本 1.2.8",
+            .aboutVersion: "版本 1.2.9",
             .aboutReleases: "Releases: https://github.com/ZhiPengH/sayflow-release/releases",
             .aboutShaNote: "每次 DMG 构建脚本都会打印 SHA-256 校验值。",
             .systemTimeZone: "跟随系统",
@@ -310,6 +316,9 @@ public enum L10n {
             .writeTooltip: "快速写入 Obsidian",
             .copyFallback: "复制",
             .copyTooltip: "复制",
+            .insertFallback: "插入",
+            .insertTooltip: "插入",
+            .insertFailed: "无法插入到原 App，修改后的句子已在剪贴板中。",
             .accept: "Accept",
             .acceptCopiedFallback: "无法替换原文，已将修改后的句子复制到剪贴板。",
             .goodToKnow: "Good to know",

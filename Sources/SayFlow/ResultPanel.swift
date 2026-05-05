@@ -10,6 +10,7 @@ final class ResultPanelController: NSObject {
     private var escapeMonitor: Any?
 
     var onCopy: ((String) -> Void)?
+    var onInsert: ((String, String) -> Bool)?
     var onAccept: ((String) -> Bool)?
     var onWrite: ((GrammarCorrection) throws -> Void)?
     var onRetry: (() -> Void)?
@@ -29,7 +30,16 @@ final class ResultPanelController: NSObject {
         panel.hidesOnDeactivate = false
         panel.isReleasedWhenClosed = false
         contentView.onClose = { [weak self] in self?.close() }
-        contentView.onCopy = { [weak self] text in self?.onCopy?(text) }
+        contentView.onInsert = { [weak self] original, corrected in
+            guard let self else {
+                return
+            }
+            if self.onInsert?(original, corrected) ?? false {
+                self.contentView.flashInsertSuccess()
+            } else {
+                self.contentView.showError(L10n.tr(.insertFailed), raw: nil, allowsRetry: false)
+            }
+        }
         contentView.onAccept = { [weak self] text in
             guard let self else {
                 return
@@ -141,7 +151,7 @@ final class ResultPanelView: NSView, NSTextViewDelegate {
     private let goodCard = NSBox()
     private let goodLabel = NSTextField(labelWithString: "")
     private let writeButton = NSButton(title: "", target: nil, action: nil)
-    private let copyButton = NSButton(title: "", target: nil, action: nil)
+    private let insertButton = NSButton(title: "", target: nil, action: nil)
     private let acceptButton = NSButton(title: "✓ \(L10n.tr(.accept))", target: nil, action: nil)
 
     private var correction: GrammarCorrection?
@@ -150,7 +160,7 @@ final class ResultPanelView: NSView, NSTextViewDelegate {
     private var correctedHeightConstraint: NSLayoutConstraint?
 
     var onClose: (() -> Void)?
-    var onCopy: ((String) -> Void)?
+    var onInsert: ((String, String) -> Void)?
     var onAccept: ((String) -> Void)?
     var onWrite: ((GrammarCorrection) -> Void)?
     var onRetry: (() -> Void)?
@@ -248,6 +258,10 @@ final class ResultPanelView: NSView, NSTextViewDelegate {
         flash(button: writeButton, replacementTitle: "✓")
     }
 
+    func flashInsertSuccess() {
+        flash(button: insertButton, replacementTitle: "✓")
+    }
+
     func flashAcceptSuccess() {
         flash(button: acceptButton, replacementTitle: "✓")
     }
@@ -300,12 +314,12 @@ final class ResultPanelView: NSView, NSTextViewDelegate {
         titleRow.addArrangedSubview(title)
         titleRow.addArrangedSubview(NSView())
         configureIconButton(writeButton, symbol: "square.and.pencil", fallback: L10n.tr(.writeFallback), tooltip: L10n.tr(.writeTooltip), action: #selector(writeTapped))
-        configureIconButton(copyButton, symbol: "doc.on.doc", fallback: L10n.tr(.copyFallback), tooltip: L10n.tr(.copyTooltip), action: #selector(copyTapped))
+        configureIconButton(insertButton, symbol: "text.badge.plus", fallback: L10n.tr(.insertFallback), tooltip: L10n.tr(.insertTooltip), action: #selector(insertTapped))
         acceptButton.bezelStyle = .rounded
         acceptButton.target = self
         acceptButton.action = #selector(acceptTapped)
         titleRow.addArrangedSubview(writeButton)
-        titleRow.addArrangedSubview(copyButton)
+        titleRow.addArrangedSubview(insertButton)
         titleRow.addArrangedSubview(acceptButton)
         root.addArrangedSubview(titleRow)
 
@@ -438,7 +452,11 @@ final class ResultPanelView: NSView, NSTextViewDelegate {
     private func configureIconButton(_ button: NSButton, symbol: String, fallback: String, tooltip: String, action: Selector) {
         button.title = ""
         if #available(macOS 11.0, *) {
-            button.image = NSImage(systemSymbolName: symbol, accessibilityDescription: tooltip)
+            if let image = NSImage(systemSymbolName: symbol, accessibilityDescription: tooltip) {
+                button.image = image
+            } else {
+                button.title = fallback
+            }
         } else {
             button.title = fallback
         }
@@ -491,12 +509,11 @@ final class ResultPanelView: NSView, NSTextViewDelegate {
         rawResponseView.isHidden = rawResponseDisclosure.visibleRawResponse == nil
     }
 
-    @objc private func copyTapped() {
+    @objc private func insertTapped() {
         guard let correction else {
             return
         }
-        onCopy?(correction.corrected)
-        flash(button: copyButton, replacementTitle: "✓")
+        onInsert?(originalText, correction.corrected)
     }
 
     @objc private func acceptTapped() {

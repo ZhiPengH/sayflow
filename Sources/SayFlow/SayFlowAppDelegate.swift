@@ -221,6 +221,16 @@ final class SayFlowAppDelegate: NSObject, NSApplicationDelegate {
         resultPanel.onCopy = { [weak self] text in
             self?.clipboard.copy(text)
         }
+        resultPanel.onInsert = { [weak self] originalText, correctedText in
+            guard let self else {
+                return false
+            }
+            let replacement = ResultPresentationPolicy.insertReplacement(
+                originalText: originalText,
+                correctedText: correctedText
+            )
+            return self.accessibility.replaceSelection(with: replacement)
+        }
         resultPanel.onAccept = { [weak self] text in
             self?.accessibility.replaceSelection(with: text) ?? false
         }
@@ -355,6 +365,9 @@ final class SayFlowAppDelegate: NSObject, NSApplicationDelegate {
                 onComplete: { [weak self] snapshot in
                     guard let self else { return }
                     self.resultPanel.update(snapshot: snapshot, originalText: selectedText, settings: self.settings)
+                    if let text = ResultPresentationPolicy.autoClipboardText(for: snapshot) {
+                        self.clipboard.copy(text)
+                    }
                 }
             )
         } catch {

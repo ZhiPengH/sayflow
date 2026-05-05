@@ -12,6 +12,8 @@ enum LocalizationTests {
         try expectEqual(L10n.tr(.settingsTitle, language: .chinese), "言顺 设置")
         try expectEqual(L10n.tr(.copyTooltip, language: .english), "Copy")
         try expectEqual(L10n.tr(.copyTooltip, language: .chinese), "复制")
+        try expectEqual(L10n.tr(.insertTooltip, language: .english), "Insert")
+        try expectEqual(L10n.tr(.insertTooltip, language: .chinese), "插入")
     }
 
     static func everyKeyHasBothLanguages() throws {
