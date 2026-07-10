@@ -237,6 +237,30 @@ enum ProviderTests {
         try expectEqual(messages[1], ["role": "user", "content": "Accessibility selected-text capture"])
     }
 
+    static func deepSeekRequestsDisableThinkingForFastInteractiveResults() throws {
+        let config = ProviderConfiguration(
+            id: "deepSeek",
+            kind: .deepSeek,
+            displayName: "DeepSeek",
+            apiKeyReference: "env://SAYFLOW_DEEPSEEK_API_KEY",
+            apiKeyPlaintextForTesting: "sk-test",
+            baseURL: "https://api.deepseek.com/chat/completions",
+            model: "deepseek-v4-pro",
+            temperature: 0.4,
+            isActive: true
+        )
+
+        let request = try OpenAIRequestFactory.makeRequest(
+            configuration: config,
+            prompt: .defaultGrammarCorrection,
+            selectedText: "accessibility"
+        )
+
+        let body = try unwrap(request.httpBody)
+        let json = try unwrap(JSONSerialization.jsonObject(with: body) as? [String: Any])
+        try expectEqual(json["thinking"] as? [String: String], ["type": "disabled"])
+    }
+
     static func requestFactoryAcceptsResolvedKeyWithoutPersistingPlaintext() throws {
         let config = ProviderConfiguration(
             id: "openAI",

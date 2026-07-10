@@ -4,6 +4,17 @@ This file follows the requested name, `CHANGLOG.md`. The missing "E" has the sme
 
 这个文件按要求命名为 `CHANGLOG.md`。少掉的那个 "E"，倒有点老项目抽屉里的味道：名字一旦定下，就把内容写扎实。
 
+## 2026-07-11
+
+### Release v1.3.2
+
+中文：
+
+- 将提供商检测改为非流式、单 token 的 `ping` 请求，不再等待完整批改结果。
+- DeepSeek 请求显式关闭默认思考模式，缩短翻译与批改的可见响应等待。
+- 打包脚本改用解析后的证书 SHA-1 指纹签名，避免同名证书导致签名歧义。
+- 生成并验证 `dist/SayFlow-1.3.2.dmg`，SHA-256：`46d534274149256cf7f06c84c5753c0f879d13df415f9565ee885cf7651518a4`。
+
 ## 2026-05-05
 
 Today was one of those long workshop days. Not a day of one heroic rewrite, but a day of small hinges, tightened screws, and a tool becoming more comfortable in the hand.

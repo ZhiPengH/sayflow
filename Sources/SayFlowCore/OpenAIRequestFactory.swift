@@ -42,7 +42,7 @@ public enum OpenAIRequestFactory {
         )
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 
-        let body: [String: Any]
+        var body: [String: Any]
         switch endpoint.kind {
         case .chatCompletions:
             body = chatCompletionsBody(
@@ -62,6 +62,9 @@ public enum OpenAIRequestFactory {
                     "format": ["type": "json_object"]
                 ]
             ]
+        }
+        if configuration.kind == .deepSeek, endpoint.kind == .chatCompletions {
+            body["thinking"] = ["type": "disabled"]
         }
         request.httpBody = try JSONSerialization.data(withJSONObject: body, options: [.sortedKeys])
         return request

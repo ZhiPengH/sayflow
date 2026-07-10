@@ -4,7 +4,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 APP_NAME="${APP_NAME:-SayFlow}"
 PRODUCT_NAME="${PRODUCT_NAME:-SayFlow}"
-VERSION="${VERSION:-1.3.1}"
+VERSION="${VERSION:-1.3.2}"
 IDENTIFIER="${IDENTIFIER:-com.zhixing.sayflow}"
 DIST="${DIST:-$ROOT/dist}"
 CODESIGN_IDENTITY="${CODESIGN_IDENTITY:-SayFlow Local Development}"
@@ -102,13 +102,16 @@ cat > "$APP/Contents/Info.plist" <<PLIST
 </plist>
 PLIST
 
-if [[ "$CODESIGN_IDENTITY" != "-" ]] &&
-   ! security find-identity -v -p codesigning 2>/dev/null | grep -F "\"$CODESIGN_IDENTITY\"" >/dev/null; then
-  cat >&2 <<EOF
+if [[ "$CODESIGN_IDENTITY" != "-" ]]; then
+  RESOLVED_CODESIGN_IDENTITY="$(security find-identity -v -p codesigning 2>/dev/null | awk -v identity="$CODESIGN_IDENTITY" '$2 == identity || index($0, "\"" identity "\"") > 0 { print $2; exit }')"
+  if [[ -z "$RESOLVED_CODESIGN_IDENTITY" ]]; then
+    cat >&2 <<EOF
 Missing code signing identity: $CODESIGN_IDENTITY
 Run Scripts/ensure_codesign_identity.sh, or set CODESIGN_IDENTITY to another stable code signing identity.
 EOF
-  exit 1
+    exit 1
+  fi
+  CODESIGN_IDENTITY="$RESOLVED_CODESIGN_IDENTITY"
 fi
 
 codesign --force --deep --sign "$CODESIGN_IDENTITY" "$APP" >/dev/null
