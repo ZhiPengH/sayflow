@@ -4,6 +4,18 @@ This file follows the requested name, `CHANGLOG.md`. The missing "E" has the sme
 
 这个文件按要求命名为 `CHANGLOG.md`。少掉的那个 "E"，倒有点老项目抽屉里的味道：名字一旦定下，就把内容写扎实。
 
+## 2026-08-03
+
+### Release v1.3.3
+
+中文：
+
+- 支持 DeepSeek 最新的 `deepseek-v4-flash` 模型，并采用官方 OpenAI 兼容配置。
+- 将 DeepSeek 默认 Base URL 更新为 `https://api.deepseek.com`。
+- 自动迁移旧默认地址 `https://api.deepseek.com/v1`，同时保留用户自定义代理地址。
+- 增加 DeepSeek 默认配置、旧配置迁移和根 URL 端点生成的回归测试。
+- 生成并验证 `dist/SayFlow-1.3.3.dmg`，SHA-256：`b12ea49325a3869eef5536775e93ba8f8f26d2246891badce3cb8859741bd1b7`。
+
 ## 2026-07-11
 
 ### Release v1.3.2
