@@ -261,6 +261,10 @@ public struct AppSettings: Codable, Equatable {
 
 public enum ProviderLegacyDefaultMigrator {
     public static func migratedBaseURL(kind: ProviderKind, existingBaseURL: String, currentDefaultBaseURL: String) -> String {
+        if kind == .deepSeek,
+           existingBaseURL.trimmingCharacters(in: .whitespacesAndNewlines) == "https://api.deepseek.com/v1" {
+            return currentDefaultBaseURL
+        }
         if kind == .mimo,
            existingBaseURL.trimmingCharacters(in: .whitespacesAndNewlines) == "https://api.mimo.mi.com/v1" {
             return currentDefaultBaseURL

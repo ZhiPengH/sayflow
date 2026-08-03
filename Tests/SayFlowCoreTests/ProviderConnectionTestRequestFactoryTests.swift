@@ -38,7 +38,7 @@ enum ProviderConnectionTestRequestFactoryTests {
             kind: .deepSeek,
             displayName: "DeepSeek",
             apiKeyReference: "env://SAYFLOW_DEEPSEEK_API_KEY",
-            baseURL: "https://api.deepseek.com/chat/completions",
+            baseURL: "https://api.deepseek.com",
             model: "deepseek-v4-pro",
             temperature: 0.4,
             isActive: true
@@ -51,6 +51,7 @@ enum ProviderConnectionTestRequestFactoryTests {
             prompt: PromptTemplate.defaultGrammarCorrection
         )
 
+        try expectEqual(request.url, URL(string: "https://api.deepseek.com/chat/completions"))
         let body = try unwrap(request.httpBody)
         let json = try unwrap(JSONSerialization.jsonObject(with: body) as? [String: Any])
         try expectEqual(json["stream"] as? Bool, false)

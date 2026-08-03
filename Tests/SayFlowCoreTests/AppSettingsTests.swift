@@ -252,6 +252,31 @@ enum AppSettingsTests {
         )
     }
 
+    static func settingsStoreMigratesLegacyDeepSeekDefaultBaseURLWithoutOverwritingCustomURL() throws {
+        let directory = try TemporaryDirectory()
+        let store = AppSettingsStore(applicationSupportDirectory: directory.url)
+        var settings = AppSettings.defaults()
+        let deepSeekIndex = try unwrap(settings.providers.firstIndex(where: { $0.kind == .deepSeek }))
+        settings.providers[deepSeekIndex].baseURL = "https://api.deepseek.com/v1"
+
+        try store.save(settings)
+        let migrated = try store.load()
+
+        try expectEqual(
+            migrated.providers.first(where: { $0.kind == .deepSeek })?.baseURL,
+            "https://api.deepseek.com"
+        )
+
+        settings.providers[deepSeekIndex].baseURL = "https://deepseek-proxy.example.com/v1"
+        try store.save(settings)
+        let custom = try store.load()
+
+        try expectEqual(
+            custom.providers.first(where: { $0.kind == .deepSeek })?.baseURL,
+            "https://deepseek-proxy.example.com/v1"
+        )
+    }
+
     static func settingsStoreMigratesLegacyMiniMaxDefaultsWithoutOverwritingCustomValues() throws {
         let directory = try TemporaryDirectory()
         let store = AppSettingsStore(applicationSupportDirectory: directory.url)

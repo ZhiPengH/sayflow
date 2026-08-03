@@ -65,7 +65,7 @@ public enum ProviderCatalog {
             kind: .deepSeek,
             displayName: "DeepSeek",
             defaultModel: "deepseek-v4-flash",
-            defaultBaseURL: "https://api.deepseek.com/v1"
+            defaultBaseURL: "https://api.deepseek.com"
         ),
         ProviderDefinition(
             kind: .mimo,

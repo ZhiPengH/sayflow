@@ -91,6 +91,7 @@ struct SayFlowCoreTestRunner {
             TestCase(name: "Settings restore missing default providers", run: AppSettingsTests.settingsStoreRestoresMissingDefaultProvidersOnLoad),
             TestCase(name: "Settings migrate provider secret refs", run: AppSettingsTests.settingsStoreMigratesProviderSecretReferencesToLocalEnvironment),
             TestCase(name: "Settings migrate legacy MiMo default URL", run: AppSettingsTests.settingsStoreMigratesLegacyMimoDefaultBaseURLWithoutOverwritingCustomURL),
+            TestCase(name: "Settings migrate legacy DeepSeek default URL", run: AppSettingsTests.settingsStoreMigratesLegacyDeepSeekDefaultBaseURLWithoutOverwritingCustomURL),
             TestCase(name: "Settings migrate legacy MiniMax defaults", run: AppSettingsTests.settingsStoreMigratesLegacyMiniMaxDefaultsWithoutOverwritingCustomValues),
             TestCase(name: "General settings clamp external network timeout", run: AppSettingsTests.generalSettingsClampExternallyEditedNetworkTimeout),
             TestCase(name: "General settings default missing accessibility onboarding flag for existing settings", run: AppSettingsTests.generalSettingsDefaultMissingAccessibilityOnboardingFlagToTrueForExistingSettings),

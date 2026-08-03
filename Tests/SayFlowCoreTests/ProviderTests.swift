@@ -17,6 +17,7 @@ enum ProviderTests {
         ])
         try expectEqual(providers.first(where: { $0.kind == .openAI })?.defaultModel, "gpt-4o-mini")
         try expectEqual(providers.first(where: { $0.kind == .deepSeek })?.defaultModel, "deepseek-v4-flash")
+        try expectEqual(providers.first(where: { $0.kind == .deepSeek })?.defaultBaseURL, "https://api.deepseek.com")
         try expectEqual(providers.first(where: { $0.kind == .mimo })?.defaultModel, "mimo-v2.5")
         try expectEqual(providers.first(where: { $0.kind == .mimo })?.defaultBaseURL, "https://api.mimo-v2.com/v1")
         try expectEqual(providers.first(where: { $0.kind == .kimi })?.defaultModel, "kimi-latest")
