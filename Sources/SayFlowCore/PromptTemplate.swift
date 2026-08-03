@@ -300,6 +300,7 @@ public final class PromptStore {
             try createDefaultFile()
             return .defaultGrammarCorrection
         }
+        try PrivateFilePermissions.restrictToOwner(fileURL)
         let data = try Data(contentsOf: fileURL)
         let template = try decoder.decode(PromptTemplate.self, from: data)
         if case .invalid(let message) = PromptTemplateValidator.validate(template) {
@@ -315,6 +316,7 @@ public final class PromptStore {
         try FileManager.default.createDirectory(at: applicationSupportDirectory, withIntermediateDirectories: true)
         let data = try encoder.encode(template)
         try data.write(to: fileURL, options: .atomic)
+        try PrivateFilePermissions.restrictToOwner(fileURL)
     }
 
     public func resetToDefault() throws -> PromptTemplate {
@@ -327,6 +329,7 @@ public final class PromptStore {
         try FileManager.default.createDirectory(at: applicationSupportDirectory, withIntermediateDirectories: true)
         let data = try encoder.encode(PromptTemplate.defaultGrammarCorrection)
         try data.write(to: fileURL, options: .atomic)
+        try PrivateFilePermissions.restrictToOwner(fileURL)
     }
 
     public struct ValidationError: Error, CustomStringConvertible, Equatable {

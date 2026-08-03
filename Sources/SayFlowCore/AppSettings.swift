@@ -305,6 +305,7 @@ public final class AppSettingsStore {
             try save(defaults)
             return defaults
         }
+        try PrivateFilePermissions.restrictToOwner(fileURL)
         let data = try Data(contentsOf: fileURL)
         return try decoder.decode(AppSettings.self, from: data)
     }
@@ -313,5 +314,6 @@ public final class AppSettingsStore {
         try FileManager.default.createDirectory(at: applicationSupportDirectory, withIntermediateDirectories: true)
         let data = try encoder.encode(settings)
         try data.write(to: fileURL, options: .atomic)
+        try PrivateFilePermissions.restrictToOwner(fileURL)
     }
 }

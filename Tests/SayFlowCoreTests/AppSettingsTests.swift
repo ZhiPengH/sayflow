@@ -36,6 +36,20 @@ enum AppSettingsTests {
         try expectEqual(try store.load(), changed)
     }
 
+    static func settingsStoreRestrictsExistingFilePermissionsToOwner() throws {
+        let directory = try TemporaryDirectory()
+        let store = AppSettingsStore(applicationSupportDirectory: directory.url)
+        let settings = AppSettings.defaults()
+        try store.save(settings)
+        try FileManager.default.setAttributes([.posixPermissions: 0o644], ofItemAtPath: store.fileURL.path)
+
+        _ = try store.load()
+
+        let attributes = try FileManager.default.attributesOfItem(atPath: store.fileURL.path)
+        let permissions = try unwrap(attributes[.posixPermissions] as? NSNumber).intValue & 0o777
+        try expectEqual(permissions, 0o600)
+    }
+
     static func settingsStoreNeverSerializesPlaintextAPIKeys() throws {
         let directory = try TemporaryDirectory()
         let store = AppSettingsStore(applicationSupportDirectory: directory.url)
