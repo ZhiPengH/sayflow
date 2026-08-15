@@ -79,6 +79,7 @@ grep -q 'CODESIGN_IDENTITY="${CODESIGN_IDENTITY:-SayFlow Local Development}"' Sc
 grep -q 'ensure_codesign_identity.sh' Scripts/package_dmg.sh
 grep -q 'dist/SayFlow.app' Scripts/run_manual_test_app.sh
 grep -q 'Signature=adhoc' Scripts/verify_package.sh
+grep -q 'checksum mismatch' Scripts/verify_package.sh
 grep -q 'SAYFLOW_OPENAI_API_KEY' Sources/SayFlowCore/Provider.swift
 grep -q 'provider.env' Sources/SayFlow/AppServices.swift
 grep -q 'NSComboBox' Sources/SayFlow/SettingsWindow.swift
