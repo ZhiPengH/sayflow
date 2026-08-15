@@ -71,7 +71,7 @@ ditto -c -k --keepParent "$APP" "$ZIP"
 "$STAPLER" validate "$APP"
 
 step "[6/8] Gatekeeper assessment for SayFlow.app"
-SPCTL_OUTPUT="$(spctl -a -vvv -t open "$APP" 2>&1)"
+SPCTL_OUTPUT="$(spctl --assess --type execute --verbose=4 "$APP" 2>&1)"
 echo "$SPCTL_OUTPUT"
 grep -F 'source=Notarized Developer ID' <<<"$SPCTL_OUTPUT" >/dev/null
 
