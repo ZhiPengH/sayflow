@@ -96,6 +96,8 @@ cd "$ROOT"
 for required_command in git gh codesign spctl xcrun; do
   require_command "$required_command"
 done
+STAPLER="$(sayflow_find_xcode_tool stapler)" ||
+  die "stapler is required for stable releases. Install Xcode and launch it once."
 
 require_tracked_clean_worktree
 git remote get-url origin >/dev/null 2>&1 || die "Git remote 'origin' is not configured."
@@ -146,7 +148,7 @@ else
 fi
 
 stapler_status=0
-if xcrun stapler validate "$DMG" >/dev/null 2>&1; then
+if "$STAPLER" validate "$DMG" >/dev/null 2>&1; then
   :
 else
   stapler_status=$?

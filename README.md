@@ -175,7 +175,22 @@ Scripts/package_dmg.sh
 Scripts/verify_package.sh
 ```
 
-当前验证基线覆盖 141 个 `SayFlowCore` 测试，并检查 App 签名、`arm64` / `x86_64` 架构、DMG 校验和与安装包内容。更多状态见 [`docs/completion-audit.md`](./docs/completion-audit.md) 与 [`CHANGLOG.md`](./CHANGLOG.md)。
+当前验证基线覆盖 162 个 `SayFlowCore` 测试，并检查 App 签名、`arm64` / `x86_64` 架构、DMG 校验和与安装包内容。更多状态见 [`docs/completion-audit.md`](./docs/completion-audit.md) 与 [`CHANGLOG.md`](./CHANGLOG.md)。
+
+### 发布官方正式版（Developer ID + 公证）
+
+一次性准备，在这台 Mac 的终端里亲自执行，不要把密码粘贴给任何聊天工具：
+
+1. 在 <https://appleid.apple.com> 创建 App 专用密码（登录和安全 > App 专用密码）。
+2. 存入 notarytool 钥匙串凭证，把 YOUR_APPLE_ID 换成你的 Apple ID：
+
+        /Applications/Xcode.app/Contents/Developer/usr/bin/notarytool store-credentials sayflow-notary --apple-id YOUR_APPLE_ID --team-id UTZUZ8U2J2
+
+之后一条命令完成 Developer ID 签名（Hardened Runtime + secure timestamp）、公证、staple 与 Gatekeeper 验证：
+
+    Scripts/notarize_release.sh
+
+脚本要求 spctl 输出 source=Notarized Developer ID，且 App 与 DMG 都通过 stapler validate，否则会中止。通过后再运行 Scripts/publish_release.sh 发布稳定版 GitHub Release。
 
 <details>
 <summary><strong>调试第三方 Responses API</strong></summary>

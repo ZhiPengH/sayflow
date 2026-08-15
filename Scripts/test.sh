@@ -11,8 +11,10 @@ for script in Scripts/*.sh; do
   bash -n "$script"
 done
 test -x Scripts/publish_release.sh
+test -x Scripts/notarize_release.sh
 test -x Tests/ScriptTests/PublishReleaseCLITests.sh
 bash Tests/ScriptTests/PublishReleaseCLITests.sh
+bash Tests/ScriptTests/ReleaseCommonTests.sh
 test -x Scripts/verify_package.sh
 test -x Scripts/ax_selected_text_probe.sh
 test -x Scripts/run_manual_test_app.sh
@@ -25,7 +27,10 @@ grep -q 'fail "SayFlow app is not running' Scripts/manual_acceptance_probe.sh
 ! grep -q 'https://api.mimo.mi.com/v1' Scripts/configure_debug_provider.sh
 grep -q 'APP_NAME="${APP_NAME:-SayFlow}"' Scripts/build_app.sh
 grep -q 'DIST="${DIST:-$ROOT/dist}"' Scripts/build_app.sh
-test "$(cat VERSION)" = "1.3.4"
+test "$(cat VERSION)" = "1.3.5"
+grep -q -- '--options runtime --timestamp' Scripts/build_app.sh
+grep -q 'sayflow_find_xcode_tool' Scripts/release_common.sh
+grep -q 'source=Notarized Developer ID' Scripts/notarize_release.sh
 grep -q 'sayflow_read_version' Scripts/build_app.sh
 grep -q 'sayflow_read_version' Scripts/package_dmg.sh
 grep -q 'sayflow_read_version' Scripts/verify_package.sh

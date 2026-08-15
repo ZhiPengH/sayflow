@@ -31,6 +31,21 @@ sayflow_write_sha256() {
   printf '%s  %s\n' "$checksum" "$artifact_name" > "$artifact_path.sha256"
 }
 
+sayflow_find_xcode_tool() {
+  local tool="$1"
+  local candidate="/Applications/Xcode.app/Contents/Developer/usr/bin/$tool"
+  if [[ -x "$candidate" ]]; then
+    printf '%s\n' "$candidate"
+    return 0
+  fi
+  candidate="$(xcrun --find "$tool" 2>/dev/null || true)"
+  if [[ -n "$candidate" && -x "$candidate" ]]; then
+    printf '%s\n' "$candidate"
+    return 0
+  fi
+  return 1
+}
+
 sayflow_stable_release_allowed() {
   local codesign_output="$1"
   local spctl_status="$2"

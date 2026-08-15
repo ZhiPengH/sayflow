@@ -171,7 +171,22 @@ Scripts/package_dmg.sh
 Scripts/verify_package.sh
 ```
 
-The current verification baseline covers 141 `SayFlowCore` tests, app signing, `arm64` / `x86_64` architectures, the DMG checksum, and package contents. See [`docs/completion-audit.md`](./docs/completion-audit.md) and [`CHANGLOG.md`](./CHANGLOG.md) for more detail.
+The current verification baseline covers 162 `SayFlowCore` tests, app signing, `arm64` / `x86_64` architectures, the DMG checksum, and package contents. See [`docs/completion-audit.md`](./docs/completion-audit.md) and [`CHANGLOG.md`](./CHANGLOG.md) for more detail.
+
+### Publish an official release (Developer ID + notarization)
+
+One-time setup, run it yourself in Terminal on this Mac and never paste passwords into a chat:
+
+1. Create an app-specific password at <https://appleid.apple.com> (Sign-In and Security > App-Specific Passwords).
+2. Store the notarytool keychain credentials, replacing YOUR_APPLE_ID with your Apple ID:
+
+        /Applications/Xcode.app/Contents/Developer/usr/bin/notarytool store-credentials sayflow-notary --apple-id YOUR_APPLE_ID --team-id UTZUZ8U2J2
+
+Then one command builds with Developer ID signing (Hardened Runtime + secure timestamp), notarizes, staples, and Gatekeeper-verifies the release:
+
+    Scripts/notarize_release.sh
+
+The script aborts unless spctl reports source=Notarized Developer ID and both the app and the DMG pass stapler validate. After that, run Scripts/publish_release.sh to publish the stable GitHub Release.
 
 <details>
 <summary><strong>Debug a third-party Responses API endpoint</strong></summary>

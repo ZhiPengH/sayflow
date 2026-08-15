@@ -4,6 +4,26 @@ This file follows the requested name, `CHANGLOG.md`. The missing "E" has the sme
 
 这个文件按要求命名为 `CHANGLOG.md`。少掉的那个 "E"，倒有点老项目抽屉里的味道：名字一旦定下，就把内容写扎实。
 
+## 2026-08-16
+
+### Release v1.3.5
+
+English:
+
+- Promoted SayFlow from self-signed pre-release builds to an official Developer ID distribution: the app is signed with Developer ID Application: ZHIPENG HUANG (UTZUZ8U2J2), enables Hardened Runtime (flags=0x10000(runtime)), and carries a secure Apple timestamp.
+- Added Scripts/notarize_release.sh: it builds the signed app, verifies the Developer ID authority, secure timestamp, and runtime flags, notarizes the app with notarytool, staples the ticket, requires Gatekeeper source=Notarized Developer ID, then packages, notarizes, staples, and validates the DMG.
+- Scripts/build_app.sh now applies --options runtime --timestamp automatically when a Developer ID Application identity is selected; local self-signed development builds are unchanged.
+- Scripts/publish_release.sh resolves stapler through the new sayflow_find_xcode_tool helper, so stable-release gates keep working when xcode-select points to Command Line Tools.
+- The release version comes from the VERSION file (now 1.3.5) and test gates pin both the release version and the notarization requirements.
+
+中文：
+
+- SayFlow 从自签名预发布升级为正式 Developer ID 分发：App 使用 Developer ID Application: ZHIPENG HUANG (UTZUZ8U2J2) 证书签名，启用 Hardened Runtime（flags=0x10000(runtime)）并附带 Apple secure timestamp。
+- 新增 Scripts/notarize_release.sh：构建签名 App，校验 Developer ID 授权链、secure timestamp 与 runtime 标志，用 notarytool 公证并 staple，强制 Gatekeeper 输出 source=Notarized Developer ID，随后打包、公证、staple 并验证 DMG。
+- Scripts/build_app.sh 在选择 Developer ID Application 身份时自动附加 --options runtime --timestamp；本地自签名开发构建保持原状。
+- Scripts/publish_release.sh 通过新的 sayflow_find_xcode_tool 解析 stapler，在 xcode-select 指向 Command Line Tools 的机器上正式发布门禁依然可用。
+- 发布版本统一由 VERSION 文件管理（现为 1.3.5），测试门禁同步锁定发布版本与公证要求。
+
 ## 2026-08-15
 
 ### Release v1.3.4

@@ -51,3 +51,4 @@ sayflow_stable_release_allowed "Authority=Developer ID Application: Example" 0 0
 assert_invalid_version_override "Scripts/build_app.sh"
 assert_invalid_version_override "Scripts/package_dmg.sh"
 assert_invalid_version_override "Scripts/verify_package.sh"
+assert_invalid_version_override "Scripts/notarize_release.sh"

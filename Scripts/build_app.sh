@@ -13,6 +13,10 @@ fi
 IDENTIFIER="${IDENTIFIER:-com.zhixing.sayflow}"
 DIST="${DIST:-$ROOT/dist}"
 CODESIGN_IDENTITY="${CODESIGN_IDENTITY:-SayFlow Local Development}"
+DEVELOPER_ID_SIGNING=0
+if [[ "$CODESIGN_IDENTITY" == "Developer ID Application:"* ]]; then
+  DEVELOPER_ID_SIGNING=1
+fi
 ASSETS_DIR="${ASSETS_DIR:-$ROOT/assets}"
 HOT_ZONE_ICON_FILE="${HOT_ZONE_ICON_FILE:-icon_32x32@2x.png}"
 APP_ICONSET_DIR="${APP_ICONSET_DIR:-$ASSETS_DIR/AppIcon.iconset}"
@@ -119,6 +123,10 @@ EOF
   CODESIGN_IDENTITY="$RESOLVED_CODESIGN_IDENTITY"
 fi
 
-codesign --force --deep --sign "$CODESIGN_IDENTITY" "$APP" >/dev/null
+CODESIGN_ARGS=(--force --deep --sign "$CODESIGN_IDENTITY")
+if ((DEVELOPER_ID_SIGNING)); then
+  CODESIGN_ARGS+=(--options runtime --timestamp)
+fi
+codesign "${CODESIGN_ARGS[@]}" "$APP" >/dev/null
 echo "Built $APP"
 file "$MACOS/$APP_NAME"
