@@ -23,9 +23,9 @@ grep -q 'fail "SayFlow app is not running' Scripts/manual_acceptance_probe.sh
 grep -q 'APP_NAME="${APP_NAME:-SayFlow}"' Scripts/build_app.sh
 grep -q 'DIST="${DIST:-$ROOT/dist}"' Scripts/build_app.sh
 test "$(cat VERSION)" = "1.3.4"
-grep -q 'VERSION_FILE="$ROOT/VERSION"' Scripts/build_app.sh
-grep -q 'VERSION_FILE="$ROOT/VERSION"' Scripts/package_dmg.sh
-grep -q 'VERSION_FILE="$ROOT/VERSION"' Scripts/verify_package.sh
+grep -q 'sayflow_read_version' Scripts/build_app.sh
+grep -q 'sayflow_read_version' Scripts/package_dmg.sh
+grep -q 'sayflow_read_version' Scripts/verify_package.sh
 grep -q 'ALLOW_ADHOC_SIGNATURE="${ALLOW_ADHOC_SIGNATURE:-0}"' Scripts/verify_package.sh
 grep -q 'Version %@' Sources/SayFlowCore/Localization.swift
 test -f assets/AppIcon.iconset/icon_512x512@2x.png

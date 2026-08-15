@@ -2,8 +2,8 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-VERSION_FILE="$ROOT/VERSION"
-VERSION="${VERSION:-$(tr -d '[:space:]' < "$VERSION_FILE")}"
+source "$ROOT/Scripts/release_common.sh"
+VERSION="${VERSION:-$(sayflow_read_version "$ROOT")}"
 ALLOW_ADHOC_SIGNATURE="${ALLOW_ADHOC_SIGNATURE:-0}"
 APP="$ROOT/dist/SayFlow.app"
 EXECUTABLE="$APP/Contents/MacOS/SayFlow"
