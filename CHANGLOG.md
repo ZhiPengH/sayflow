@@ -16,6 +16,7 @@ English:
 - Scripts/publish_release.sh resolves stapler through the new sayflow_find_xcode_tool helper, so stable-release gates keep working when xcode-select points to Command Line Tools.
 - The release version comes from the VERSION file (now 1.3.5) and test gates pin both the release version and the notarization requirements.
 - Built and notarized the official universal package dist/SayFlow-1.3.5.dmg: both the app and DMG passed Apple notarization (Accepted), stapler validate succeeded for both, Gatekeeper reports source=Notarized Developer ID, Scripts/verify_package.sh passed, and SHA-256 is dc10a3092eb252e7c9e35cebc79a92a2a713f6923a856d451e5f1b04f24a5f75.
+- Fixed a release-tooling defect found during v1.3.5 publication: macOS stock bash 3.2 does not trigger set -e on bare [[ ]] assertions, so verify_package.sh gates could pass silently; all 18 assertions now fail loudly, and notarize_release.sh writes the DMG checksum after stapling (stapling modifies the DMG). The v1.3.5 GitHub checksum asset was corrected to dc10a309…5f75, matching the notarized DMG byte for byte.
 
 中文：
 
@@ -25,6 +26,7 @@ English:
 - Scripts/publish_release.sh 通过新的 sayflow_find_xcode_tool 解析 stapler，在 xcode-select 指向 Command Line Tools 的机器上正式发布门禁依然可用。
 - 发布版本统一由 VERSION 文件管理（现为 1.3.5），测试门禁同步锁定发布版本与公证要求。
 - 生成并公证正式通用安装包 dist/SayFlow-1.3.5.dmg：App 与 DMG 均通过 Apple 公证（Accepted），两者 stapler validate 成功，Gatekeeper 输出 source=Notarized Developer ID，Scripts/verify_package.sh 全部通过，SHA-256：dc10a3092eb252e7c9e35cebc79a92a2a713f6923a856d451e5f1b04f24a5f75。
+- 修复发布链路在 v1.3.5 发布过程中暴露的缺陷：macOS 自带 bash 3.2 的 set -e 对裸 [[ ]] 断言不生效，verify_package.sh 的门禁可能静默放行；18 处断言全部改为显式失败退出，notary 流程改为 staple 之后写入 DMG 校验和（staple 会修改 DMG 文件）。v1.3.5 的 GitHub 校验和附件已更正为 dc10a309…5f75，与公证版 DMG 逐字节一致。
 
 ## 2026-08-15
 

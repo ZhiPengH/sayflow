@@ -82,10 +82,10 @@ ditto "$APP" "$STAGE/SayFlow.app"
 ln -s /Applications "$STAGE/Applications"
 rm -f "$DMG"
 hdiutil create -volname SayFlow -srcfolder "$STAGE" -ov -format UDZO "$DMG" >/dev/null
-sayflow_write_sha256 "$DMG"
 "$NOTARYTOOL" submit "$DMG" --keychain-profile "$KEYCHAIN_PROFILE" --wait
 "$STAPLER" staple "$DMG"
 "$STAPLER" validate "$DMG"
+sayflow_write_sha256 "$DMG"
 
 step "[8/8] Full package verification"
 VERSION="$VERSION" "$ROOT/Scripts/verify_package.sh"
