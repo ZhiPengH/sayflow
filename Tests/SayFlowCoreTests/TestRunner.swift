@@ -141,6 +141,8 @@ struct SayFlowCoreTestRunner {
             TestCase(name: "Translation mode sentence stays grammar", run: TranslationModePolicyTests.sentenceWithPunctuationStaysInGrammarMode),
             TestCase(name: "Translation mode presentation label", run: TranslationModePolicyTests.translationPresentationForcesFixedModeLabel),
             TestCase(name: "Grammar mode presentation keeps tip", run: TranslationModePolicyTests.grammarPresentationKeepsOriginalLearningTip),
+            TestCase(name: "Accept AX success skips clipboard paste", run: AcceptReplacementFallbackTests.successfulAccessibilityReplacementNeedsNoClipboardPaste),
+            TestCase(name: "Accept AX failure uses clipboard paste", run: AcceptReplacementFallbackTests.failedAccessibilityReplacementFallsBackToClipboardPaste),
             TestCase(name: "Accept replacement success action", run: AcceptReplacementFallbackTests.successfulReplacementClosesPanel),
             TestCase(name: "Accept replacement failure fallback", run: AcceptReplacementFallbackTests.failedReplacementFallsBackToClipboardCopy),
             TestCase(name: "Accept translation mode closes", run: AcceptReplacementFallbackTests.translationModeAcceptOnlyClosesPanel),

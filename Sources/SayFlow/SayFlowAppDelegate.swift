@@ -251,7 +251,20 @@ final class SayFlowAppDelegate: NSObject, NSApplicationDelegate {
             }
         }
         resultPanel.onAccept = { [weak self] text in
-            self?.accessibility.replaceSelection(with: text) ?? false
+            guard let self else {
+                return false
+            }
+            let action = AcceptReplacementFallback.replacementAction(
+                accessibilityReplacementSucceeded: self.accessibility.replaceSelection(with: text),
+                correctedText: text
+            )
+            switch action {
+            case .replacementSucceeded:
+                return true
+            case .pasteReplacementThroughClipboard(let replacement):
+                self.clipboard.copy(replacement)
+                return self.accessibility.pasteClipboardIntoFocusedSelection()
+            }
         }
         resultPanel.onRetry = { [weak self] in
             guard let self else { return }
