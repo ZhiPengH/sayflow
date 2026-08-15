@@ -391,7 +391,10 @@ Update the `v1.3.4` changelog entry to say the package is published as a local-s
 
 ```bash
 git diff --check
-rg -n 'sayflow-release|graker-release' README.md README.en.md docs Sources Tests Scripts
+if rg -n 'sayflow-release' README.md README.en.md docs Sources Tests Scripts \
+  --glob '!docs/superpowers/**'; then
+  exit 1
+fi
 ```
 
 Expected: no whitespace errors and no old release-repository references outside historical migration material.
