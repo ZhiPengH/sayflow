@@ -4,6 +4,30 @@ This file follows the requested name, `CHANGLOG.md`. The missing "E" has the sme
 
 这个文件按要求命名为 `CHANGLOG.md`。少掉的那个 "E"，倒有点老项目抽屉里的味道：名字一旦定下，就把内容写扎实。
 
+## 2026-08-15
+
+### Release v1.3.4
+
+English:
+
+- Fixed Accept replacement in X/Chrome reply editors when `AXSelectedText` can be read but cannot be written.
+- When direct Accessibility replacement fails, SayFlow now copies the corrected text and sends `Command+V` to paste it into the focused selection.
+- Added regression tests for successful direct replacement and the clipboard-paste fallback after an Accessibility write failure.
+- Prepared the repository for public distribution by removing internal-only project material and tightening the public project instructions.
+- Redesigned the bilingual project homepage with a dedicated English README and product screenshots.
+- Protected local configuration by ignoring common secret and credential files and enforcing owner-only permissions on settings and prompt files.
+- Built and verified `dist/SayFlow-1.3.4.dmg`; SHA-256: `f3ac1a9ddb28d1845e5bdd1a7e97523e5d6958d507a957c6c8778cc613642fac`.
+
+中文：
+
+- 修复 X/Chrome 回复编辑器中 `AXSelectedText` 可读但不可写时，点击 Accept 无法替换文本的问题。
+- 当 Accessibility 直写失败时，言顺现在会复制 corrected text，并向当前聚焦的选区发送 `Command+V` 完成粘贴。
+- 补充直写成功和 Accessibility 写入失败后走剪贴板粘贴兜底的回归测试。
+- 清理仅供内部使用的项目资料并收紧公开项目指引，为仓库公开发布做好准备。
+- 重设计中英双语项目主页，新增独立英文 README 和产品截图。
+- 加强本地配置隐私：忽略常见密钥与凭据文件，并将设置和提示词文件权限限制为仅所有者可读写。
+- 生成并验证 `dist/SayFlow-1.3.4.dmg`，SHA-256：`f3ac1a9ddb28d1845e5bdd1a7e97523e5d6958d507a957c6c8778cc613642fac`。
+
 ## 2026-08-03
 
 ### Release v1.3.3
