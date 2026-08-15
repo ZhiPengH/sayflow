@@ -71,14 +71,17 @@ final class AccessibilityTextService {
         guard let focused = focusedElement() else {
             return nil
         }
+        return selectedText(from: focused)
+    }
+
+    private func selectedText(from element: AXUIElement) -> String? {
         var selected: CFTypeRef?
-        let result = AXUIElementCopyAttributeValue(focused, kAXSelectedTextAttribute as CFString, &selected)
-        if result == .success,
-           let text = (selected as? String)?.trimmingCharacters(in: .whitespacesAndNewlines),
-           !text.isEmpty {
-            return text
-        }
-        return selectedTextFromTextMarkerRange(focused)
+        let result = AXUIElementCopyAttributeValue(element, kAXSelectedTextAttribute as CFString, &selected)
+        let directText = result == .success ? selected as? String : nil
+        return AccessibilitySelectedTextPolicy.resolve(
+            directText: directText,
+            markerText: selectedTextFromTextMarkerRange(element)
+        )
     }
 
     func replaceSelection(with text: String) -> Bool {
@@ -89,7 +92,7 @@ final class AccessibilityTextService {
         return result == .success
     }
 
-    func pasteClipboardIntoFocusedSelection() -> Bool {
+    func pasteClipboardIntoFocusedSelection(processIdentifier: pid_t? = nil) -> Bool {
         guard let source = CGEventSource(stateID: .hidSystemState),
               let keyDown = CGEvent(
                 keyboardEventSource: source,
@@ -105,9 +108,27 @@ final class AccessibilityTextService {
         }
         keyDown.flags = .maskCommand
         keyUp.flags = .maskCommand
-        keyDown.post(tap: .cghidEventTap)
-        keyUp.post(tap: .cghidEventTap)
+        if let processIdentifier {
+            keyDown.postToPid(processIdentifier)
+            keyUp.postToPid(processIdentifier)
+        } else {
+            keyDown.post(tap: .cghidEventTap)
+            keyUp.post(tap: .cghidEventTap)
+        }
         return true
+    }
+
+    func focusedSelectionMatches(_ expectedText: String, processIdentifier: pid_t) -> Bool {
+        guard let focused = focusedElement() else {
+            return false
+        }
+        var focusedPID: pid_t = 0
+        guard AXUIElementGetPid(focused, &focusedPID) == .success,
+              focusedPID == processIdentifier else {
+            return false
+        }
+
+        return selectedText(from: focused) == expectedText
     }
 
     func copyFocusedSelectionToClipboard() -> Bool {

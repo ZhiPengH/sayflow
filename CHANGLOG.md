@@ -10,23 +10,29 @@ This file follows the requested name, `CHANGLOG.md`. The missing "E" has the sme
 
 English:
 
-- Fixed Accept replacement in X/Chrome reply editors when `AXSelectedText` can be read but cannot be written.
-- When direct Accessibility replacement fails, SayFlow now copies the corrected text and sends `Command+V` to paste it into the focused selection.
-- Added regression tests for successful direct replacement and the clipboard-paste fallback after an Accessibility write failure.
+- Fixed Accept replacement in X/Chrome and other browser editors by no longer trusting an apparent `AXSelectedText` write success for browser content.
+- Browser Accept now uses a session-scoped sequence: copy the corrected text, close the panel, reactivate the captured target, verify the current session, target process, frontmost app, original selection, and clipboard, then post `Command+V` directly to the captured PID with `CGEvent.postToPid`. If a required original-selection check cannot be confirmed, the corrected text remains on the clipboard and SayFlow does not paste automatically.
+- Accept cancels the active streaming request, and request-attempt guards discard late snapshot, error, and completion callbacks so a closed panel cannot be updated by stale work.
+- When direct `AXSelectedText` is missing or blank, selected-text capture now falls back to the WebKit text-marker range.
+- Expanded regression coverage for browser transport selection, copy-close-paste ordering, session/focus/selection/clipboard guards, and empty direct AX selection fallback; all `161/161` SayFlowCore tests pass.
+- Verified the real X reply editor in Chrome end to end: Accept changed the DOM from `比如想着` to the English correction, the original draft was then restored, and no post was submitted.
 - Prepared the repository for public distribution by removing internal-only project material and tightening the public project instructions.
 - Redesigned the bilingual project homepage with a dedicated English README and product screenshots.
 - Protected local configuration by ignoring common secret and credential files and enforcing owner-only permissions on settings and prompt files.
-- Built and verified `dist/SayFlow-1.3.4.dmg`; SHA-256: `f3ac1a9ddb28d1845e5bdd1a7e97523e5d6958d507a957c6c8778cc613642fac`.
+- Built and verified the stable local-signed universal package `dist/SayFlow-1.3.4.dmg`; `Scripts/verify_package.sh` passed and SHA-256 is `4e6370e21652360df4f5a98612dd0952a1a2f74e33a43beb28a36419e454e045`.
 
 中文：
 
-- 修复 X/Chrome 回复编辑器中 `AXSelectedText` 可读但不可写时，点击 Accept 无法替换文本的问题。
-- 当 Accessibility 直写失败时，言顺现在会复制 corrected text，并向当前聚焦的选区发送 `Command+V` 完成粘贴。
-- 补充直写成功和 Accessibility 写入失败后走剪贴板粘贴兜底的回归测试。
+- 修复 X/Chrome 及其他浏览器编辑器中的 Accept 替换：浏览器内容不再把看似成功的 `AXSelectedText` 写入当作可信结果。
+- 浏览器 Accept 现在采用会话级流程：复制 corrected text、关闭面板、重新激活捕获时的目标，再校验当前会话、目标进程、前台 App、原选区和剪贴板，最后通过 `CGEvent.postToPid` 向捕获到的 PID 定向发送 `Command+V`。如果无法重新确认必须校验的原选区，只保留剪贴板中的 corrected text，不自动粘贴。
+- 点击 Accept 会取消当前 streaming 请求，并用 request-attempt 标识丢弃迟到的 snapshot、error 和 completion 回调，避免旧任务更新已关闭的面板。
+- 当直接读取的 `AXSelectedText` 缺失或为空时，选中文本捕获现在会回退到 WebKit text-marker range。
+- 扩充浏览器传输策略、复制—关闭—粘贴顺序、会话/焦点/选区/剪贴板保护及空 AX 直选区回退的回归测试；SayFlowCore `161/161` 全部通过。
+- 已在 Chrome 的真实 X 回复编辑器完成端到端验证：Accept 将 DOM 从“比如想着”替换为英文 corrected text，随后恢复原草稿，全程未发帖。
 - 清理仅供内部使用的项目资料并收紧公开项目指引，为仓库公开发布做好准备。
 - 重设计中英双语项目主页，新增独立英文 README 和产品截图。
 - 加强本地配置隐私：忽略常见密钥与凭据文件，并将设置和提示词文件权限限制为仅所有者可读写。
-- 生成并验证 `dist/SayFlow-1.3.4.dmg`，SHA-256：`f3ac1a9ddb28d1845e5bdd1a7e97523e5d6958d507a957c6c8778cc613642fac`。
+- 生成并验证本地稳定自签名的通用架构安装包 `dist/SayFlow-1.3.4.dmg`；`Scripts/verify_package.sh` 全部通过，SHA-256：`4e6370e21652360df4f5a98612dd0952a1a2f74e33a43beb28a36419e454e045`。
 
 ## 2026-08-03
 

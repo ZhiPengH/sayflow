@@ -2,6 +2,18 @@ import AppKit
 import Foundation
 import SayFlowCore
 
+private struct CorrectionTarget {
+    let processIdentifier: pid_t
+    let bundleIdentifier: String?
+    let launchDate: Date?
+}
+
+private struct CorrectionSession {
+    let id: UUID
+    let target: CorrectionTarget?
+    let originalText: String
+}
+
 final class SayFlowAppDelegate: NSObject, NSApplicationDelegate {
     private let settingsStore = AppSettingsStore(applicationSupportDirectory: ApplicationPaths.supportDirectory)
     private let promptStore = PromptStore(applicationSupportDirectory: ApplicationPaths.supportDirectory)
@@ -25,6 +37,13 @@ final class SayFlowAppDelegate: NSObject, NSApplicationDelegate {
     private var selectionMouseUpMonitor: Any?
     private var selectionMouseDownLocation: CGPoint?
     private var selectionClipboardFallbackToken = 0
+    private var currentCorrectionSession: CorrectionSession?
+    private var currentRequestAttemptID: UUID?
+    private var acceptingSessionID: UUID?
+    private var pendingPasteOperationID: UUID?
+
+    private static let deferredPasteRetryDelay: TimeInterval = 0.05
+    private static let maximumDeferredPasteRetryCount = 20
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         migrateLegacyAppSupportIfNeeded()
@@ -252,23 +271,48 @@ final class SayFlowAppDelegate: NSObject, NSApplicationDelegate {
         }
         resultPanel.onAccept = { [weak self] text in
             guard let self else {
-                return false
+                return .pasteSchedulingFailed
             }
+            guard let session = self.currentCorrectionSession,
+                  self.acceptingSessionID != session.id else {
+                return .pasteSchedulingFailed
+            }
+            self.acceptingSessionID = session.id
+            self.currentRequestAttemptID = nil
+            self.streamingClient.cancel()
+            let transport = WebEditorReplacementPolicy.transport(
+                bundleIdentifier: session.target?.bundleIdentifier
+            )
+            let accessibilityReplacementSucceeded = transport == .accessibility
+                ? self.accessibility.replaceSelection(with: text)
+                : false
             let action = AcceptReplacementFallback.replacementAction(
-                accessibilityReplacementSucceeded: self.accessibility.replaceSelection(with: text),
+                accessibilityReplacementSucceeded: accessibilityReplacementSucceeded,
                 correctedText: text
             )
-            switch action {
-            case .replacementSucceeded:
-                return true
-            case .pasteReplacementThroughClipboard(let replacement):
-                self.clipboard.copy(replacement)
-                return self.accessibility.pasteClipboardIntoFocusedSelection()
-            }
+            var expectedClipboardChangeCount: Int?
+            return AcceptReplacementFallback.execute(
+                action: action,
+                copyToClipboard: {
+                    self.clipboard.copy($0)
+                    expectedClipboardChangeCount = self.clipboard.changeCount
+                },
+                closePanel: { self.resultPanel.close() },
+                pasteAfterPanelClose: { [weak self] replacement in
+                    guard let self, let expectedClipboardChangeCount else {
+                        return false
+                    }
+                    return self.scheduleClipboardPaste(
+                        replacement: replacement,
+                        expectedClipboardChangeCount: expectedClipboardChangeCount,
+                        session: session
+                    )
+                }
+            )
         }
         resultPanel.onRetry = { [weak self] in
             guard let self else { return }
-            self.checkGrammar(sampleText: self.currentOriginalText)
+            self.checkGrammar(sampleText: self.currentOriginalText, inheritedSession: self.currentCorrectionSession)
         }
         resultPanel.onWrite = { [weak self] correction in
             guard let self else {
@@ -285,6 +329,108 @@ final class SayFlowAppDelegate: NSObject, NSApplicationDelegate {
                 timeZone: self.settings.obsidian.timeZone,
                 template: self.settings.obsidian.writeTemplate
             )
+        }
+    }
+
+    private func scheduleClipboardPaste(
+        replacement: String,
+        expectedClipboardChangeCount: Int,
+        session: CorrectionSession
+    ) -> Bool {
+        guard currentCorrectionSession?.id == session.id,
+              let target = session.target,
+              let targetApplication = matchingRunningApplication(for: target),
+              clipboard.changeCount == expectedClipboardChangeCount,
+              clipboard.currentString() == replacement else {
+            return false
+        }
+
+        let frontmostPID = NSWorkspace.shared.frontmostApplication?.processIdentifier
+        if frontmostPID != target.processIdentifier,
+           !targetApplication.activate(options: [.activateAllWindows]) {
+            return false
+        }
+
+        let operationID = UUID()
+        pendingPasteOperationID = operationID
+        DispatchQueue.main.asyncAfter(deadline: .now() + Self.deferredPasteRetryDelay) { [weak self] in
+            self?.attemptClipboardPaste(
+                replacement: replacement,
+                expectedClipboardChangeCount: expectedClipboardChangeCount,
+                session: session,
+                operationID: operationID,
+                retryCount: 0
+            )
+        }
+        return true
+    }
+
+    private func attemptClipboardPaste(
+        replacement: String,
+        expectedClipboardChangeCount: Int,
+        session: CorrectionSession,
+        operationID: UUID,
+        retryCount: Int
+    ) {
+        guard let target = session.target else {
+            cancelPasteOperation(operationID)
+            return
+        }
+
+        let targetApplication = matchingRunningApplication(for: target)
+        let action = DeferredPasteFocusPolicy.action(
+            sessionMatches: currentCorrectionSession?.id == session.id && pendingPasteOperationID == operationID,
+            targetIsRunning: targetApplication != nil,
+            clipboardMatches: clipboard.changeCount == expectedClipboardChangeCount && clipboard.currentString() == replacement,
+            selectionMatches: accessibility.focusedSelectionMatches(
+                session.originalText,
+                processIdentifier: target.processIdentifier
+            ),
+            frontmostPID: NSWorkspace.shared.frontmostApplication?.processIdentifier,
+            targetPID: target.processIdentifier,
+            retryCount: retryCount,
+            maximumRetryCount: Self.maximumDeferredPasteRetryCount
+        )
+
+        switch action {
+        case .paste:
+            pendingPasteOperationID = nil
+            _ = accessibility.pasteClipboardIntoFocusedSelection(processIdentifier: target.processIdentifier)
+        case .retryAfterDelay:
+            guard let targetApplication,
+                  targetApplication.activate(options: [.activateAllWindows]) else {
+                cancelPasteOperation(operationID)
+                return
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + Self.deferredPasteRetryDelay) { [weak self] in
+                self?.attemptClipboardPaste(
+                    replacement: replacement,
+                    expectedClipboardChangeCount: expectedClipboardChangeCount,
+                    session: session,
+                    operationID: operationID,
+                    retryCount: retryCount + 1
+                )
+            }
+        case .cancel:
+            cancelPasteOperation(operationID)
+        }
+    }
+
+    private func matchingRunningApplication(for target: CorrectionTarget) -> NSRunningApplication? {
+        guard let application = NSRunningApplication(processIdentifier: target.processIdentifier),
+              !application.isTerminated,
+              application.bundleIdentifier == target.bundleIdentifier else {
+            return nil
+        }
+        if let launchDate = target.launchDate, application.launchDate != launchDate {
+            return nil
+        }
+        return application
+    }
+
+    private func cancelPasteOperation(_ operationID: UUID) {
+        if pendingPasteOperationID == operationID {
+            pendingPasteOperationID = nil
         }
     }
 
@@ -338,7 +484,9 @@ final class SayFlowAppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    private func checkGrammar(sampleText: String? = nil) {
+    private func checkGrammar(sampleText: String? = nil, inheritedSession: CorrectionSession? = nil) {
+        let correctionID = inheritedSession?.id ?? UUID()
+        let target = inheritedSession?.target ?? (sampleText == nil ? currentExternalTarget() : nil)
         selectionHotZone.hide()
         guard networkMonitor.isOnline else {
             showAlert(L10n.tr(.networkUnavailableTitle), L10n.tr(.networkUnavailableMessage))
@@ -353,15 +501,20 @@ final class SayFlowAppDelegate: NSObject, NSApplicationDelegate {
             }
         }
 
+        let accessibilityText = requiresAccessibility ? accessibility.selectedText() : nil
         let captureDecision = textCaptureResolver.resolve(
             sampleText: sampleText,
-            accessibilityText: requiresAccessibility ? accessibility.selectedText() : nil,
+            accessibilityText: accessibilityText,
             clipboardText: requiresAccessibility ? clipboard.currentString() : nil,
             clipboardChangeCount: clipboard.changeCount
         )
         switch captureDecision {
         case .captured(let selectedText):
-            checkGrammar(for: selectedText)
+            checkGrammar(
+                for: selectedText,
+                correctionID: correctionID,
+                target: target
+            )
         case .needsClipboardCopyPrompt:
             let fallbackAction = ClipboardShortcutCapturePolicy.action(
                 sampleText: sampleText,
@@ -374,13 +527,26 @@ final class SayFlowAppDelegate: NSObject, NSApplicationDelegate {
                 return
             }
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.16) { [weak self] in
-                self?.checkGrammarFromClipboardFallback()
+                self?.checkGrammarFromClipboardFallback(correctionID: correctionID, target: target)
             }
             return
         }
     }
 
-    private func checkGrammarFromClipboardFallback() {
+    private func currentExternalTarget() -> CorrectionTarget? {
+        let ownPID = ProcessInfo.processInfo.processIdentifier
+        guard let application = NSWorkspace.shared.frontmostApplication,
+              application.processIdentifier != ownPID else {
+            return nil
+        }
+        return CorrectionTarget(
+            processIdentifier: application.processIdentifier,
+            bundleIdentifier: application.bundleIdentifier,
+            launchDate: application.launchDate
+        )
+    }
+
+    private func checkGrammarFromClipboardFallback(correctionID: UUID, target: CorrectionTarget?) {
         let captureDecision = textCaptureResolver.resolve(
             sampleText: nil,
             accessibilityText: nil,
@@ -391,12 +557,30 @@ final class SayFlowAppDelegate: NSObject, NSApplicationDelegate {
             showAlert(L10n.tr(.noSelectedTextTitle), L10n.tr(.noSelectedTextMessage))
             return
         }
-        checkGrammar(for: selectedText)
+        checkGrammar(
+            for: selectedText,
+            correctionID: correctionID,
+            target: target
+        )
     }
 
-    private func checkGrammar(for selectedText: String) {
+    private func checkGrammar(
+        for selectedText: String,
+        correctionID: UUID,
+        target: CorrectionTarget?
+    ) {
         let correctionMode = CorrectionModePolicy.mode(for: selectedText)
+        let requestAttemptID = UUID()
+        currentCorrectionSession = CorrectionSession(
+            id: correctionID,
+            target: target,
+            originalText: selectedText
+        )
+        currentRequestAttemptID = requestAttemptID
+        acceptingSessionID = nil
+        pendingPasteOperationID = nil
         currentOriginalText = selectedText
+        streamingClient.cancel()
         resultPanel.showLoading(originalText: selectedText, settings: settings)
         guard let provider = settings.activeProvider else {
             resultPanel.showError(L10n.tr(.noActiveProvider), raw: nil, originalText: selectedText, settings: settings)
@@ -419,7 +603,7 @@ final class SayFlowAppDelegate: NSObject, NSApplicationDelegate {
             streamingClient.stream(
                 request: request,
                 onSnapshot: { [weak self] snapshot in
-                    guard let self else { return }
+                    guard let self, self.currentRequestAttemptID == requestAttemptID else { return }
                     self.resultPanel.update(
                         snapshot: TranslationModePresentation.snapshot(snapshot, mode: correctionMode),
                         originalText: selectedText,
@@ -427,11 +611,11 @@ final class SayFlowAppDelegate: NSObject, NSApplicationDelegate {
                     )
                 },
                 onError: { [weak self] message, raw in
-                    guard let self else { return }
+                    guard let self, self.currentRequestAttemptID == requestAttemptID else { return }
                     self.resultPanel.showError(message, raw: raw, originalText: selectedText, settings: self.settings)
                 },
                 onComplete: { [weak self] snapshot in
-                    guard let self else { return }
+                    guard let self, self.currentRequestAttemptID == requestAttemptID else { return }
                     let presented = TranslationModePresentation.snapshot(snapshot, mode: correctionMode)
                     self.resultPanel.update(snapshot: presented, originalText: selectedText, settings: self.settings)
                     if let text = ResultPresentationPolicy.autoClipboardText(for: presented) {

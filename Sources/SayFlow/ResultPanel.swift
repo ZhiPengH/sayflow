@@ -13,7 +13,7 @@ final class ResultPanelController: NSObject {
     var onCopy: ((String) -> Void)?
     var onSpeak: ((String) -> Void)?
     var onInsert: ((String, String) -> Bool)?
-    var onAccept: ((String) -> Bool)?
+    var onAccept: ((String) -> AcceptReplacementExecutionOutcome)?
     var onWrite: ((GrammarCorrection) throws -> Void)?
     var onRetry: (() -> Void)?
 
@@ -53,16 +53,17 @@ final class ResultPanelController: NSObject {
             guard let self else {
                 return
             }
-            let action = AcceptReplacementFallback.action(
-                mode: correction.mode,
-                replacementSucceeded: correction.mode == .translation ? true : self.onAccept?(correction.corrected) ?? false
-            )
-            switch action {
-            case .closePanel:
+            guard correction.mode == .grammar else {
                 self.close()
-            case .copyCorrectedToClipboardAndClosePanelAfterDelay(let delay):
-                self.onCopy?(correction.corrected)
-                self.close(after: delay)
+                return
+            }
+            switch self.onAccept?(correction.corrected) ?? .pasteSchedulingFailed {
+            case .replacementSucceeded:
+                self.close()
+            case .pasteScheduled:
+                break
+            case .pasteSchedulingFailed:
+                self.close()
             }
         }
         contentView.onRetry = { [weak self] in self?.onRetry?() }
