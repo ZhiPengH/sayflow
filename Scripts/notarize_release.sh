@@ -38,19 +38,19 @@ security find-identity -v -p codesigning | grep -F "$DEVELOPER_ID_NAME" >/dev/nu
 echo "Found: $DEVELOPER_ID_NAME"
 
 step "[2/8] Verify notarytool keychain profile"
-security find-generic-password -s com.apple.gke.notary.tool -a "$KEYCHAIN_PROFILE" >/dev/null 2>&1 || {
-  echo "Missing notarytool keychain profile '$KEYCHAIN_PROFILE'." >&2
+if ! "$NOTARYTOOL" history --keychain-profile "$KEYCHAIN_PROFILE" >/dev/null 2>&1; then
+  echo "Missing or invalid notarytool keychain profile '$KEYCHAIN_PROFILE'." >&2
   echo "Run this yourself in your own Terminal (never paste passwords into chat):" >&2
   echo "" >&2
-  echo "  xcrun notarytool store-credentials $KEYCHAIN_PROFILE --apple-id YOUR_APPLE_ID --team-id $TEAM_ID" >&2
+  echo "  /Applications/Xcode.app/Contents/Developer/usr/bin/notarytool store-credentials $KEYCHAIN_PROFILE --apple-id YOUR_APPLE_ID --team-id $TEAM_ID" >&2
   echo "" >&2
   echo "You will be asked for:" >&2
   echo "1. An app-specific password created at https://appleid.apple.com" >&2
   echo "   (Sign-In and Security > App-Specific Passwords)." >&2
-  echo "2. The same password again, to store it in your login keychain." >&2
+  echo "2. The same password again, to confirm storing it in your keychain." >&2
   exit 1
-}
-echo "Found keychain profile: $KEYCHAIN_PROFILE"
+fi
+echo "Keychain profile authenticated: $KEYCHAIN_PROFILE"
 
 step "[3/8] Build SayFlow $VERSION with Developer ID + Hardened Runtime + secure timestamp"
 VERSION="$VERSION" CODESIGN_IDENTITY="$CODESIGN_IDENTITY" "$ROOT/Scripts/build_app.sh"
