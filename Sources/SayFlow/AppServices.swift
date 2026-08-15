@@ -252,7 +252,7 @@ final class NetworkStatusMonitor {
 }
 
 final class UpdateCheckService {
-    private let latestReleaseURL = URL(string: "https://api.github.com/repos/ZhiPengH/sayflow-release/releases/latest")!
+    private let latestReleaseURL = ReleaseDistribution.latestStableReleaseAPIURL
 
     func checkLatestRelease(currentVersion: String, completion: @escaping (UpdateAvailability) -> Void) {
         var request = URLRequest(url: latestReleaseURL)

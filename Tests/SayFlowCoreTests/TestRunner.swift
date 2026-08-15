@@ -115,6 +115,7 @@ struct SayFlowCoreTestRunner {
             TestCase(name: "Localization coverage", run: LocalizationTests.everyKeyHasBothLanguages),
             TestCase(name: "Network availability presentation", run: NetworkAvailabilityPresentationTests.mapsNetworkStatusToMenuAndStatusTitle),
             TestCase(name: "Menu bar icon presentation", run: MenuBarIconPresentationTests.capsOversizedMenuBarIconToStatusBarCanvas),
+            TestCase(name: "Release distribution repository", run: ReleaseDistributionTests.pointsToCurrentPublicRepository),
             TestCase(name: "Update checker newer release", run: UpdateCheckerTests.detectsNewerGitHubRelease),
             TestCase(name: "Update checker ignores non-updates", run: UpdateCheckerTests.treatsSameOlderDraftAndPrereleaseAsUpToDate),
             TestCase(name: "Text capture prefers accessibility", run: TextCaptureResolverTests.selectedAccessibilityTextWinsOverClipboard),
