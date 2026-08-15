@@ -136,6 +136,10 @@ public enum L10n {
         translations[language]?[key] ?? translations[.english]?[key] ?? key.rawValue
     }
 
+    public static func aboutVersion(_ version: String, language: AppLanguage = .preferred()) -> String {
+        String(format: tr(.aboutVersion, language: language), version)
+    }
+
     private static let translations: [AppLanguage: [L10nKey: String]] = [
         .english: [
             .appName: "SayFlow",
@@ -190,7 +194,7 @@ public enum L10n {
             .invalidObsidianPathRelative: "Use an absolute Markdown file path.",
             .invalidObsidianPathNotMarkdown: "The Obsidian target must be a .md file.",
             .aboutName: "SayFlow",
-            .aboutVersion: "Version 1.3.4",
+            .aboutVersion: "Version %@",
             .aboutReleases: "Releases: \(ReleaseDistribution.releasesPageURL.absoluteString)",
             .aboutShaNote: "Each DMG build script prints SHA-256 for verification.",
             .systemTimeZone: "System",
@@ -308,7 +312,7 @@ public enum L10n {
             .invalidObsidianPathRelative: "请使用 Markdown 文件的绝对路径。",
             .invalidObsidianPathNotMarkdown: "Obsidian 目标文件必须是 .md 文件。",
             .aboutName: "言顺",
-            .aboutVersion: "版本 1.3.4",
+            .aboutVersion: "版本 %@",
             .aboutReleases: "Releases: \(ReleaseDistribution.releasesPageURL.absoluteString)",
             .aboutShaNote: "每次 DMG 构建脚本都会打印 SHA-256 校验值。",
             .systemTimeZone: "跟随系统",
