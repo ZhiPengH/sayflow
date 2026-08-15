@@ -4,6 +4,10 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "$ROOT/Scripts/release_common.sh"
 VERSION="${VERSION:-$(sayflow_read_version "$ROOT")}"
+if ! sayflow_validate_version "$VERSION"; then
+  echo "Invalid release version: $VERSION" >&2
+  exit 1
+fi
 DIST="$ROOT/dist"
 APP="$DIST/SayFlow.app"
 DMG="$DIST/SayFlow-$VERSION.dmg"

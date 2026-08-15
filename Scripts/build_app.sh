@@ -6,6 +6,10 @@ source "$ROOT/Scripts/release_common.sh"
 APP_NAME="${APP_NAME:-SayFlow}"
 PRODUCT_NAME="${PRODUCT_NAME:-SayFlow}"
 VERSION="${VERSION:-$(sayflow_read_version "$ROOT")}"
+if ! sayflow_validate_version "$VERSION"; then
+  echo "Invalid release version: $VERSION" >&2
+  exit 1
+fi
 IDENTIFIER="${IDENTIFIER:-com.zhixing.sayflow}"
 DIST="${DIST:-$ROOT/dist}"
 CODESIGN_IDENTITY="${CODESIGN_IDENTITY:-SayFlow Local Development}"

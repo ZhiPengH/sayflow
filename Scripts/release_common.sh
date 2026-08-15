@@ -9,7 +9,7 @@ sayflow_read_version() {
   local repo_root="$1"
   local version
 
-  version="$(tr -d '[:space:]' < "$repo_root/VERSION")"
+  version="$(sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' "$repo_root/VERSION")"
   if ! sayflow_validate_version "$version"; then
     echo "Invalid VERSION: $version" >&2
     return 1
