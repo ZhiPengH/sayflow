@@ -10,6 +10,9 @@ export SWIFTPM_MODULECACHE_OVERRIDE="$ROOT/.build/module-cache"
 for script in Scripts/*.sh; do
   bash -n "$script"
 done
+test -x Scripts/publish_release.sh
+test -x Tests/ScriptTests/PublishReleaseCLITests.sh
+bash Tests/ScriptTests/PublishReleaseCLITests.sh
 test -x Scripts/verify_package.sh
 test -x Scripts/ax_selected_text_probe.sh
 test -x Scripts/run_manual_test_app.sh
