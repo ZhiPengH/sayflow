@@ -2,7 +2,12 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-VERSION="${VERSION:-1.3.3}"
+source "$ROOT/Scripts/release_common.sh"
+VERSION="${VERSION:-$(sayflow_read_version "$ROOT")}"
+if ! sayflow_validate_version "$VERSION"; then
+  echo "Invalid release version: $VERSION" >&2
+  exit 1
+fi
 DIST="$ROOT/dist"
 APP="$DIST/SayFlow.app"
 DMG="$DIST/SayFlow-$VERSION.dmg"
@@ -25,4 +30,4 @@ hdiutil create \
   -format UDZO \
   "$DMG"
 
-shasum -a 256 "$DMG" | tee "$DMG.sha256"
+sayflow_write_sha256 "$DMG"

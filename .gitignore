@@ -1,6 +1,7 @@
 .build/
 build/
 dist/
+.worktrees/
 .DS_Store
 DerivedData/
 

@@ -196,7 +196,7 @@ final class SettingsWindowController: NSWindowController, NSTextViewDelegate, NS
     private func aboutView() -> NSView {
         let stack = formStack()
         stack.addArrangedSubview(label(L10n.tr(.aboutName)))
-        stack.addArrangedSubview(label(L10n.tr(.aboutVersion)))
+        stack.addArrangedSubview(label(L10n.aboutVersion(CurrentApp.version)))
         stack.addArrangedSubview(label(L10n.tr(.aboutReleases)))
         stack.addArrangedSubview(label(L10n.tr(.aboutShaNote)))
         return padded(stack)

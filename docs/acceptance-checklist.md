@@ -1,6 +1,6 @@
-# SayFlow v1.3.3 Acceptance Checklist
+# SayFlow v1.3.4 Acceptance Checklist
 
-Use this checklist after building `dist/SayFlow.app` or installing `dist/SayFlow-1.3.3.dmg`.
+Use this checklist after building `dist/SayFlow.app` or installing `dist/SayFlow-1.3.4.dmg`.
 Some items require macOS Accessibility permission and must be verified by a logged-in user.
 
 ## Automated Gates
@@ -16,11 +16,12 @@ Scripts/manual_acceptance_probe.sh
 
 Expected evidence:
 
-- `Scripts/test.sh` reports all SayFlowCore tests passed and `swift build` completes.
-- `Scripts/package_dmg.sh` creates `dist/SayFlow.app`, `dist/SayFlow-1.3.3.dmg`, and `dist/SayFlow-1.3.3.dmg.sha256`.
-- `Scripts/verify_package.sh` checks codesign, `x86_64` + `arm64`,
+- `Scripts/test.sh` reports all 161 SayFlowCore tests passed and `swift build` completes.
+- `Scripts/package_dmg.sh` creates `dist/SayFlow.app`, `dist/SayFlow-1.3.4.dmg`, and `dist/SayFlow-1.3.4.dmg.sha256`.
+- `Scripts/verify_package.sh` passes with the repository's stable local signature, `x86_64` + `arm64`,
   `LSUIElement=true`, `LSMinimumSystemVersion=13.0`, SHA-256, DMG size below
-  30 MB, and the mounted DMG contents using a fixed temporary mount point.
+  30 MB, and the mounted DMG contents using a fixed temporary mount point. The
+  final DMG SHA-256 is `4e6370e21652360df4f5a98612dd0952a1a2f74e33a43beb28a36419e454e045`.
 - `Scripts/manual_acceptance_probe.sh` reports bundle, signing, provider, local environment,
   package, and Accessibility status without printing API keys. When SayFlow is
   running, it also checks that the app itself is not still showing first-launch
@@ -29,7 +30,8 @@ Expected evidence:
   actually clear for the app.
 - `Scripts/ax_selected_text_probe.sh <app> "<expected text>"` can be used while
   a target app has selected text. It checks the same AX selected-text path used
-  by SayFlow, including WebKit text-marker fallback for Safari.
+  by SayFlow, including fallback to the WebKit text-marker range when direct
+  `AXSelectedText` is missing or blank.
 
 ## Provider Smoke Test
 
@@ -101,6 +103,12 @@ This verifies selected-text capture only. It does not replace the full `Control+
 manual pass because the full pass must also verify hotkey delivery, panel
 position, focus retention, close behavior, and Accept replacement.
 
+Recorded v1.3.4 browser evidence:
+
+- In the real X reply editor in Google Chrome, Accept changed the draft DOM from
+  `比如想着` to the English correction.
+- The original draft was restored immediately after verification, and no post was submitted.
+
 ## Result Panel UI
 
 Use a correction with at least two changes.
@@ -130,7 +138,26 @@ Acceptance:
 
 - The selected text in the original app is replaced with `The market is unpredictable in the short term.`
 - SayFlow does not steal permanent focus from the original app.
-- If the target app refuses Accessibility replacement, SayFlow copies the corrected text to the clipboard and shows a clear warning.
+- Native editors continue to use direct Accessibility replacement.
+
+For X or another editor inside a supported browser:
+
+1. Select existing draft text and trigger SayFlow.
+2. Wait for the corrected result and click Accept.
+3. Confirm the original selection is replaced without submitting the draft.
+
+Browser acceptance:
+
+- Browser content does not trust an apparent `AXSelectedText` write success.
+- Accept copies the corrected text, closes the panel, and reactivates the target captured by the current correction session.
+- Before paste, SayFlow verifies the session and target process are still current, the target is frontmost, the original selection still matches, and the clipboard still contains the expected correction.
+- If a required original-selection check cannot be confirmed, SayFlow leaves the corrected text on the clipboard and does not paste automatically.
+- The final `Command+V` is posted directly to the captured target PID with `CGEvent.postToPid`; stale sessions, terminated/relaunched targets, changed selections, changed clipboards, or exhausted focus retries cancel instead of pasting elsewhere.
+- Accept cancels the active streaming request, and late snapshot/error/completion callbacks from that request do not update the closed panel.
+
+Recorded v1.3.4 E2E result: the real X/Chrome draft DOM changed from
+`比如想着` to the English correction, then the original draft was restored;
+no post was submitted.
 
 ## Obsidian Write
 

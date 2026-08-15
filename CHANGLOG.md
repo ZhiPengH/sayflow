@@ -4,6 +4,58 @@ This file follows the requested name, `CHANGLOG.md`. The missing "E" has the sme
 
 这个文件按要求命名为 `CHANGLOG.md`。少掉的那个 "E"，倒有点老项目抽屉里的味道：名字一旦定下，就把内容写扎实。
 
+## 2026-08-16
+
+### Release v1.3.5
+
+English:
+
+- Promoted SayFlow from self-signed pre-release builds to an official Developer ID distribution: the app is signed with Developer ID Application: ZHIPENG HUANG (UTZUZ8U2J2), enables Hardened Runtime (flags=0x10000(runtime)), and carries a secure Apple timestamp.
+- Added Scripts/notarize_release.sh: it builds the signed app, verifies the Developer ID authority, secure timestamp, and runtime flags, notarizes the app with notarytool, staples the ticket, requires Gatekeeper source=Notarized Developer ID, then packages, notarizes, staples, and validates the DMG.
+- Scripts/build_app.sh now applies --options runtime --timestamp automatically when a Developer ID Application identity is selected; local self-signed development builds are unchanged.
+- Scripts/publish_release.sh resolves stapler through the new sayflow_find_xcode_tool helper, so stable-release gates keep working when xcode-select points to Command Line Tools.
+- The release version comes from the VERSION file (now 1.3.5) and test gates pin both the release version and the notarization requirements.
+- Built and notarized the official universal package dist/SayFlow-1.3.5.dmg: both the app and DMG passed Apple notarization (Accepted), stapler validate succeeded for both, Gatekeeper reports source=Notarized Developer ID, Scripts/verify_package.sh passed, and SHA-256 is dc10a3092eb252e7c9e35cebc79a92a2a713f6923a856d451e5f1b04f24a5f75.
+
+中文：
+
+- SayFlow 从自签名预发布升级为正式 Developer ID 分发：App 使用 Developer ID Application: ZHIPENG HUANG (UTZUZ8U2J2) 证书签名，启用 Hardened Runtime（flags=0x10000(runtime)）并附带 Apple secure timestamp。
+- 新增 Scripts/notarize_release.sh：构建签名 App，校验 Developer ID 授权链、secure timestamp 与 runtime 标志，用 notarytool 公证并 staple，强制 Gatekeeper 输出 source=Notarized Developer ID，随后打包、公证、staple 并验证 DMG。
+- Scripts/build_app.sh 在选择 Developer ID Application 身份时自动附加 --options runtime --timestamp；本地自签名开发构建保持原状。
+- Scripts/publish_release.sh 通过新的 sayflow_find_xcode_tool 解析 stapler，在 xcode-select 指向 Command Line Tools 的机器上正式发布门禁依然可用。
+- 发布版本统一由 VERSION 文件管理（现为 1.3.5），测试门禁同步锁定发布版本与公证要求。
+- 生成并公证正式通用安装包 dist/SayFlow-1.3.5.dmg：App 与 DMG 均通过 Apple 公证（Accepted），两者 stapler validate 成功，Gatekeeper 输出 source=Notarized Developer ID，Scripts/verify_package.sh 全部通过，SHA-256：dc10a3092eb252e7c9e35cebc79a92a2a713f6923a856d451e5f1b04f24a5f75。
+
+## 2026-08-15
+
+### Release v1.3.4
+
+English:
+
+- Fixed Accept replacement in X/Chrome and other browser editors by no longer trusting an apparent `AXSelectedText` write success for browser content.
+- Browser Accept now uses a session-scoped sequence: copy the corrected text, close the panel, reactivate the captured target, verify the current session, target process, frontmost app, original selection, and clipboard, then post `Command+V` directly to the captured PID with `CGEvent.postToPid`. If a required original-selection check cannot be confirmed, the corrected text remains on the clipboard and SayFlow does not paste automatically.
+- Accept cancels the active streaming request, and request-attempt guards discard late snapshot, error, and completion callbacks so a closed panel cannot be updated by stale work.
+- When direct `AXSelectedText` is missing or blank, selected-text capture now falls back to the WebKit text-marker range.
+- Expanded regression coverage for browser transport selection, copy-close-paste ordering, session/focus/selection/clipboard guards, and empty direct AX selection fallback; all `161/161` SayFlowCore tests pass.
+- Verified the real X reply editor in Chrome end to end: Accept changed the DOM from `比如想着` to the English correction, the original draft was then restored, and no post was submitted.
+- Prepared the repository for public distribution by removing internal-only project material and tightening the public project instructions.
+- Redesigned the bilingual project homepage with a dedicated English README and product screenshots.
+- Protected local configuration by ignoring common secret and credential files and enforcing owner-only permissions on settings and prompt files.
+- Built and verified the stable local-signed universal package `dist/SayFlow-1.3.4.dmg`; `Scripts/verify_package.sh` passed and SHA-256 is `4e6370e21652360df4f5a98612dd0952a1a2f74e33a43beb28a36419e454e045`.
+
+中文：
+
+- 修复 X/Chrome 及其他浏览器编辑器中的 Accept 替换：浏览器内容不再把看似成功的 `AXSelectedText` 写入当作可信结果。
+- 浏览器 Accept 现在采用会话级流程：复制 corrected text、关闭面板、重新激活捕获时的目标，再校验当前会话、目标进程、前台 App、原选区和剪贴板，最后通过 `CGEvent.postToPid` 向捕获到的 PID 定向发送 `Command+V`。如果无法重新确认必须校验的原选区，只保留剪贴板中的 corrected text，不自动粘贴。
+- 点击 Accept 会取消当前 streaming 请求，并用 request-attempt 标识丢弃迟到的 snapshot、error 和 completion 回调，避免旧任务更新已关闭的面板。
+- 当直接读取的 `AXSelectedText` 缺失或为空时，选中文本捕获现在会回退到 WebKit text-marker range。
+- 扩充浏览器传输策略、复制—关闭—粘贴顺序、会话/焦点/选区/剪贴板保护及空 AX 直选区回退的回归测试；SayFlowCore `161/161` 全部通过。
+- 已在 Chrome 的真实 X 回复编辑器完成端到端验证：Accept 将 DOM 从“比如想着”替换为英文 corrected text，随后恢复原草稿，全程未发帖。
+- 清理仅供内部使用的项目资料并收紧公开项目指引，为仓库公开发布做好准备。
+- 重设计中英双语项目主页，新增独立英文 README 和产品截图。
+- 加强本地配置隐私：忽略常见密钥与凭据文件，并将设置和提示词文件权限限制为仅所有者可读写。
+- 生成并验证本地稳定自签名的通用架构安装包 `dist/SayFlow-1.3.4.dmg`；`Scripts/verify_package.sh` 全部通过，SHA-256：`4e6370e21652360df4f5a98612dd0952a1a2f74e33a43beb28a36419e454e045`。
+
 ## 2026-08-03
 
 ### Release v1.3.3
