@@ -57,9 +57,10 @@
 
 ## 核心功能
 
-### 1. 选中文本，快捷修正
+### 1. 选中文本，快捷修正替换原文本
 
-在 AI 对话框、邮件、文档、Obsidian、Notion、Slack、浏览器输入框等可选中文本的位置，直接唤起言顺。它优先通过 macOS Accessibility 读取选区，并提供剪贴板兜底。
+在 AI 对话框、邮件、文档、Obsidian、Notion、Slack、浏览器输入框等可选中文本的位置，直接唤起言顺（快捷键cmd+ctl+s）。
+当你点击accept的时候，它会直接替换你的原文本，当你点中间的+图标，它会追加到原始文本的后面（中英双译效果）
 
 ### 2. 不只改句子，也解释为什么
 
@@ -113,24 +114,13 @@
 - Accessibility（辅助功能）权限，用于读取选中文本和替换原文；
 - 一个可用的 OpenAI 或 OpenAI-compatible 模型服务。
 
-### 从源码构建
-
-当前公开仓库提供源码构建流程。克隆后可先生成本机架构的 App：
-
-```bash
-git clone https://github.com/ZhiPengH/sayflow.git
-cd sayflow
-CODESIGN_IDENTITY=- UNIVERSAL=0 Scripts/build_app.sh
-open dist/SayFlow.app
-```
 
 首次启动后：
 
 1. 在系统设置中授予言顺 Accessibility 权限；
-2. 打开言顺设置，选择模型提供商并填写 API Key；
+2. 打开言顺设置，选择模型提供商并填写 API Key；（推荐deepseek-v4-flash或者gemini-3.7-flash)
 3. 在任意 App 中选中文本，按 `⌃⌘S` 开始使用。
 
-如果你会反复本地构建，可以运行 `Scripts/ensure_codesign_identity.sh` 创建稳定的本地开发签名，减少重建后重新授权的情况。完整人工验收步骤见 [`docs/acceptance-checklist.md`](./docs/acceptance-checklist.md)。
 
 ## 模型服务与接口兼容
 
@@ -144,77 +134,6 @@ open dist/SayFlow.app
 
 言顺会自动完成 endpoint 规范化，并支持流式 SSE 与结构化 JSON 结果。
 
-## 隐私与本地数据
-
-- 触发批改或翻译时，选中的文本会发送给当前配置的模型服务；连接测试只发送最小 `ping` 请求；
-- API Key 保存在 `~/Library/Application Support/SayFlow/provider.env`，不会写入 JSON 设置文件；
-- 设置保存在 `~/Library/Application Support/SayFlow/settings.json`；
-- Prompt 场景保存在 `~/Library/Application Support/SayFlow/prompts.json`；
-- Obsidian 内容只写入你在设置中选择的 Markdown 文件。
-
-请同时阅读并确认你所使用模型服务商的数据处理政策。
-
-## 开发与验证
-
-运行完整本地验证：
-
-```bash
-Scripts/test.sh
-```
-
-构建 Debug 可执行文件：
-
-```bash
-swift build
-```
-
-构建并验证 Universal DMG：
-
-```bash
-Scripts/package_dmg.sh
-Scripts/verify_package.sh
-```
-
-当前验证基线覆盖 162 个 `SayFlowCore` 测试，并检查 App 签名、`arm64` / `x86_64` 架构、DMG 校验和与安装包内容。更多状态见 [`docs/completion-audit.md`](./docs/completion-audit.md) 与 [`CHANGLOG.md`](./CHANGLOG.md)。
-
-### 发布官方正式版（Developer ID + 公证）
-
-一次性准备，在这台 Mac 的终端里亲自执行，不要把密码粘贴给任何聊天工具：
-
-1. 在 <https://appleid.apple.com> 创建 App 专用密码（登录和安全 > App 专用密码）。
-2. 存入 notarytool 钥匙串凭证，把 YOUR_APPLE_ID 换成你的 Apple ID：
-
-        /Applications/Xcode.app/Contents/Developer/usr/bin/notarytool store-credentials sayflow-notary --apple-id YOUR_APPLE_ID --team-id UTZUZ8U2J2
-
-之后一条命令完成 Developer ID 签名（Hardened Runtime + secure timestamp）、公证、staple 与 Gatekeeper 验证：
-
-    Scripts/notarize_release.sh
-
-脚本要求 spctl 输出 source=Notarized Developer ID，且 App 与 DMG 都通过 stapler validate，否则会中止。通过后再运行 Scripts/publish_release.sh 发布稳定版 GitHub Release。
-
-手动测试通过后，也可以用一条命令完成推送、PR、合并与正式发布：
-
-    Scripts/ship_release.sh
-
-它会先校验 dist 中已公证 DMG 的 SHA-256 与 staple 票据，确认无误后才继续。
-
-<details>
-<summary><strong>调试第三方 Responses API</strong></summary>
-
-在 Custom provider 中填写完整的 `/v1/responses` endpoint、模型名称和 API Key。言顺会自动识别 Responses API，并发送带有 `stream: true` 和 `text.format.type = json_object` 的请求。
-
-也可以在不向项目文件写入密钥的情况下配置本地调试服务：
-
-```bash
-SAYFLOW_DEBUG_ENDPOINT="https://example.com/v1/responses" \
-SAYFLOW_DEBUG_MODEL="model-name" \
-SAYFLOW_DEBUG_API_KEY="sk-..." \
-Scripts/configure_debug_provider.sh
-```
-
-脚本会更新本地设置，并把密钥写入 `provider.env`。
-
-</details>
 
 ---
 
