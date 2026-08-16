@@ -188,6 +188,12 @@ Then one command builds with Developer ID signing (Hardened Runtime + secure tim
 
 The script aborts unless spctl reports source=Notarized Developer ID and both the app and the DMG pass stapler validate. After that, run Scripts/publish_release.sh to publish the stable GitHub Release.
 
+After manual testing passes, one more command ships the release end to end:
+
+    Scripts/ship_release.sh
+
+It first re-validates the SHA-256 and stapled ticket of the notarized DMG in dist/ before pushing anything.
+
 <details>
 <summary><strong>Debug a third-party Responses API endpoint</strong></summary>
 

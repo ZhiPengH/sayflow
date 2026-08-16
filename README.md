@@ -192,6 +192,12 @@ Scripts/verify_package.sh
 
 脚本要求 spctl 输出 source=Notarized Developer ID，且 App 与 DMG 都通过 stapler validate，否则会中止。通过后再运行 Scripts/publish_release.sh 发布稳定版 GitHub Release。
 
+手动测试通过后，也可以用一条命令完成推送、PR、合并与正式发布：
+
+    Scripts/ship_release.sh
+
+它会先校验 dist 中已公证 DMG 的 SHA-256 与 staple 票据，确认无误后才继续。
+
 <details>
 <summary><strong>调试第三方 Responses API</strong></summary>
 
