@@ -428,7 +428,10 @@ public enum EndpointNormalizer {
         guard !trimmed.isEmpty, var components = URLComponents(string: trimmed) else {
             throw Error.invalidURL(rawValue)
         }
-        guard components.scheme?.lowercased() == "https" else {
+        let scheme = components.scheme?.lowercased()
+        let host = components.host?.lowercased()
+        let isLoopbackHost = host == "localhost" || host == "127.0.0.1" || host == "::1" || host == "[::1]"
+        guard scheme == "https" || (scheme == "http" && isLoopbackHost) else {
             throw Error.nonHTTPS(rawValue)
         }
 
