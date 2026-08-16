@@ -174,6 +174,30 @@ enum ProviderTests {
         try expectEqual(endpoint.kind, .responses)
     }
 
+    static func endpointNormalizerAllowsHTTPLoopbackEndpoints() throws {
+        try expectEqual(
+            try EndpointNormalizer.chatCompletionsEndpoint(from: "http://127.0.0.1:8317/v1"),
+            URL(string: "http://127.0.0.1:8317/v1/chat/completions")
+        )
+        try expectEqual(
+            try EndpointNormalizer.chatCompletionsEndpoint(from: "http://localhost:8317/v1"),
+            URL(string: "http://localhost:8317/v1/chat/completions")
+        )
+        try expectEqual(
+            try EndpointNormalizer.chatCompletionsEndpoint(from: "http://[::1]:8317/v1"),
+            URL(string: "http://[::1]:8317/v1/chat/completions")
+        )
+        try expectEqual(
+            try EndpointNormalizer.chatCompletionsEndpoint(from: "http://127.0.0.1:8317/v1/responses"),
+            URL(string: "http://127.0.0.1:8317/v1/responses")
+        )
+    }
+
+    static func endpointNormalizerRejectsHTTPForNonLoopbackHosts() throws {
+        try expectNil(try? EndpointNormalizer.chatCompletionsEndpoint(from: "http://api.example.com/v1"))
+        try expectNil(try? EndpointNormalizer.chatCompletionsEndpoint(from: "http://192.168.1.10:8317/v1"))
+    }
+
     static func providerConfigurationBuildsOpenAICompatibleStreamingJSONRequest() throws {
         let config = ProviderConfiguration(
             id: "custom",
@@ -459,7 +483,7 @@ enum ProviderTests {
         try expectEqual(messages[1], ["role": "user", "content": "请你作为童话故事大王，写一篇短篇童话故事"])
     }
 
-    static func providerSettingsValidationRequiresHTTPSBaseURLAndModel() throws {
+    static func providerSettingsValidationRequiresHTTPSExceptLoopbackBaseURLAndModel() throws {
         let valid = ProviderConfiguration(
             id: "custom",
             kind: .custom,
@@ -474,9 +498,12 @@ enum ProviderTests {
         nonHTTPS.baseURL = "http://api.example.com/v1"
         var missingModel = valid
         missingModel.model = "   "
+        var loopbackHTTP = valid
+        loopbackHTTP.baseURL = "http://127.0.0.1:8317/v1"
 
         try expectEqual(ProviderSettingsValidator.validate(valid), .valid)
         try expectEqual(ProviderSettingsValidator.validate(nonHTTPS), .invalid(.baseURL))
+        try expectEqual(ProviderSettingsValidator.validate(loopbackHTTP), .valid)
         try expectEqual(ProviderSettingsValidator.validate(missingModel), .invalid(.model))
     }
 }

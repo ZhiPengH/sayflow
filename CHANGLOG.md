@@ -6,6 +6,20 @@ This file follows the requested name, `CHANGLOG.md`. The missing "E" has the sme
 
 ## 2026-08-16
 
+### Release v1.3.6
+
+English:
+
+- Fixed the Custom provider for local reverse proxies: Base URL / Endpoint now accepts `http://` for loopback hosts (`localhost`, `127.0.0.1`, `[::1]`), while every other host still requires HTTPS.
+- The invalid-endpoint hint now mentions the localhost HTTP exception in both English and Chinese.
+- Added endpoint-normalizer coverage for loopback HTTP (chat/completions and responses paths), rejection of HTTP on non-loopback hosts, and provider-settings validation for loopback HTTP; all `164/164` SayFlowCore tests pass.
+
+中文：
+
+- 修复 Custom 提供商连接本地反代的场景：Base URL / Endpoint 允许回环地址（`localhost`、`127.0.0.1`、`[::1]`）使用 `http://`，其余地址仍强制 HTTPS。
+- Base URL / Endpoint 校验失败的中英文提示同步注明 localhost HTTP 例外。
+- 端点归一化新增回环放行、非回环拒绝与设置校验测试，`164/164` SayFlowCore 测试全部通过。
+
 ### Release v1.3.5
 
 English:

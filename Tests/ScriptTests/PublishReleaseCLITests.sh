@@ -26,12 +26,12 @@ grep -q -- '--dry-run' <<<"$help"
 grep -q -- '--prerelease' <<<"$help"
 grep -q -- '--use-existing-artifacts' <<<"$help"
 
-tag_before="$("$REAL_GIT" rev-parse --verify --quiet refs/tags/v1.3.5 || true)"
+tag_before="$("$REAL_GIT" rev-parse --verify --quiet refs/tags/v1.3.6 || true)"
 plan="$(PATH="$FAKE_BIN:$PATH" Scripts/publish_release.sh --dry-run --prerelease)"
-tag_after="$("$REAL_GIT" rev-parse --verify --quiet refs/tags/v1.3.5 || true)"
+tag_after="$("$REAL_GIT" rev-parse --verify --quiet refs/tags/v1.3.6 || true)"
 
 grep -q 'channel=prerelease' <<<"$plan"
-grep -q 'tag=v1.3.5' <<<"$plan"
+grep -q 'tag=v1.3.6' <<<"$plan"
 grep -q 'ordinary_push_publishes_dmg=false' <<<"$plan"
 [[ "$tag_after" == "$tag_before" ]]
 [[ ! -e "$COMMAND_LOG" ]]
