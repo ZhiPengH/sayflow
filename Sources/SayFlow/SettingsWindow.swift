@@ -761,13 +761,7 @@ final class SettingsWindowController: NSWindowController, NSTextViewDelegate, NS
     }
 
     private func scroll(for textView: NSTextView, height: CGFloat) -> NSScrollView {
-        let scroll = NSScrollView()
-        scroll.documentView = textView
-        scroll.hasVerticalScroller = true
-        scroll.borderType = .bezelBorder
-        scroll.heightAnchor.constraint(equalToConstant: height).isActive = true
-        scroll.widthAnchor.constraint(equalToConstant: 650).isActive = true
-        return scroll
+        SettingsTextEditorScrollView.make(for: textView, height: height)
     }
 
     private func showAlert(_ title: String, _ message: String) {

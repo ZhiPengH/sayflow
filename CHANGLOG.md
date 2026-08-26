@@ -4,6 +4,20 @@ This file follows the requested name, `CHANGLOG.md`. The missing "E" has the sme
 
 这个文件按要求命名为 `CHANGLOG.md`。少掉的那个 "E"，倒有点老项目抽屉里的味道：名字一旦定下，就把内容写扎实。
 
+## 2026-08-26
+
+### Release v1.3.7
+
+English:
+
+- Fixed prompt editor contents appearing blank on affected macOS versions. Each `NSTextView` now receives a usable `650 × height` frame immediately after it becomes the scroll view's document view, so TextKit never has to lay out prompt text in a zero-width container while tab layout is deferred.
+- Added an AppKit regression test that verifies settings text editors have a usable frame and text-container width before their tab is displayed.
+
+中文：
+
+- 修复部分 macOS 版本中提示词编辑器内容显示为空的问题。每个 `NSTextView` 在关联为滚动视图的 `documentView` 后，会立即获得 `650 × height` 的可用 frame，避免标签页延迟布局期间 TextKit 在零宽容器中排版文字。
+- 新增 AppKit 回归测试，确保设置窗口文本编辑器在标签页显示前就具备可用的 frame 与文本容器宽度。
+
 ## 2026-08-16
 
 ### Release v1.3.6

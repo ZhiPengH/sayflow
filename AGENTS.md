@@ -22,6 +22,7 @@ This message disappears once the first observation lands.
 规则：
 
 - 用户未明确确认手动测试通过时，不得执行任何 push、PR 合并或 release 操作；先询问。
+- 用户确认手动测试通过并说“发布”后，主代理必须将 `Scripts/ship_release.sh` 的执行委派给单一 worker 子代理；该子代理负责完整执行且发布失败不得自动重试，主代理负责独立验收 DMG、PR、tag 和 GitHub Release。
 - 发布必须走 `Scripts/notarize_release.sh` + `Scripts/ship_release.sh`；禁止手工 `gh release create`、手工 push tag 或直接 push main（main 受分支保护，走 PR + admin merge）。
 - 只汇报关键结果：DMG 校验、PR 编号、Release 链接；不要复述完整脚本输出。
 - 发布失败时保留现场，报告失败步骤与退出码，不要自动重试发布动作。
