@@ -29,7 +29,7 @@ grep -q 'fail "SayFlow app is not running' Scripts/manual_acceptance_probe.sh
 ! grep -q 'https://api.mimo.mi.com/v1' Scripts/configure_debug_provider.sh
 grep -q 'APP_NAME="${APP_NAME:-SayFlow}"' Scripts/build_app.sh
 grep -q 'DIST="${DIST:-$ROOT/dist}"' Scripts/build_app.sh
-test "$(cat VERSION)" = "1.3.6"
+test "$(cat VERSION)" = "1.3.7"
 grep -q -- '--options runtime --timestamp' Scripts/build_app.sh
 grep -q 'sayflow_find_xcode_tool' Scripts/release_common.sh
 grep -q 'source=Notarized Developer ID' Scripts/notarize_release.sh
@@ -124,4 +124,6 @@ test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$ROOT/build/Test
 /usr/bin/codesign --verify --deep --strict --verbose=2 "$ROOT/build/TestApp.app"
 swiftc -swift-version 5 Sources/SayFlowCore/*.swift Tests/SayFlowCoreTests/*.swift -o .build/local-tests/SayFlowCoreTests
 .build/local-tests/SayFlowCoreTests
+swiftc -swift-version 5 Sources/SayFlow/SettingsTextEditorScrollView.swift Tests/AppKitTests/SettingsTextEditorScrollViewTests.swift -o .build/local-tests/SettingsTextEditorScrollViewTests
+.build/local-tests/SettingsTextEditorScrollViewTests
 swift build

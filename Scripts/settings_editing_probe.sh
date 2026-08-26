@@ -44,5 +44,6 @@ done
 ! grep -q 'userPromptView' Sources/SayFlow/SettingsWindow.swift || fail "SettingsWindow should hide the editable User Prompt control"
 
 grep -q 'textView.allowsUndo = true' Sources/SayFlow/SettingsWindow.swift || fail "settings NSTextView editors do not enable Undo"
+grep -q 'SettingsTextEditorScrollView.make(for: textView, height: height)' Sources/SayFlow/SettingsWindow.swift || fail "SettingsWindow does not use the tested text editor scroll factory"
 
 pass "Settings editable controls use the standard macOS Edit menu"
