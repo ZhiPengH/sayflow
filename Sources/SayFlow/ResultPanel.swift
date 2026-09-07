@@ -12,7 +12,7 @@ final class ResultPanelController: NSObject {
 
     var onCopy: ((String) -> Void)?
     var onSpeak: ((String) -> Void)?
-    var onInsert: ((String, String) -> Bool)?
+    var onInsert: ((String, String) -> AcceptReplacementExecutionOutcome)?
     var onAccept: ((String) -> AcceptReplacementExecutionOutcome)?
     var onWrite: ((GrammarCorrection) throws -> Void)?
     var onRetry: (() -> Void)?
@@ -37,16 +37,14 @@ final class ResultPanelController: NSObject {
             guard let self else {
                 return
             }
-            if self.onInsert?(original, corrected) ?? false {
+            switch self.onInsert?(original, corrected) ?? .pasteSchedulingFailed {
+            case .replacementSucceeded:
                 self.contentView.flashInsertSuccess()
-            } else {
-                switch InsertReplacementFallback.finalFailureAction() {
-                case .showInsertedFeedback, .pasteReplacementThroughClipboard:
-                    break
-                case .showFailureAndClosePanelAfterDelay(let delay):
-                    self.contentView.showError(L10n.tr(.insertFailed), raw: nil, allowsRetry: false)
-                    self.close(after: delay)
-                }
+            case .pasteScheduled:
+                break
+            case .pasteSchedulingFailed:
+                self.contentView.showError(L10n.tr(.insertFailed), raw: nil, allowsRetry: false)
+                self.close(after: 1)
             }
         }
         contentView.onAccept = { [weak self] correction in
