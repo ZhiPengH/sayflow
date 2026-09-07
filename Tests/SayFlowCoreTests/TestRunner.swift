@@ -153,6 +153,8 @@ struct SayFlowCoreTestRunner {
             TestCase(name: "Accept replacement failure fallback", run: AcceptReplacementFallbackTests.failedReplacementFallsBackToClipboardCopy),
             TestCase(name: "Accept translation mode closes", run: AcceptReplacementFallbackTests.translationModeAcceptOnlyClosesPanel),
             TestCase(name: "Chrome replacement uses paste", run: WebEditorReplacementPolicyTests.chromeUsesClipboardPaste),
+            TestCase(name: "Codex replacement uses paste", run: WebEditorReplacementPolicyTests.codexUsesClipboardPaste),
+            TestCase(name: "Codex replacement bundle ID is case insensitive", run: WebEditorReplacementPolicyTests.codexBundleIdentifierIsCaseInsensitive),
             TestCase(name: "Safari replacement uses paste", run: WebEditorReplacementPolicyTests.safariUsesClipboardPaste),
             TestCase(name: "Native replacement keeps AX", run: WebEditorReplacementPolicyTests.nativeApplicationKeepsAccessibilityReplacement),
             TestCase(name: "Missing app replacement keeps AX", run: WebEditorReplacementPolicyTests.missingApplicationKeepsAccessibilityReplacement),

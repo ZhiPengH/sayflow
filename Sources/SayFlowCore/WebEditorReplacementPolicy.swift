@@ -6,7 +6,9 @@ public enum WebEditorReplacementTransport: Equatable {
 }
 
 public enum WebEditorReplacementPolicy {
-    private static let browserBundleIdentifiers: Set<String> = [
+    private static let webEditorBundleIdentifiers: Set<String> = [
+        // Codex uses web editors for both its composer and commit dialog.
+        "com.openai.codex",
         "com.apple.safari",
         "com.apple.safaritechnologypreview",
         "com.brave.browser",
@@ -24,7 +26,7 @@ public enum WebEditorReplacementPolicy {
         guard let bundleIdentifier else {
             return .accessibility
         }
-        return browserBundleIdentifiers.contains(bundleIdentifier.lowercased())
+        return webEditorBundleIdentifiers.contains(bundleIdentifier.lowercased())
             ? .clipboardPaste
             : .accessibility
     }

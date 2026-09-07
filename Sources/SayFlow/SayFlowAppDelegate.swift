@@ -249,66 +249,16 @@ final class SayFlowAppDelegate: NSObject, NSApplicationDelegate {
         }
         resultPanel.onInsert = { [weak self] originalText, correctedText in
             guard let self else {
-                return false
+                return .pasteSchedulingFailed
             }
             let replacement = ResultPresentationPolicy.insertReplacement(
                 originalText: originalText,
                 correctedText: correctedText
             )
-            let action = InsertReplacementFallback.action(
-                accessibilityReplacementSucceeded: self.accessibility.replaceSelection(with: replacement),
-                replacement: replacement
-            )
-            switch action {
-            case .showInsertedFeedback:
-                return true
-            case .pasteReplacementThroughClipboard(let replacement):
-                self.clipboard.copy(replacement)
-                return self.accessibility.pasteClipboardIntoFocusedSelection()
-            case .showFailureAndClosePanelAfterDelay:
-                return false
-            }
+            return self.replaceCapturedSelection(with: replacement)
         }
         resultPanel.onAccept = { [weak self] text in
-            guard let self else {
-                return .pasteSchedulingFailed
-            }
-            guard let session = self.currentCorrectionSession,
-                  self.acceptingSessionID != session.id else {
-                return .pasteSchedulingFailed
-            }
-            self.acceptingSessionID = session.id
-            self.currentRequestAttemptID = nil
-            self.streamingClient.cancel()
-            let transport = WebEditorReplacementPolicy.transport(
-                bundleIdentifier: session.target?.bundleIdentifier
-            )
-            let accessibilityReplacementSucceeded = transport == .accessibility
-                ? self.accessibility.replaceSelection(with: text)
-                : false
-            let action = AcceptReplacementFallback.replacementAction(
-                accessibilityReplacementSucceeded: accessibilityReplacementSucceeded,
-                correctedText: text
-            )
-            var expectedClipboardChangeCount: Int?
-            return AcceptReplacementFallback.execute(
-                action: action,
-                copyToClipboard: {
-                    self.clipboard.copy($0)
-                    expectedClipboardChangeCount = self.clipboard.changeCount
-                },
-                closePanel: { self.resultPanel.close() },
-                pasteAfterPanelClose: { [weak self] replacement in
-                    guard let self, let expectedClipboardChangeCount else {
-                        return false
-                    }
-                    return self.scheduleClipboardPaste(
-                        replacement: replacement,
-                        expectedClipboardChangeCount: expectedClipboardChangeCount,
-                        session: session
-                    )
-                }
-            )
+            self?.replaceCapturedSelection(with: text) ?? .pasteSchedulingFailed
         }
         resultPanel.onRetry = { [weak self] in
             guard let self else { return }
@@ -330,6 +280,45 @@ final class SayFlowAppDelegate: NSObject, NSApplicationDelegate {
                 template: self.settings.obsidian.writeTemplate
             )
         }
+    }
+
+    private func replaceCapturedSelection(with text: String) -> AcceptReplacementExecutionOutcome {
+        guard let session = currentCorrectionSession,
+              acceptingSessionID != session.id else {
+            return .pasteSchedulingFailed
+        }
+        acceptingSessionID = session.id
+        currentRequestAttemptID = nil
+        streamingClient.cancel()
+        let transport = WebEditorReplacementPolicy.transport(
+            bundleIdentifier: session.target?.bundleIdentifier
+        )
+        let accessibilityReplacementSucceeded = transport == .accessibility
+            ? accessibility.replaceSelection(with: text)
+            : false
+        let action = AcceptReplacementFallback.replacementAction(
+            accessibilityReplacementSucceeded: accessibilityReplacementSucceeded,
+            correctedText: text
+        )
+        var expectedClipboardChangeCount: Int?
+        return AcceptReplacementFallback.execute(
+            action: action,
+            copyToClipboard: {
+                clipboard.copy($0)
+                expectedClipboardChangeCount = clipboard.changeCount
+            },
+            closePanel: { resultPanel.close() },
+            pasteAfterPanelClose: { [weak self] replacement in
+                guard let self, let expectedClipboardChangeCount else {
+                    return false
+                }
+                return self.scheduleClipboardPaste(
+                    replacement: replacement,
+                    expectedClipboardChangeCount: expectedClipboardChangeCount,
+                    session: session
+                )
+            }
+        )
     }
 
     private func scheduleClipboardPaste(

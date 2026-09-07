@@ -12,7 +12,7 @@ final class ResultPanelController: NSObject {
 
     var onCopy: ((String) -> Void)?
     var onSpeak: ((String) -> Void)?
-    var onInsert: ((String, String) -> Bool)?
+    var onInsert: ((String, String) -> AcceptReplacementExecutionOutcome)?
     var onAccept: ((String) -> AcceptReplacementExecutionOutcome)?
     var onWrite: ((GrammarCorrection) throws -> Void)?
     var onRetry: (() -> Void)?
@@ -37,9 +37,12 @@ final class ResultPanelController: NSObject {
             guard let self else {
                 return
             }
-            if self.onInsert?(original, corrected) ?? false {
+            switch self.onInsert?(original, corrected) ?? .pasteSchedulingFailed {
+            case .replacementSucceeded:
                 self.contentView.flashInsertSuccess()
-            } else {
+            case .pasteScheduled:
+                break
+            case .pasteSchedulingFailed:
                 switch InsertReplacementFallback.finalFailureAction() {
                 case .showInsertedFeedback, .pasteReplacementThroughClipboard:
                     break
