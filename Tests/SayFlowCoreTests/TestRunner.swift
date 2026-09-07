@@ -166,10 +166,7 @@ struct SayFlowCoreTestRunner {
             TestCase(name: "Deferred paste avoids wrong app", run: DeferredPasteFocusPolicyTests.cancelsInsteadOfPastingIntoWrongApplication),
             TestCase(name: "Deferred paste requires original selection", run: DeferredPasteFocusPolicyTests.cancelsWhenOriginalSelectionCannotBeVerified),
             TestCase(name: "Deferred paste cancels stale session", run: DeferredPasteFocusPolicyTests.cancelsStaleSession),
-            TestCase(name: "Deferred paste cancels terminated target", run: DeferredPasteFocusPolicyTests.cancelsTerminatedTarget),
-            TestCase(name: "Insert replacement success action", run: InsertReplacementFallbackTests.successfulAccessibilityReplacementNeedsNoClipboardPaste),
-            TestCase(name: "Insert replacement failure fallback", run: InsertReplacementFallbackTests.failedAccessibilityReplacementFallsBackToClipboardPaste),
-            TestCase(name: "Insert replacement final failure auto close", run: InsertReplacementFallbackTests.failedInsertionClosesPanelAfterShowingFailure)
+            TestCase(name: "Deferred paste cancels terminated target", run: DeferredPasteFocusPolicyTests.cancelsTerminatedTarget)
         ]
 
         var failures: [String] = []

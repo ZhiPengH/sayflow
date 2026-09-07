@@ -43,13 +43,8 @@ final class ResultPanelController: NSObject {
             case .pasteScheduled:
                 break
             case .pasteSchedulingFailed:
-                switch InsertReplacementFallback.finalFailureAction() {
-                case .showInsertedFeedback, .pasteReplacementThroughClipboard:
-                    break
-                case .showFailureAndClosePanelAfterDelay(let delay):
-                    self.contentView.showError(L10n.tr(.insertFailed), raw: nil, allowsRetry: false)
-                    self.close(after: delay)
-                }
+                self.contentView.showError(L10n.tr(.insertFailed), raw: nil, allowsRetry: false)
+                self.close(after: 1)
             }
         }
         contentView.onAccept = { [weak self] correction in
